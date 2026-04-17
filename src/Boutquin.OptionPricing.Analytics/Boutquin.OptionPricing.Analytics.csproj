@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Boutquin.OptionPricing.Analytics</RootNamespace>
+    <AssemblyName>Boutquin.OptionPricing.Analytics</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Boutquin.OptionPricing.Abstractions/Boutquin.OptionPricing.Abstractions.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+    <PackageReference Include="Boutquin.Numerics" />
+  </ItemGroup>
+</Project>

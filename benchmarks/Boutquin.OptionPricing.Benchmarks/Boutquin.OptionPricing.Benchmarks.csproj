@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Boutquin.OptionPricing.Benchmarks</RootNamespace>
+    <AssemblyName>Boutquin.OptionPricing.Benchmarks</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Analytics/Boutquin.OptionPricing.Analytics.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Trees/Boutquin.OptionPricing.Trees.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Calibration/Boutquin.OptionPricing.Calibration.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Exotics/Boutquin.OptionPricing.Exotics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Boutquin.Curves.Core" />
+    <PackageReference Include="Boutquin.Numerics" />
+  </ItemGroup>
+</Project>

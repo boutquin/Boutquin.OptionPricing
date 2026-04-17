@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Boutquin.OptionPricing.Tests.Verification</RootNamespace>
+    <AssemblyName>Boutquin.OptionPricing.Tests.Verification</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Abstractions/Boutquin.OptionPricing.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Analytics/Boutquin.OptionPricing.Analytics.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Trees/Boutquin.OptionPricing.Trees.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Exotics/Boutquin.OptionPricing.Exotics.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Calibration/Boutquin.OptionPricing.Calibration.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Boutquin.Curves.Core" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentAssertions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Copy JSON vectors next to the test assembly so CrossLanguageVerificationBase
+         can find them at runtime. -->
+    <Content Include="..\Verification\vectors\*.json">
+      <Link>Verification\vectors\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Boutquin.OptionPricing.ArchitectureTests</RootNamespace>
+    <AssemblyName>Boutquin.OptionPricing.ArchitectureTests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1823</NoWarn>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Abstractions/Boutquin.OptionPricing.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Analytics/Boutquin.OptionPricing.Analytics.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Trees/Boutquin.OptionPricing.Trees.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Calibration/Boutquin.OptionPricing.Calibration.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Exotics/Boutquin.OptionPricing.Exotics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NetArchTest.eNhancedEdition" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

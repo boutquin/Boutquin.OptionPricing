@@ -1,0 +1,380 @@
+{
+  "meta": {
+    "reference": "structural + grid-point + two-node-linear + arbitrage expectations",
+    "precision_tier": "PRECISION_NUMERIC (grid reads exact, two-node linear deterministic)",
+    "interpolator_scope": "C# uses MonotoneCubicInterpolator + adaptive CubicSplineInterpolator; verifier exercises only paths independent of those specific schemes (grid reads and two-node reductions)"
+  },
+  "structural": [
+    {
+      "name": "two_maturity_three_strike",
+      "points": [
+        {
+          "maturity": 0.5,
+          "strike": 110.0,
+          "vol": 0.22
+        },
+        {
+          "maturity": 0.25,
+          "strike": 100.0,
+          "vol": 0.2
+        },
+        {
+          "maturity": 0.5,
+          "strike": 90.0,
+          "vol": 0.28
+        },
+        {
+          "maturity": 0.25,
+          "strike": 90.0,
+          "vol": 0.25
+        },
+        {
+          "maturity": 0.5,
+          "strike": 100.0,
+          "vol": 0.23
+        },
+        {
+          "maturity": 0.25,
+          "strike": 110.0,
+          "vol": 0.18
+        }
+      ],
+      "expected_slices": [
+        {
+          "maturity": 0.25,
+          "strikes": [
+            90.0,
+            100.0,
+            110.0
+          ],
+          "vols": [
+            0.25,
+            0.2,
+            0.18
+          ]
+        },
+        {
+          "maturity": 0.5,
+          "strikes": [
+            90.0,
+            100.0,
+            110.0
+          ],
+          "vols": [
+            0.28,
+            0.23,
+            0.22
+          ]
+        }
+      ]
+    },
+    {
+      "name": "three_maturity_single_strike",
+      "points": [
+        {
+          "maturity": 1.0,
+          "strike": 100.0,
+          "vol": 0.3
+        },
+        {
+          "maturity": 0.1,
+          "strike": 100.0,
+          "vol": 0.18
+        },
+        {
+          "maturity": 0.5,
+          "strike": 100.0,
+          "vol": 0.24
+        }
+      ],
+      "expected_slices": [
+        {
+          "maturity": 0.1,
+          "strikes": [
+            100.0
+          ],
+          "vols": [
+            0.18
+          ]
+        },
+        {
+          "maturity": 0.5,
+          "strikes": [
+            100.0
+          ],
+          "vols": [
+            0.24
+          ]
+        },
+        {
+          "maturity": 1.0,
+          "strikes": [
+            100.0
+          ],
+          "vols": [
+            0.3
+          ]
+        }
+      ]
+    }
+  ],
+  "grid_reads": [
+    {
+      "grid": [
+        {
+          "maturity": 0.25,
+          "strike": 90.0,
+          "vol": 0.25
+        },
+        {
+          "maturity": 0.25,
+          "strike": 100.0,
+          "vol": 0.2
+        },
+        {
+          "maturity": 0.25,
+          "strike": 110.0,
+          "vol": 0.18
+        },
+        {
+          "maturity": 0.5,
+          "strike": 90.0,
+          "vol": 0.28
+        },
+        {
+          "maturity": 0.5,
+          "strike": 100.0,
+          "vol": 0.23
+        },
+        {
+          "maturity": 0.5,
+          "strike": 110.0,
+          "vol": 0.22
+        },
+        {
+          "maturity": 1.0,
+          "strike": 90.0,
+          "vol": 0.3
+        },
+        {
+          "maturity": 1.0,
+          "strike": 100.0,
+          "vol": 0.25
+        },
+        {
+          "maturity": 1.0,
+          "strike": 110.0,
+          "vol": 0.24
+        }
+      ],
+      "queries": [
+        {
+          "strike": 90.0,
+          "maturity": 0.25,
+          "expected_vol": 0.25
+        },
+        {
+          "strike": 100.0,
+          "maturity": 0.25,
+          "expected_vol": 0.2
+        },
+        {
+          "strike": 110.0,
+          "maturity": 0.25,
+          "expected_vol": 0.18
+        },
+        {
+          "strike": 90.0,
+          "maturity": 0.5,
+          "expected_vol": 0.28
+        },
+        {
+          "strike": 100.0,
+          "maturity": 0.5,
+          "expected_vol": 0.23
+        },
+        {
+          "strike": 110.0,
+          "maturity": 0.5,
+          "expected_vol": 0.22
+        },
+        {
+          "strike": 90.0,
+          "maturity": 1.0,
+          "expected_vol": 0.3
+        },
+        {
+          "strike": 100.0,
+          "maturity": 1.0,
+          "expected_vol": 0.25
+        },
+        {
+          "strike": 110.0,
+          "maturity": 1.0,
+          "expected_vol": 0.24
+        }
+      ]
+    }
+  ],
+  "two_node_linear": [
+    {
+      "name": "two_strike_linear",
+      "grid": [
+        {
+          "maturity": 0.5,
+          "strike": 90.0,
+          "vol": 0.25
+        },
+        {
+          "maturity": 0.5,
+          "strike": 110.0,
+          "vol": 0.15
+        }
+      ],
+      "queries": [
+        {
+          "strike": 95.0,
+          "maturity": 0.5,
+          "expected_vol": 0.225
+        },
+        {
+          "strike": 100.0,
+          "maturity": 0.5,
+          "expected_vol": 0.2
+        },
+        {
+          "strike": 105.0,
+          "maturity": 0.5,
+          "expected_vol": 0.175
+        }
+      ]
+    },
+    {
+      "name": "two_maturity_linear",
+      "grid": [
+        {
+          "maturity": 0.25,
+          "strike": 100.0,
+          "vol": 0.18
+        },
+        {
+          "maturity": 1.0,
+          "strike": 100.0,
+          "vol": 0.3
+        }
+      ],
+      "queries": [
+        {
+          "strike": 100.0,
+          "maturity": 0.5,
+          "expected_vol": 0.21999999999999997
+        },
+        {
+          "strike": 100.0,
+          "maturity": 0.75,
+          "expected_vol": 0.26
+        }
+      ]
+    }
+  ],
+  "arbitrage": [
+    {
+      "name": "valid_surface",
+      "grid": [
+        {
+          "maturity": 0.25,
+          "strike": 90.0,
+          "vol": 0.25
+        },
+        {
+          "maturity": 0.25,
+          "strike": 100.0,
+          "vol": 0.2
+        },
+        {
+          "maturity": 0.25,
+          "strike": 110.0,
+          "vol": 0.22
+        },
+        {
+          "maturity": 0.5,
+          "strike": 90.0,
+          "vol": 0.27
+        },
+        {
+          "maturity": 0.5,
+          "strike": 100.0,
+          "vol": 0.22
+        },
+        {
+          "maturity": 0.5,
+          "strike": 110.0,
+          "vol": 0.24
+        }
+      ],
+      "expected_valid": true,
+      "min_findings": 0
+    },
+    {
+      "name": "butterfly_arbitrage",
+      "grid": [
+        {
+          "maturity": 0.25,
+          "strike": 90.0,
+          "vol": 0.1
+        },
+        {
+          "maturity": 0.25,
+          "strike": 100.0,
+          "vol": 0.5
+        },
+        {
+          "maturity": 0.25,
+          "strike": 110.0,
+          "vol": 0.1
+        }
+      ],
+      "expected_valid": false,
+      "min_findings": 1
+    },
+    {
+      "name": "calendar_arbitrage",
+      "grid": [
+        {
+          "maturity": 0.25,
+          "strike": 100.0,
+          "vol": 0.3
+        },
+        {
+          "maturity": 0.5,
+          "strike": 100.0,
+          "vol": 0.15
+        }
+      ],
+      "expected_valid": false,
+      "min_findings": 1
+    },
+    {
+      "name": "non_positive_vol",
+      "grid": [
+        {
+          "maturity": 0.25,
+          "strike": 90.0,
+          "vol": 0.2
+        },
+        {
+          "maturity": 0.25,
+          "strike": 100.0,
+          "vol": 0.0
+        },
+        {
+          "maturity": 0.25,
+          "strike": 110.0,
+          "vol": 0.22
+        }
+      ],
+      "expected_valid": false,
+      "min_findings": 1
+    }
+  ]
+}

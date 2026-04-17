@@ -1,0 +1,28 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Boutquin.OptionPricing.Abstractions/Boutquin.OptionPricing.Abstractions.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.Analytics/Boutquin.OptionPricing.Analytics.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.Trees/Boutquin.OptionPricing.Trees.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.Calibration/Boutquin.OptionPricing.Calibration.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.Exotics/Boutquin.OptionPricing.Exotics.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.Examples.Shared/Boutquin.OptionPricing.Examples.Shared.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.Examples/Boutquin.OptionPricing.Examples.csproj" />
+    <Project Path="src/Boutquin.OptionPricing.BlackScholesAndBeyond/Boutquin.OptionPricing.BlackScholesAndBeyond.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Boutquin.OptionPricing.Domain.Tests/Boutquin.OptionPricing.Domain.Tests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.Numerics.Tests/Boutquin.OptionPricing.Numerics.Tests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.Analytics.Tests/Boutquin.OptionPricing.Analytics.Tests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.Trees.Tests/Boutquin.OptionPricing.Trees.Tests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.Calibration.Tests/Boutquin.OptionPricing.Calibration.Tests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.Exotics.Tests/Boutquin.OptionPricing.Exotics.Tests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.IntegrationTests/Boutquin.OptionPricing.IntegrationTests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.PropertyTests/Boutquin.OptionPricing.PropertyTests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.ArchitectureTests/Boutquin.OptionPricing.ArchitectureTests.csproj" />
+    <Project Path="tests/Boutquin.OptionPricing.Tests.Verification/Boutquin.OptionPricing.Tests.Verification.csproj" />
+  </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Boutquin.OptionPricing.Benchmarks/Boutquin.OptionPricing.Benchmarks.csproj" />
+  </Folder>
+</Solution>

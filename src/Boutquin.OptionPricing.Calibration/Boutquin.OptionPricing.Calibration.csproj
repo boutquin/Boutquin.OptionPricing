@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Boutquin.OptionPricing.Calibration</RootNamespace>
+    <AssemblyName>Boutquin.OptionPricing.Calibration</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Boutquin.OptionPricing.Abstractions/Boutquin.OptionPricing.Abstractions.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Analytics/Boutquin.OptionPricing.Analytics.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Trees/Boutquin.OptionPricing.Trees.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Boutquin.Numerics" />
+  </ItemGroup>
+</Project>

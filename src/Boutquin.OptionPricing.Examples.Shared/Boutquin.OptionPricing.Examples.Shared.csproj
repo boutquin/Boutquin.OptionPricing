@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Boutquin.OptionPricing.Examples.Shared</RootNamespace>
+    <AssemblyName>Boutquin.OptionPricing.Examples.Shared</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Boutquin.Curves.Core" />
+    <PackageReference Include="Boutquin.Curves.Bootstrap" />
+    <PackageReference Include="Boutquin.Curves.Recipes" />
+    <PackageReference Include="Boutquin.MarketData.Calendars" />
+    <PackageReference Include="Boutquin.MarketData.Conventions" />
+  </ItemGroup>
+</Project>

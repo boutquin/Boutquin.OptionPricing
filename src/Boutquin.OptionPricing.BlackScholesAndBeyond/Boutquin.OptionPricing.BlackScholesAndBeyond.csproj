@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Boutquin.OptionPricing.BlackScholesAndBeyond</RootNamespace>
+    <AssemblyName>Boutquin.OptionPricing.BlackScholesAndBeyond</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Boutquin.OptionPricing.Examples.Shared/Boutquin.OptionPricing.Examples.Shared.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Analytics/Boutquin.OptionPricing.Analytics.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Trees/Boutquin.OptionPricing.Trees.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Calibration/Boutquin.OptionPricing.Calibration.csproj" />
+    <ProjectReference Include="../Boutquin.OptionPricing.Exotics/Boutquin.OptionPricing.Exotics.csproj" />
+  </ItemGroup>
+</Project>
