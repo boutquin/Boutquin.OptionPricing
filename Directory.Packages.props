@@ -18,8 +18,8 @@
     <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="1.0.1" />
     <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="1.0.2" />
     <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="1.0.2" />
-<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.6" />
+<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.6" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="FluentAssertions" Version="6.12.0" />
