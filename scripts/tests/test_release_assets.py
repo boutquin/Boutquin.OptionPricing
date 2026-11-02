@@ -57,7 +57,7 @@ class ReleaseAssetTests(unittest.TestCase):
 class PackagedReadmeTests(unittest.TestCase):
     def test_file_links_are_absolute_for_nuget_gallery(self):
         import re
-        readme = (Path(__file__).parents[2] / 'README.md').read_text()
+        readme = (Path(__file__).parents[2] / 'README.md').read_text(encoding='utf-8')
         targets = re.findall(r'\]\(([^)]+)\)', readme)
         self.assertTrue(targets)
         self.assertEqual([], [target for target in targets if not target.startswith(('https://', '#'))])
