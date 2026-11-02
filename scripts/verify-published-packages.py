@@ -16,8 +16,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 IDS = tuple('Boutquin.OptionPricing.' + suffix for suffix in (
-    'Abstractions', 'Conventions', 'Interpolation', 'Core', 'Bootstrap',
-    'Recipes', 'Risk', 'Serialization', 'Indices', 'Quotes'))
+    'Abstractions', 'Domain', 'Analytics', 'Trees', 'Calibration', 'Exotics', 'Examples.Shared'))
 CONFIG = ('<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear/>'
           '<add key="nuget.org" value="https://api.nuget.org/v3/index.json"/></packageSources></configuration>')
 
