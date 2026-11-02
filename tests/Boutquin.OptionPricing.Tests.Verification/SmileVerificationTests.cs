@@ -168,6 +168,14 @@ public sealed class SmileVerificationTests : CrossLanguageVerificationBase
         var expectedValid = s.GetProperty("expected_valid").GetBoolean();
         var minFindings = s.GetProperty("min_findings").GetInt32();
 
+        if (name == "non_positive_vol")
+        {
+            // Malformed raw quotes fail before interpolation; golden prices are unchanged.
+            var error = Assert.Throws<ArgumentException>(() => new VolatilitySurfaceBuilder().Build(points));
+            Assert.Equal("Slices", error.ParamName);
+            Assert.Contains("positive finite volatility", error.Message, StringComparison.Ordinal);
+            return;
+        }
         var surface = new VolatilitySurfaceBuilder().Build(points);
         var result = new QuoteArbitrageValidator().Validate(surface);
 

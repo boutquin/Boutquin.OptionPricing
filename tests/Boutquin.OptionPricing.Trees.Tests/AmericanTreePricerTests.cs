@@ -15,8 +15,10 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Exceptions;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Domain.Market;
@@ -36,9 +38,9 @@ public sealed class AmericanTreePricerTests
     public void AmericanPut_ShouldExceedEuropeanPut()
     {
         // American put >= European put due to early exercise premium
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-        var americanPut = new AmericanOption(CallPut.Put, 100m, valuationDate.AddMonths(6));
-        var europeanPut = new EuropeanOption(CallPut.Put, 100m, valuationDate.AddMonths(6));
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
+        var americanPut = new AmericanOption(CallPut.Put, 100m, Currency.USD, valuationDate.AddMonths(6));
+        var europeanPut = new EuropeanOption(CallPut.Put, 100m, Currency.USD, valuationDate.AddMonths(6));
         var market = CreateMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
 
         var tree = BuildTree(market, americanPut, 200);
@@ -52,24 +54,24 @@ public sealed class AmericanTreePricerTests
     public void AmericanCall_NoDividend_ShouldEqualEuropeanCall()
     {
         // Without dividends, never optimal to exercise American call early
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-        var americanCall = new AmericanOption(CallPut.Call, 100m, valuationDate.AddMonths(6));
-        var europeanCall = new EuropeanOption(CallPut.Call, 100m, valuationDate.AddMonths(6));
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
+        var americanCall = new AmericanOption(CallPut.Call, 100m, Currency.USD, valuationDate.AddMonths(6));
+        var europeanCall = new EuropeanOption(CallPut.Call, 100m, Currency.USD, valuationDate.AddMonths(6));
         var market = CreateMarket(valuationDate, 100m, 0.20d, 0.03d, 0.00d);
 
         var tree = BuildTree(market, americanCall, 400);
         var americanPrice = new AmericanTreePricer().Price(americanCall, market, tree).Price;
         var europeanPrice = new EuropeanTreePricer().Price(europeanCall, market, tree).Price;
 
-        americanPrice.Should().BeApproximately(europeanPrice, 0.05m);
+        americanPrice.Amount.Should().BeApproximately(europeanPrice.Amount, 0.05m);
     }
 
     [Fact]
     public void AmericanPut_ShouldConvergeWithMoreSteps()
     {
         // Price difference between coarse and fine trees should shrink
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-        var option = new AmericanOption(CallPut.Put, 100m, valuationDate.AddMonths(6));
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
+        var option = new AmericanOption(CallPut.Put, 100m, Currency.USD, valuationDate.AddMonths(6));
         var market = CreateMarket(valuationDate, 100m, 0.20d, 0.03d, 0.00d);
 
         var tree100 = BuildTree(market, option, 100);
@@ -78,28 +80,51 @@ public sealed class AmericanTreePricerTests
         var price400 = new AmericanTreePricer().Price(option, market, tree400).Price;
 
         // Both prices should be close; the fine tree should be closer to the limit
-        Math.Abs(price400 - price100).Should().BeLessThan(0.50m);
+        Math.Abs(price400.Amount - price100.Amount).Should().BeLessThan(0.50m);
     }
 
     [Fact]
     public void AmericanPut_DeepInTheMoney_ShouldApproachIntrinsic()
     {
         // Deep ITM put (S=50, K=100): price should be near intrinsic = 50
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-        var option = new AmericanOption(CallPut.Put, 100m, valuationDate.AddMonths(6));
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
+        var option = new AmericanOption(CallPut.Put, 100m, Currency.USD, valuationDate.AddMonths(6));
         var market = CreateMarket(valuationDate, 50m, 0.20d, 0.03d, 0.00d);
 
         var tree = BuildTree(market, option, 200);
         var price = new AmericanTreePricer().Price(option, market, tree).Price;
 
         // Price should be at least intrinsic (50) and close to it
-        price.Should().BeGreaterThanOrEqualTo(50m);
-        price.Should().BeLessThan(52m);
+        price.Amount.Should().BeGreaterThanOrEqualTo(50m);
+        price.Amount.Should().BeLessThan(52m);
+    }
+
+    // AC-5b — characterization test: AmericanTreePricer.ComputeExerciseBoundary throws
+    // CurrencyMismatchException when option currency (USD) differs from market spot currency
+    // (EUR). This pins that the secondary entry point can raise the exception, warranting
+    // the <exception cref="CurrencyMismatchException"/> doc tag (DOC-CCYMISMATCH-EXBND-006).
+    [Fact]
+    public void ComputeExerciseBoundary_CrossCurrencySpotVsOption_ThrowsCurrencyMismatchException()
+    {
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
+        var usdOption = new AmericanOption(CallPut.Put, 100m, Currency.USD, valuationDate.AddMonths(6));
+        var eurMarket = new OptionMarketData(
+            valuationDate,
+            Currency.EUR.Amount(100m),
+            0.20d,
+            new FlatDiscountCurve(new CurveName("EUR-OIS"), valuationDate, Currency.EUR, 0.05d),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, Currency.EUR, 0.00d));
+        var tree = new CoxRossRubinsteinTreeBuilder().Build(
+            TreeModelInput.FromMarketData(eurMarket, usdOption.Strike.Amount, usdOption.ExpiryDate, 50));
+
+        Action act = () => new AmericanTreePricer().ComputeExerciseBoundary(usdOption, eurMarket, tree);
+
+        act.Should().Throw<CurrencyMismatchException>();
     }
 
     private static BinomialTree BuildTree(OptionMarketData market, OptionContract option, int steps)
     {
-        var input = TreeModelInput.FromMarketData(market, option.Strike, option.ExpiryDate, steps);
+        var input = TreeModelInput.FromMarketData(market, option.Strike.Amount, option.ExpiryDate, steps);
         return new CoxRossRubinsteinTreeBuilder().Build(input);
     }
 
@@ -107,9 +132,9 @@ public sealed class AmericanTreePricerTests
     {
         return new OptionMarketData(
             valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             flatVolatility,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, CurrencyCode.USD, riskFreeRate),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, CurrencyCode.USD, dividendYield));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, Currency.USD, riskFreeRate),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, Currency.USD, dividendYield));
     }
 }

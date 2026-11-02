@@ -14,6 +14,7 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Enumerations;
 using Boutquin.MarketData.Abstractions.Calendars;
 using Boutquin.OptionPricing.Domain.Enums;
 
@@ -27,8 +28,7 @@ namespace Boutquin.OptionPricing.Domain.Contracts;
 /// <remarks>
 /// American options require a pricing model that evaluates early exercise at each
 /// decision point, such as a binomial tree with backward induction. The Black-Scholes
-/// closed-form pricer does not support American exercise and will return
-/// <see cref="Enums.CalculationStatus.UnsupportedScenario"/>.
+/// closed-form pricer accepts European contracts only; use an American tree pricer.
 /// </remarks>
 public sealed record AmericanOption : OptionContract
 {
@@ -37,7 +37,10 @@ public sealed record AmericanOption : OptionContract
     /// </summary>
     /// <param name="callPut">Whether the option is a call or a put.</param>
     /// <param name="strike">
-    /// The strike price. Must be positive.
+    /// The strike price, in the contract <paramref name="currency"/>. Must be positive.
+    /// </param>
+    /// <param name="currency">
+    /// The contract currency. Must not be <see cref="Currency.Unspecified"/>.
     /// </param>
     /// <param name="expiryDate">The date on which the option expires.</param>
     /// <param name="settlementCalendar">
@@ -52,14 +55,18 @@ public sealed record AmericanOption : OptionContract
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="strike"/> is zero or negative.
     /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="currency"/> is <see cref="Currency.Unspecified"/>.
+    /// </exception>
     public AmericanOption(
         CallPut callPut,
         decimal strike,
+        Currency currency,
         DateOnly expiryDate,
         IBusinessCalendar? settlementCalendar = null,
         BusinessDayAdjustment? settlementAdjustment = null,
         int settlementLagDays = 0)
-        : base(callPut, strike, expiryDate, settlementCalendar, settlementAdjustment, settlementLagDays)
+        : base(callPut, strike, currency, expiryDate, settlementCalendar, settlementAdjustment, settlementLagDays)
     {
     }
 }

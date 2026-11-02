@@ -11,6 +11,7 @@
     <ProjectReference Include="../../src/Boutquin.OptionPricing.Trees/Boutquin.OptionPricing.Trees.csproj" />
     <ProjectReference Include="../../src/Boutquin.OptionPricing.Calibration/Boutquin.OptionPricing.Calibration.csproj" />
     <ProjectReference Include="../../src/Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
+    <ProjectReference Include="../../src/Boutquin.OptionPricing.Examples.Shared/Boutquin.OptionPricing.Examples.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Boutquin.Curves.Core" />

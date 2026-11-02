@@ -14,6 +14,8 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Exceptions;
+using Boutquin.Domain.Extensions;
 using Boutquin.Numerics.Distributions;
 using Boutquin.OptionPricing.Abstractions;
 using Boutquin.OptionPricing.Domain.Contracts;
@@ -57,16 +59,30 @@ public sealed class BlackScholesPricer : IOptionPricer<EuropeanOption, OptionMar
     /// Thrown when <paramref name="option"/> has a <c>CallPut</c> value that is neither
     /// <see cref="CallPut.Call"/> nor <see cref="CallPut.Put"/>.
     /// </exception>
+    /// <exception cref="CurrencyMismatchException">
+    /// Thrown when <paramref name="market"/>'s spot currency differs from
+    /// <paramref name="option"/>'s contract currency.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">The option or market is null.</exception>
     public PriceResult Price(EuropeanOption option, OptionMarketData market)
     {
+        ArgumentNullException.ThrowIfNull(option);
+        ArgumentNullException.ThrowIfNull(market);
+        if (market.Spot.Currency != option.Currency)
+        {
+            throw new CurrencyMismatchException(option.Currency, market.Spot.Currency);
+        }
+
         double t = market.TimeToExpiryInYears(option.ExpiryDate);
         if (t <= 0d)
         {
-            return new PriceResult(option.IntrinsicValue(market.Spot), GreekSet.Empty, CalculationStatus.Success, null, nameof(BlackScholesPricer));
+            // Greeks are null (not GreekSet.Empty) for the "no time value" result, matching
+            // the live pricing path below which also passes null for Greeks.
+            return new PriceResult(option.IntrinsicValue(market.Spot), null, CalculationStatus.Success, null, nameof(BlackScholesPricer));
         }
 
-        double s = (double)market.Spot;
-        double k = (double)option.Strike;
+        double s = (double)market.Spot.Amount;
+        double k = (double)option.Strike.Amount;
         double r = market.RiskFreeRate(option.ExpiryDate);
         double q = market.DividendYield(option.ExpiryDate);
         double b = market.BorrowRate(option.ExpiryDate);
@@ -86,13 +102,22 @@ public sealed class BlackScholesPricer : IOptionPricer<EuropeanOption, OptionMar
         // call site to the high-precision implementation.
         double price = option.CallPut switch
         {
-            CallPut.Call => (discountedSpot * CumulativeNormal.Evaluate(d1)) - (discountedStrike * CumulativeNormal.Evaluate(d2)),
-            CallPut.Put => (discountedStrike * CumulativeNormal.Evaluate(-d2)) - (discountedSpot * CumulativeNormal.Evaluate(-d1)),
+            CallPut.Call => (discountedSpot * CumulativeNormal<double>.Evaluate(d1)) - (discountedStrike * CumulativeNormal<double>.Evaluate(d2)),
+            CallPut.Put => (discountedStrike * CumulativeNormal<double>.Evaluate(-d2)) - (discountedSpot * CumulativeNormal<double>.Evaluate(-d1)),
             _ => throw new NotSupportedException("Unsupported call/put flag.")
         };
 
+        // Diagnostics allocation: this builds a Dictionary<string, object?> and boxes the
+        // four double values (d1, d2, sigma, borrowRate) on every Price call. It is emitted
+        // unconditionally because implied-volatility solvers and audit consumers read d1/d2/
+        // sigma back through the IDiagnosticSource contract, which is typed as
+        // IReadOnlyDictionary<string, object?> — the boxing is structurally forced by that
+        // interface, not incidental. This is NOT a marked hot path today. If a profile ever
+        // shows it hot (e.g. an inner IV-solver loop), the fix is to defer diagnostics
+        // construction behind a factory so the dictionary is built only when GetDiagnostics()
+        // is actually called, rather than to drop the diagnostics here.
         return new PriceResult(
-            Convert.ToDecimal(price),
+            option.Currency.Amount(Convert.ToDecimal(price)),
             null,
             CalculationStatus.Success,
             new Dictionary<string, object?>

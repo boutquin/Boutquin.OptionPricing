@@ -1,10 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Boutquin.OptionPricing.Analytics</RootNamespace>
     <AssemblyName>Boutquin.OptionPricing.Analytics</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Boutquin.OptionPricing.Analytics.Tests" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Boutquin.OptionPricing.Abstractions/Boutquin.OptionPricing.Abstractions.csproj" />
     <ProjectReference Include="../Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />

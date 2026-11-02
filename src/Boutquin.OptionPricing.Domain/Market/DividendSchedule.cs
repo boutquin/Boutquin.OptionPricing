@@ -27,8 +27,34 @@ namespace Boutquin.OptionPricing.Domain.Market;
 /// </param>
 public sealed record DividendSchedule(IReadOnlyList<DividendPayment> Payments)
 {
+    private readonly IReadOnlyList<DividendPayment> _payments = CopyPayments(Payments, nameof(Payments));
+
+    /// <summary>
+    /// The chronologically ordered list of dividend payments. Defensively copied on every
+    /// construction path — both <see langword="new"/> and <see langword="with"/> — so that a
+    /// caller who passes a mutable <see cref="List{T}"/> (or any aliased reference) cannot
+    /// mutate this schedule's contents after construction. The copy lives in the <c>init</c>
+    /// accessor body precisely because a positional-record <c>with</c> expression invokes the
+    /// init setter rather than the primary constructor; an initializer-only copy would leave
+    /// the <c>with</c> path aliased to the caller's reference.
+    /// </summary>
+    public IReadOnlyList<DividendPayment> Payments
+    {
+        get => _payments;
+        init => _payments = CopyPayments(value, nameof(Payments));
+    }
+
     /// <summary>
     /// A shared empty schedule representing no discrete dividend payments.
     /// </summary>
     public static DividendSchedule Empty { get; } = new(Array.Empty<DividendPayment>());
+
+    private static IReadOnlyList<DividendPayment> CopyPayments(
+        IReadOnlyList<DividendPayment> value, string paramName)
+    {
+        ArgumentNullException.ThrowIfNull(value, paramName);
+
+        // Sort a private snapshot and expose a read-only wrapper so casts cannot mutate it.
+        return Array.AsReadOnly(value.OrderBy(payment => payment.ExDate).ToArray());
+    }
 }

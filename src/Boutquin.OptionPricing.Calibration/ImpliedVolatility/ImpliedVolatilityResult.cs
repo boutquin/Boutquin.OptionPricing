@@ -38,6 +38,22 @@ public sealed record ImpliedVolatilityResult(
     int Iterations,
     IReadOnlyDictionary<string, object?> Diagnostics) : ICalculationResult, IDiagnosticSource
 {
+    private readonly IReadOnlyDictionary<string, object?> _diagnostics = CopyDiagnostics(Diagnostics);
+
+    /// <summary>A snapshot of named calculation diagnostics; payload objects retain their own value semantics.</summary>
+    public IReadOnlyDictionary<string, object?> Diagnostics
+    {
+        get => _diagnostics;
+        init => _diagnostics = CopyDiagnostics(value);
+    }
+
+    private static IReadOnlyDictionary<string, object?> CopyDiagnostics(IReadOnlyDictionary<string, object?> value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return new System.Collections.ObjectModel.ReadOnlyDictionary<string, object?>(
+            value.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal));
+    }
+
     /// <summary>
     /// <see langword="true"/> when the solver converged to a root within the requested
     /// convergence tolerance, possibly with non-fatal warnings.
@@ -45,6 +61,7 @@ public sealed record ImpliedVolatilityResult(
     public bool IsSuccess =>
         Status is CalculationStatus.Success or CalculationStatus.ConvergedWithWarnings;
 
-    /// <inheritdoc />
+    /// <summary>Returns the named diagnostics accompanying this calculation outcome.</summary>
+    /// <returns>A read-only diagnostic snapshot; payload objects retain their own value semantics.</returns>
     public IReadOnlyDictionary<string, object?> GetDiagnostics() => Diagnostics;
 }

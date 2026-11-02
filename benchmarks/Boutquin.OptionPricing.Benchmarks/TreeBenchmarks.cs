@@ -16,8 +16,9 @@
 
 using BenchmarkDotNet.Attributes;
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Domain.Market;
@@ -51,33 +52,33 @@ public class TreeBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _euroOption = new EuropeanOption(CallPut.Call, 100m, _valuationDate.AddMonths(6));
-        _americanOption = new AmericanOption(CallPut.Put, 100m, _valuationDate.AddMonths(6));
+        _euroOption = new EuropeanOption(CallPut.Call, 100m, Currency.USD, _valuationDate.AddMonths(6));
+        _americanOption = new AmericanOption(CallPut.Put, 100m, Currency.USD, _valuationDate.AddMonths(6));
         _market = new OptionMarketData(
-            _valuationDate, 100m, 0.20d,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, CurrencyCode.USD, 0.03d),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, CurrencyCode.USD, 0.01d));
+            _valuationDate, Currency.USD.Amount(100m), 0.20d,
+            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, Currency.USD, 0.03d),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, Currency.USD, 0.01d));
     }
 
     /// <summary>Builds a CRR tree and prices a European call.</summary>
     [Benchmark]
     public decimal EuropeanCallTreePrice()
     {
-        var input = new TreeModelInput(_market.Spot, _euroOption.Strike, _market.ValuationDate,
+        var input = new TreeModelInput(_market.Spot.Amount, _euroOption.Strike.Amount, _market.ValuationDate,
             _euroOption.ExpiryDate, _market.DiscountCurve, _market.FlatVolatility, Steps,
             _market.DividendCurve, _market.BorrowCurve);
         var tree = _builder.Build(input);
-        return _euroPricer.Price(_euroOption, _market, tree).Price;
+        return _euroPricer.Price(_euroOption, _market, tree).Price.Amount;
     }
 
     /// <summary>Builds a CRR tree and prices an American put.</summary>
     [Benchmark]
     public decimal AmericanPutTreePrice()
     {
-        var input = new TreeModelInput(_market.Spot, _americanOption.Strike, _market.ValuationDate,
+        var input = new TreeModelInput(_market.Spot.Amount, _americanOption.Strike.Amount, _market.ValuationDate,
             _americanOption.ExpiryDate, _market.DiscountCurve, _market.FlatVolatility, Steps,
             _market.DividendCurve, _market.BorrowCurve);
         var tree = _builder.Build(input);
-        return _americanPricer.Price(_americanOption, _market, tree).Price;
+        return _americanPricer.Price(_americanOption, _market, tree).Price.Amount;
     }
 }

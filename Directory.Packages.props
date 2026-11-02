@@ -1,33 +1,79 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
-    <PackageVersion Include="Boutquin.Numerics" Version="1.0.0" />
-    <PackageVersion Include="Boutquin.Curves.Abstractions" Version="1.0.0" />
-    <PackageVersion Include="Boutquin.Curves.Core" Version="1.0.0" />
-    <PackageVersion Include="Boutquin.Curves.Bootstrap" Version="1.0.0" />
-    <PackageVersion Include="Boutquin.Curves.Conventions" Version="1.0.0" />
-    <PackageVersion Include="Boutquin.Curves.Interpolation" Version="1.0.0" />
-    <PackageVersion Include="Boutquin.Curves.Recipes" Version="1.0.0" />
-    <PackageVersion Include="Boutquin.MarketData.Abstractions" Version="1.0.1" />
-    <PackageVersion Include="Boutquin.MarketData.Calendars" Version="1.0.1" />
-    <PackageVersion Include="Boutquin.MarketData.Conventions" Version="1.0.1" />
-    <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="1.0.1" />
-    <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="1.0.2" />
-    <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="1.0.2" />
-<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.6" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
-    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
-    <PackageVersion Include="FsCheck.Xunit" Version="3.2.0" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.202" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageVersion Include="MinVer" Version="8.0.0" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="Boutquin.Domain" Version="[1.0.1]" />
+    <PackageVersion Include="Boutquin.Numerics" Version="[2.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Abstractions" Version="[2.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Core" Version="[2.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Bootstrap" Version="[2.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Conventions" Version="[2.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Interpolation" Version="[2.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Recipes" Version="[2.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.Abstractions" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Calendars" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Storage" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Conventions" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="[2.0.1]" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+    <PackageVersion Include="FluentAssertions" Version="8.11.0" />
+    <PackageVersion Include="FsCheck.Xunit" Version="3.6.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="NetArchTest.eNhancedEdition" Version="1.4.5" />
-    <PackageVersion Include="xunit" Version="2.9.2" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+    <!-- External transitives are independently qualified. First-party archive pins
+         follow the exact package packet coordinated by the owning repositories. -->
+    <PackageVersion Include="FSharp.Core" Version="11.0.100" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.9.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
+    <PackageVersion Include="Microsoft.Diagnostics.NETCore.Client" Version="0.2.750501" />
+    <PackageVersion Include="Microsoft.Diagnostics.Runtime" Version="4.2.751201" />
+    <PackageVersion Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="4.0.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+    <!-- Known-good tooling fallback: BDN requires Perfolizer [0.6.1], and
+         Pragmastat 14.0.1 removes a required constructor. All-latest exception
+         remains unapproved for release; preserve the recorded failing probe. -->
+    <PackageVersion Include="Perfolizer" Version="0.6.1" />
+    <PackageVersion Include="Pragmastat" Version="3.2.4" />
+    <PackageVersion Include="System.CodeDom" Version="10.0.14" />
+    <PackageVersion Include="System.Management" Version="10.0.14" />
+    <PackageVersion Include="xunit.analyzers" Version="2.2.0" />
+    <PackageVersion Include="Azure.Core" Version="1.64.0" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.FileProviders.Abstractions" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.92.0" />
+    <PackageVersion Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.92.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.23.0" />
+    <PackageVersion Include="Microsoft.Security.AntiSSRF" Version="1.0.1" />
+    <PackageVersion Include="Polly.Core" Version="8.9.0" />
+    <PackageVersion Include="Polly.RateLimiting" Version="8.9.0" />
+    <PackageVersion Include="System.ClientModel" Version="1.16.0" />
+    <PackageVersion Include="System.Memory.Data" Version="10.0.14" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.14" />
+    <PackageVersion Include="System.Threading.RateLimiting" Version="10.0.14" />
+    <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="22.3.0" />
+    <PackageVersion Include="Testably.Abstractions.FileSystem.Interface" Version="10.4.0" />
   </ItemGroup>
 </Project>

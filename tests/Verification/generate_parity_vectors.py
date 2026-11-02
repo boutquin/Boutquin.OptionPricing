@@ -4,7 +4,8 @@ Reference values for PutCallParity and RiskNeutralValuation.
 Both are pure-algebra utilities:
   * PutCallParity.ImpliedCallPrice  = putPrice + S * DF_div - K * DF_rf
   * PutCallParity.ImpliedPutPrice   = callPrice - S * DF_div + K * DF_rf
-  * RiskNeutralValuation.ForwardPrice = S * DF_div / (DF_rf * DF_borrow)
+  * RiskNeutralValuation.ForwardPrice = S * DF_div * DF_borrow / DF_rf
+    (borrow cost reduces the forward, consistent with the pricer's effectiveQ = q + b)
 
 No numerical approximation beyond double arithmetic → PRECISION_EXACT.
 """
@@ -32,7 +33,7 @@ def _implied_put(call: float, s: float, k: float, df_rf: float, df_div: float) -
 
 
 def _forward(s: float, df_rf: float, df_div: float, df_borrow: float) -> float:
-    return s * df_div / (df_rf * df_borrow)
+    return s * df_div * df_borrow / df_rf
 
 
 def _parity_scenarios() -> list[dict]:

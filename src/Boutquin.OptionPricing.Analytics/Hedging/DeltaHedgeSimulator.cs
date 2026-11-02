@@ -14,6 +14,7 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Domain.Enums;
 
@@ -21,7 +22,8 @@ namespace Boutquin.OptionPricing.Analytics.Hedging;
 
 /// <summary>
 /// Discrete delta-hedge simulator that walks a realized spot path, rebalances at each
-/// step using Black-Scholes delta, and reports the hedging P/L versus the option payoff.
+/// step using Black-Scholes delta, reinvests model-equivalent continuous carry, and
+/// reports the hedging P/L versus the option payoff.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -33,7 +35,11 @@ namespace Boutquin.OptionPricing.Analytics.Hedging;
 /// <para>
 /// Hedging error arises because rebalancing is discrete rather than continuous.
 /// The standard deviation of the error shrinks as √(dt), so doubling the number of
-/// rebalancing steps halves the error's standard deviation.
+/// rebalancing steps reduces the error's standard deviation by approximately √2.
+/// The tenor-implied risk-free rate and effective yield <c>q+b</c> are held constant
+/// between the equally spaced simulation times. Yield is continuously reinvested in
+/// shares before each rebalance. Borrow is a model-equivalent yield, not a simulation
+/// of actual stock-loan cash flows, fees or collateral.
 /// </para>
 /// </remarks>
 public sealed class DeltaHedgeSimulator
@@ -53,12 +59,30 @@ public sealed class DeltaHedgeSimulator
     /// delta at each rebalance, the hedging portfolio's terminal value, the option
     /// payoff, and the hedging error.
     /// </returns>
+    /// <exception cref="ArgumentException">A required input is null, path spots are not positive, the first spot disagrees with the market, or a nontrivial path starts at expiry.</exception>
     public DeltaHedgeSimulationResult Simulate(DeltaHedgeSimulationRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Option);
+        ArgumentNullException.ThrowIfNull(request.InitialMarket);
+        ArgumentNullException.ThrowIfNull(request.PathSpots);
         var option = request.Option;
         var market = request.InitialMarket;
-        var spots = request.PathSpots;
+        var spots = Array.AsReadOnly(request.PathSpots.ToArray());
         int steps = spots.Count - 1;
+
+        foreach (decimal spot in spots)
+        {
+            if (spot <= 0m)
+            {
+                throw new ArgumentException("Every path spot must be positive.", nameof(request));
+            }
+        }
+
+        if (spots.Count > 0 && spots[0] != market.Spot.Amount)
+        {
+            throw new ArgumentException("The first path spot must equal the initial market spot.", nameof(request));
+        }
 
         if (steps < 1)
         {
@@ -69,12 +93,19 @@ public sealed class DeltaHedgeSimulator
         var greekProvider = new BlackScholesGreeks();
 
         double totalTime = market.TimeToExpiryInYears(option.ExpiryDate);
+        if (totalTime <= 0d)
+        {
+            throw new ArgumentException("A nontrivial hedge path cannot start at an expired option.", nameof(request));
+        }
+
         double dt = totalTime / steps;
         double riskFreeRate = market.RiskFreeRate(option.ExpiryDate);
         double growthPerStep = Math.Exp(riskFreeRate * dt);
+        double effectiveYield = market.DividendYield(option.ExpiryDate) + market.BorrowRate(option.ExpiryDate);
+        double shareGrowthPerStep = Math.Exp(effectiveYield * dt);
 
         // Initial state: collect premium and establish delta hedge
-        decimal startPrice = pricer.Price(option, market).Price;
+        decimal startPrice = pricer.Price(option, market).Price.Amount;
         var deltas = new List<double>(steps);
 
         var initialGreeks = greekProvider.CalculateGreeks(option, market);
@@ -89,6 +120,7 @@ public sealed class DeltaHedgeSimulator
         {
             // Cash earns the risk-free rate
             cashPosition *= growthPerStep;
+            currentDelta *= shareGrowthPerStep;
 
             // Create market snapshot at this point in time.
             // Phase 5c: invert the step time fraction through the discount curve's
@@ -107,7 +139,7 @@ public sealed class DeltaHedgeSimulator
             // OptionMarketData.RolledTo propagates the roll into each curve via
             // IDiscountCurve.WithValuationDate so the implied rate is invariant under
             // time advancement, which is the correct semantics under forwards-realize.
-            var stepMarket = market.RolledTo(stepDate, spots[i]);
+            var stepMarket = market.RolledTo(stepDate, market.Spot.Currency.Amount(spots[i]));
             var stepGreeks = greekProvider.CalculateGreeks(option, stepMarket);
             double newDelta = stepGreeks.Delta ?? 0d;
 
@@ -119,6 +151,7 @@ public sealed class DeltaHedgeSimulator
 
         // Terminal step: grow cash one more period
         cashPosition *= growthPerStep;
+        currentDelta *= shareGrowthPerStep;
 
         // Final portfolio value: shares × terminal spot + cash
         double terminalSpot = (double)spots[^1];
@@ -127,8 +160,8 @@ public sealed class DeltaHedgeSimulator
         // Option payoff
         double payoff = option.CallPut switch
         {
-            CallPut.Call => Math.Max(terminalSpot - (double)option.Strike, 0d),
-            CallPut.Put => Math.Max((double)option.Strike - terminalSpot, 0d),
+            CallPut.Call => Math.Max(terminalSpot - (double)option.Strike.Amount, 0d),
+            CallPut.Put => Math.Max((double)option.Strike.Amount - terminalSpot, 0d),
             _ => 0d
         };
 

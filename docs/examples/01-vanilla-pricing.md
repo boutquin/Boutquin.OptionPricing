@@ -11,12 +11,17 @@ and an `OptionMarketData` snapshot, returning a `PriceResult` with the model pri
 ### Pricing a European Call
 
 ```csharp
-var option = new EuropeanOption(CallPut.Call, strike: 100m, expiryDate);
-var market = new OptionMarketData(valuationDate, spot: 100m, flatVolatility: 0.20,
+// The contract carries its currency; the strike and spot are Money values in that currency.
+var option = new EuropeanOption(CallPut.Call, strike: 100m, Currency.USD, expiryDate);
+var market = new OptionMarketData(valuationDate, Currency.USD.Amount(100m), flatVolatility: 0.20,
     discountCurve, dividendCurve);
 var result = new BlackScholesPricer().Price(option, market);
-// result.Price contains the model price
+// result.Price is a Money premium in the contract currency (result.Price.Amount is the value).
 ```
+
+The contract currency and the market spot currency must match: pricing a USD contract
+against a EUR market throws `CurrencyMismatchException` rather than silently producing a
+meaningless cross-currency number.
 
 ## Greeks
 

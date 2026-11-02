@@ -15,7 +15,6 @@
 //
 
 using Boutquin.OptionPricing.Abstractions;
-using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Domain.Market;
 using Boutquin.OptionPricing.Trees.Binomial;
 
@@ -28,16 +27,22 @@ namespace Boutquin.OptionPricing.Calibration.ImpliedTrees;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Algorithm</b> (Derman-Kani 1994, "Riding on a Smile"):
+/// <b>Algorithm</b> (Derman &amp; Kani 1994, "The Volatility Smile and Its Implied Tree"),
+/// implemented by <see cref="ImpliedTreeForwardInduction"/>:
 /// </para>
 /// <list type="number">
-/// <item>Start with the center node at spot price S₀.</item>
-/// <item>For each step n, use known AD state prices and market call prices at strikes
-/// equal to node spot prices to solve for transition probabilities.</item>
-/// <item>Build up-move and down-move node prices such that the tree reprices the smile.</item>
+/// <item>Anchor each level on the centering condition (central node at spot S₀).</item>
+/// <item>From the center outward, solve each node spot from the market call (upper wing)
+/// or put (lower wing) struck at the prior level's node, read from the surface.</item>
+/// <item>Set transition probabilities from the forward condition
+/// <c>F_i = p·S_up + (1−p)·S_down</c> and forward-induct the Arrow-Debreu prices.</item>
 /// <item>Extract local volatilities from node spacing: σ_local = ln(S_up/S_down) / (2√dt).</item>
-/// <item>Enforce no-arbitrage: transition probabilities in (0, 1).</item>
+/// <item>Revert any node that would violate no-arbitrage to the constant-volatility spacing.</item>
 /// </list>
+/// <para>
+/// The construction genuinely consumes the smile and reprices the near-the-money region
+/// to finite-tree accuracy; like every finite implied tree it is unstable in the deep wings.
+/// </para>
 /// </remarks>
 public sealed class ImpliedVolatilityTreeCalibrator : ICalibrator<ImpliedVolatilityTreeCalibrationInput, ImpliedTreeResult>
 {
@@ -48,119 +53,66 @@ public sealed class ImpliedVolatilityTreeCalibrator : ICalibrator<ImpliedVolatil
     /// </summary>
     /// <param name="input">Calibration input containing the target volatility surface, market data, and the desired tree step count.</param>
     /// <returns>An <see cref="ImpliedTreeResult"/> with the calibrated tree, local vols, and AD prices.</returns>
+    /// <exception cref="ArgumentException">The input, step count, horizon, or representability of tree factors is invalid.</exception>
+    /// <exception cref="InvalidOperationException">A quote provider returns an invalid premium, or induction cannot form admissible finite transitions.</exception>
     public ImpliedTreeResult Calibrate(ImpliedVolatilityTreeCalibrationInput input)
     {
+        ImpliedTreeCalibration.ValidateInput(input);
+
         int n = input.Steps;
         OptionMarketData market = input.Market;
         DateOnly expiryDate = ComputeExpiryDate(market, input);
         double t = market.TimeToExpiryInYears(expiryDate);
-        double dt = t / n;
+        if (t <= 0d || !double.IsFinite(t))
+        {
+            throw new ArgumentException("Calibration requires a maturity that resolves to a future date.", nameof(input));
+        }
         double r = market.RiskFreeRate(expiryDate);
-        double q = market.DividendYield(expiryDate);
-        double discount = Math.Exp(-r * dt);
-        double s0 = (double)market.Spot;
-
-        // Use CRR structure as the lattice backbone
+        // Effective yield folds the borrow cost into the dividend yield (effectiveQ = q + b),
+        // matching the library carry convention (BlackScholesPricer, the tree builders, and
+        // OptionMarketData.ForwardPrice = S·exp((r − q − b)·T)). The forward-induction growth term
+        // is exp((r − effectiveQ)·dt) = exp((r − q − b)·dt), so the calibrated tree's risk-neutral
+        // forward matches the library's no-arbitrage forward.
+        double q = market.DividendYield(expiryDate) + market.BorrowRate(expiryDate);
+        double s0 = (double)market.Spot.Amount;
         double sigma0 = market.FlatVolatility;
-        double u = Math.Exp(sigma0 * Math.Sqrt(dt));
-        double d = 1d / u;
-        double growth = Math.Exp((r - q) * dt);
-        double pCrr = (growth - d) / (u - d);
 
-        // Build spot lattice using CRR structure
-        List<List<double>> spotLattice = new(n + 1);
-        for (int step = 0; step <= n; step++)
+        IOptionPriceProvider priceProvider = input.PriceProvider
+            ?? new SurfaceDerivedPriceProvider(input.Surface, market, expiryDate);
+
+        ImpliedTreeForwardInduction.Lattices built = ImpliedTreeForwardInduction.Build(
+            s0, sigma0, r, q, t, n,
+            (k, maturity) => priceProvider.GetCallPrice((decimal)k, maturity),
+            (k, maturity) => priceProvider.GetPutPrice((decimal)k, maturity),
+            Epsilon);
+
+        var tree = new BinomialTree(
+            n,
+            t / n,
+            built.UpFactor,
+            built.DownFactor,
+            built.AverageProbability,
+            built.SpotLattice)
         {
-            List<double> layer = new(step + 1);
-            for (int j = 0; j <= step; j++)
-            {
-                layer.Add(s0 * Math.Pow(u, step - j) * Math.Pow(d, j));
-            }
-
-            spotLattice.Add(layer);
-        }
-
-        // Forward induction of AD prices
-        List<List<double>> adPrices = new(n + 1);
-        adPrices.Add(new List<double> { 1d });
-
-        List<List<double>> impliedProbs = new(n);
-
-        for (int step = 0; step < n; step++)
-        {
-            List<double> currentAd = adPrices[step];
-            List<double> probs = new(step + 1);
-
-            for (int j = 0; j <= step; j++)
-            {
-                // Use CRR probability clamped for numerical stability
-                double p = Math.Clamp(pCrr, Epsilon, 1d - Epsilon);
-                probs.Add(p);
-            }
-
-            impliedProbs.Add(probs);
-
-            // Compute AD prices at step+1
-            List<double> nextAd = new(step + 2);
-            for (int j = 0; j <= step + 1; j++)
-            {
-                double adValue = 0d;
-
-                // From node (step, j-1) going down
-                if (j > 0 && j - 1 <= step)
-                {
-                    adValue += currentAd[j - 1] * (1d - probs[j - 1]) * discount;
-                }
-
-                // From node (step, j) going up
-                if (j <= step)
-                {
-                    adValue += currentAd[j] * probs[j] * discount;
-                }
-
-                nextAd.Add(adValue);
-            }
-
-            adPrices.Add(nextAd);
-        }
-
-        // Extract local volatilities from node spacing
-        List<IReadOnlyList<double>> localVols = new(n);
-        for (int step = 0; step < n; step++)
-        {
-            List<double> stepVols = new(step + 1);
-            for (int j = 0; j <= step; j++)
-            {
-                double upSpot = spotLattice[step + 1][j];
-                double downSpot = spotLattice[step + 1][j + 1];
-                double localVol = Math.Log(upSpot / downSpot) / (2d * Math.Sqrt(dt));
-                stepVols.Add(localVol);
-            }
-
-            localVols.Add(stepVols);
-        }
-
-        // Build result
-        double avgP = impliedProbs.SelectMany(p => p).Average();
-
-        List<IReadOnlyList<double>> readOnlyLattice = spotLattice
-            .Select(layer => (IReadOnlyList<double>)layer.AsReadOnly()).ToList();
-        List<IReadOnlyList<double>> readOnlyAd = adPrices
-            .Select(layer => (IReadOnlyList<double>)layer.AsReadOnly()).ToList();
-
-        var tree = new BinomialTree(n, dt, u, d, avgP, readOnlyLattice);
+            // Carry the per-node martingale probabilities so backward-induction pricers roll the
+            // calibrated smile tree back with each node's own weight, not the surface average.
+            RiskFreeRate = r,
+            ProbabilityLattice = built.ProbabilityLattice
+        };
 
         var report = new CalibrationReport(
             nameof(ImpliedVolatilityTreeCalibrator),
-            CalculationStatus.Success,
+            ImpliedTreeCalibration.StatusFromReversions(built.ReversionCount),
             new Dictionary<string, object?>
             {
                 ["steps"] = n,
                 ["surfaceSlices"] = input.Surface.Slices.Count,
-                ["baseVolatility"] = sigma0
+                ["baseVolatility"] = sigma0,
+                ["construction"] = "derman-kani-forward-induction",
+                ["nodeReversions"] = built.ReversionCount
             });
 
-        return new ImpliedTreeResult(tree, localVols, readOnlyAd, report);
+        return new ImpliedTreeResult(tree, built.LocalVolatilities, built.ArrowDebreuPrices, report);
     }
 
     private static DateOnly ComputeExpiryDate(OptionMarketData market, ImpliedVolatilityTreeCalibrationInput input)

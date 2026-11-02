@@ -14,6 +14,8 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Exceptions;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Abstractions;
 using Boutquin.OptionPricing.Calibration.ImpliedTrees;
 using Boutquin.OptionPricing.Domain.Contracts;
@@ -52,47 +54,62 @@ public sealed class SmileAwareBarrierPricer : IContextualOptionPricer<BarrierOpt
     /// <returns>
     /// A <see cref="PriceResult"/> with the smile-aware barrier option price.
     /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when any argument is null.</exception>
+    /// <exception cref="CurrencyMismatchException">
+    /// Thrown when <paramref name="market"/>'s spot currency differs from
+    /// <paramref name="option"/>'s contract currency.
+    /// </exception>
     public PriceResult Price(BarrierOption option, OptionMarketData market, ImpliedTreeResult calibration)
     {
+        ArgumentNullException.ThrowIfNull(option);
+        ArgumentNullException.ThrowIfNull(market);
+        ArgumentNullException.ThrowIfNull(calibration);
+
+        if (market.Spot.Currency != option.Currency)
+        {
+            throw new CurrencyMismatchException(option.Currency, market.Spot.Currency);
+        }
+
         if (!calibration.IsSuccess)
         {
             return PriceResult.Unsupported(
                 nameof(SmileAwareBarrierPricer),
-                "Cannot price: calibration did not succeed.");
+                "Cannot price: calibration did not succeed.",
+                option.Currency);
         }
 
         BinomialTree tree = calibration.Tree;
 
         // Check if barrier is already breached at spot
         double spot0 = tree.SpotLattice[0][0];
-        if (IsBarrierBreached(spot0, option))
+        if (BarrierBackwardInduction.IsBarrierBreached(spot0, option))
         {
             if (option.KnockType == BarrierKnockType.Out)
             {
-                return new PriceResult(0m, null, CalculationStatus.Success,
+                return new PriceResult(option.Currency.Amount(0m), null, CalculationStatus.Success,
                     new Dictionary<string, object?> { ["barrierBreachedAtSpot"] = true },
                     nameof(SmileAwareBarrierPricer));
             }
 
-            decimal vanillaPrice = PriceVanilla(option, market, tree);
-            return new PriceResult(vanillaPrice, null, CalculationStatus.Success,
-                new Dictionary<string, object?> { ["barrierBreachedAtSpot"] = true },
+            decimal vanillaPrice = BarrierBackwardInduction.PriceVanilla(option, market, tree);
+            return new PriceResult(option.Currency.Amount(vanillaPrice), null, CalculationStatus.Success,
+                new Dictionary<string, object?> { ["barrierBreachedAtSpot"] = true, ["knockInActivated"] = true },
                 nameof(SmileAwareBarrierPricer));
         }
 
         if (option.KnockType == BarrierKnockType.Out)
         {
-            decimal knockOutPrice = PriceKnockOut(option, market, tree);
-            return new PriceResult(knockOutPrice, null, CalculationStatus.Success,
+            decimal knockOutPrice = BarrierBackwardInduction.PriceKnockOut(option, market, tree);
+            return new PriceResult(option.Currency.Amount(knockOutPrice), null, CalculationStatus.Success,
                 new Dictionary<string, object?> { ["steps"] = tree.Steps, ["model"] = "smile-aware" },
                 nameof(SmileAwareBarrierPricer));
         }
 
         // Knock-in via parity
-        decimal vanilla = PriceVanilla(option, market, tree);
-        decimal knockOut = PriceKnockOut(option, market, tree);
+        decimal vanilla = BarrierBackwardInduction.PriceVanilla(option, market, tree);
+        decimal knockOut = BarrierBackwardInduction.PriceKnockOut(option, market, tree);
         decimal knockIn = Math.Max(vanilla - knockOut, 0m);
-        return new PriceResult(knockIn, null, CalculationStatus.Success,
+        return new PriceResult(option.Currency.Amount(knockIn), null, CalculationStatus.Success,
             new Dictionary<string, object?>
             {
                 ["steps"] = tree.Steps,
@@ -101,85 +118,5 @@ public sealed class SmileAwareBarrierPricer : IContextualOptionPricer<BarrierOpt
                 ["knockOutPrice"] = knockOut
             },
             nameof(SmileAwareBarrierPricer));
-    }
-
-    private static decimal PriceKnockOut(BarrierOption option, OptionMarketData market, BinomialTree tree)
-    {
-        double discount = Math.Exp(-market.RiskFreeRate(option.ExpiryDate) * tree.DeltaTime);
-        double p = tree.RiskNeutralProbability;
-
-        List<double> values = new(tree.TerminalSpots.Count);
-        foreach (double spot in tree.TerminalSpots)
-        {
-            values.Add(IsBarrierBreached(spot, option) ? 0d : Payoff(option, spot));
-        }
-
-        for (int step = tree.Steps - 1; step >= 0; step--)
-        {
-            List<double> next = new(step + 1);
-            for (int j = 0; j <= step; j++)
-            {
-                double nodeSpot = tree.SpotLattice[step][j];
-                if (IsBarrierBreached(nodeSpot, option))
-                {
-                    next.Add(0d);
-                }
-                else
-                {
-                    double continuation = discount * ((p * values[j]) + ((1d - p) * values[j + 1]));
-                    next.Add(continuation);
-                }
-            }
-
-            values = next;
-        }
-
-        return Convert.ToDecimal(Math.Max(values[0], 0d));
-    }
-
-    private static decimal PriceVanilla(BarrierOption option, OptionMarketData market, BinomialTree tree)
-    {
-        double discount = Math.Exp(-market.RiskFreeRate(option.ExpiryDate) * tree.DeltaTime);
-        double p = tree.RiskNeutralProbability;
-
-        List<double> values = new(tree.TerminalSpots.Count);
-        foreach (double spot in tree.TerminalSpots)
-        {
-            values.Add(Payoff(option, spot));
-        }
-
-        for (int step = tree.Steps - 1; step >= 0; step--)
-        {
-            List<double> next = new(step + 1);
-            for (int j = 0; j <= step; j++)
-            {
-                double continuation = discount * ((p * values[j]) + ((1d - p) * values[j + 1]));
-                next.Add(continuation);
-            }
-
-            values = next;
-        }
-
-        return Convert.ToDecimal(values[0]);
-    }
-
-    private static bool IsBarrierBreached(double spot, BarrierOption option)
-    {
-        return option.Direction switch
-        {
-            BarrierDirection.Up => spot >= (double)option.BarrierLevel,
-            BarrierDirection.Down => spot <= (double)option.BarrierLevel,
-            _ => false
-        };
-    }
-
-    private static double Payoff(BarrierOption option, double spot)
-    {
-        return option.CallPut switch
-        {
-            CallPut.Call => Math.Max(spot - (double)option.Strike, 0d),
-            CallPut.Put => Math.Max((double)option.Strike - spot, 0d),
-            _ => 0d
-        };
     }
 }

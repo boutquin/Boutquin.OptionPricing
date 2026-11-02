@@ -26,4 +26,20 @@ namespace Boutquin.OptionPricing.Calibration.Smile;
 /// <param name="Points">Strike-ordered collection of surface points that define the smile at this maturity.</param>
 public sealed record SmileSlice(
     double MaturityInYears,
-    IReadOnlyList<SurfacePoint> Points);
+    IReadOnlyList<SurfacePoint> Points)
+{
+    private readonly IReadOnlyList<SurfacePoint> _points = CopyPoints(Points);
+
+    /// <summary>A read-only snapshot of the raw quotes, in the supplied strike order.</summary>
+    public IReadOnlyList<SurfacePoint> Points
+    {
+        get => _points;
+        init => _points = CopyPoints(value);
+    }
+
+    private static IReadOnlyList<SurfacePoint> CopyPoints(IReadOnlyList<SurfacePoint> value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return Array.AsReadOnly(value.ToArray());
+    }
+}

@@ -14,6 +14,7 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Exceptions;
 using Boutquin.Numerics.Distributions;
 using Boutquin.OptionPricing.Abstractions;
 using Boutquin.OptionPricing.Domain.Contracts;
@@ -32,11 +33,12 @@ namespace Boutquin.OptionPricing.Analytics.BlackScholes;
 /// Delta measures the sensitivity of option price to a unit move in spot.
 /// Gamma is the second derivative of price with respect to spot.
 /// Vega is quoted per 1 percentage-point move in implied volatility.
-/// Theta is expressed as daily time-value decay (annualized theta / 365).
+/// Theta is expressed as daily time-value decay using the fixed market convention
+/// of annualized theta / 365 calendar days (not tied to the discount curve day count).
 /// Rho is quoted per 1 percentage-point move in the risk-free rate.
 /// </para>
 /// <para>
-/// Following Hull §19.12 "Extension of formulas," the effective carry
+/// Following Hull section 19.12 "Extension of formulas," the effective carry
 /// q_eff = q + b (dividend yield plus borrow rate) is used symmetrically in
 /// d1, d2, every e^{-q T} discount factor, and the q S N(d1) drift term in
 /// theta — matching the pricer so the Greeks are the exact partial derivatives
@@ -61,16 +63,25 @@ public sealed class BlackScholesGreeks : IGreekProvider<EuropeanOption, OptionMa
     /// A <see cref="GreekSet"/> with delta, gamma, vega, theta (per calendar day), and rho
     /// (per percentage point). Returns <see cref="GreekSet.Empty"/> when the option has expired.
     /// </returns>
+    /// <exception cref="ArgumentNullException">The option or market is null.</exception>
+    /// <exception cref="CurrencyMismatchException">Option and spot currencies differ.</exception>
     public GreekSet CalculateGreeks(EuropeanOption option, OptionMarketData market)
     {
+        ArgumentNullException.ThrowIfNull(option);
+        ArgumentNullException.ThrowIfNull(market);
+        if (market.Spot.Currency != option.Currency)
+        {
+            throw new CurrencyMismatchException(option.Currency, market.Spot.Currency);
+        }
+
         double t = market.TimeToExpiryInYears(option.ExpiryDate);
         if (t <= 0d)
         {
             return GreekSet.Empty;
         }
 
-        double s = (double)market.Spot;
-        double k = (double)option.Strike;
+        double s = (double)market.Spot.Amount;
+        double k = (double)option.Strike.Amount;
         double r = market.RiskFreeRate(option.ExpiryDate);
         double q = market.DividendYield(option.ExpiryDate);
         double b = market.BorrowRate(option.ExpiryDate);
@@ -86,41 +97,53 @@ public sealed class BlackScholesGreeks : IGreekProvider<EuropeanOption, OptionMa
 
         (double d1, double d2) = BlackScholesMath.ComputeD1D2(s, k, r, effectiveQ, sigma, t);
 
-        // Phase 5b: route N(x) through CumulativeNormal.Evaluate directly — Laikov 2025
+        // Phase 5b: route N(x) through CumulativeNormal<double>.Evaluate directly — Laikov 2025
         // exponential-free erf, ~14-digit precision, branchless (arXiv:2504.05068).
         // Pdf retains NormalDistribution.Pdf (closed-form; not delegated).
-        double pdf = NormalDistribution.Pdf(d1);
+        double pdf = NormalDistribution<double>.Pdf(d1);
         double sqrtT = Math.Sqrt(t);
-        double discountedSpot = Math.Exp(-effectiveQ * t);
-        double discountedStrike = Math.Exp(-r * t);
+
+        // carryDiscount and rateDiscount are discount FACTORS (e^{-qT}, e^{-rT}),
+        // not discounted prices — distinct from the pricer's local named discountedSpot.
+        double carryDiscount = Math.Exp(-effectiveQ * t);
+        double rateDiscount = Math.Exp(-r * t);
+
+        // Hoist the four standard-normal CDF evaluations used across the Greeks.
+        // -d1/-d2 are evaluated directly (not 1 - N(d)) to preserve tail precision.
+        double nd1 = CumulativeNormal<double>.Evaluate(d1);
+        double nd2 = CumulativeNormal<double>.Evaluate(d2);
+        double nMinusD1 = CumulativeNormal<double>.Evaluate(-d1);
+        double nMinusD2 = CumulativeNormal<double>.Evaluate(-d2);
 
         double delta = option.CallPut switch
         {
-            CallPut.Call => discountedSpot * CumulativeNormal.Evaluate(d1),
-            CallPut.Put => discountedSpot * (CumulativeNormal.Evaluate(d1) - 1d),
-            _ => 0d
+            CallPut.Call => carryDiscount * nd1,
+            CallPut.Put => carryDiscount * (nd1 - 1d),
+            _ => throw new NotSupportedException("Unsupported call/put flag.")
         };
 
-        double gamma = discountedSpot * pdf / (s * sigma * sqrtT);
-        double vega = s * discountedSpot * pdf * sqrtT / 100d;
+        double gamma = carryDiscount * pdf / (s * sigma * sqrtT);
+        double vega = s * carryDiscount * pdf * sqrtT / 100d;
 
         double thetaCall =
-            (-s * discountedSpot * pdf * sigma / (2d * sqrtT))
-            - (r * k * discountedStrike * CumulativeNormal.Evaluate(d2))
-            + (effectiveQ * s * discountedSpot * CumulativeNormal.Evaluate(d1));
+            (-s * carryDiscount * pdf * sigma / (2d * sqrtT))
+            - (r * k * rateDiscount * nd2)
+            + (effectiveQ * s * carryDiscount * nd1);
 
         double thetaPut =
-            (-s * discountedSpot * pdf * sigma / (2d * sqrtT))
-            + (r * k * discountedStrike * CumulativeNormal.Evaluate(-d2))
-            - (effectiveQ * s * discountedSpot * CumulativeNormal.Evaluate(-d1));
+            (-s * carryDiscount * pdf * sigma / (2d * sqrtT))
+            + (r * k * rateDiscount * nMinusD2)
+            - (effectiveQ * s * carryDiscount * nMinusD1);
 
         double rho = option.CallPut switch
         {
-            CallPut.Call => k * t * discountedStrike * CumulativeNormal.Evaluate(d2) / 100d,
-            CallPut.Put => -k * t * discountedStrike * CumulativeNormal.Evaluate(-d2) / 100d,
-            _ => 0d
+            CallPut.Call => k * t * rateDiscount * nd2 / 100d,
+            CallPut.Put => -k * t * rateDiscount * nMinusD2 / 100d,
+            _ => throw new NotSupportedException("Unsupported call/put flag.")
         };
 
+        // Theta is per calendar day by convention: annualized theta / 365, a fixed
+        // market convention independent of the discount curve's day count.
         double theta = (option.CallPut == CallPut.Call ? thetaCall : thetaPut) / 365d;
 
         return new GreekSet(delta, gamma, vega, theta, rho);

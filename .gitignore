@@ -6,6 +6,7 @@
 # Local-only working files
 _local/
 .claude/
+.build-arena/
 hooks/
 review-accepted.yaml
 
@@ -374,7 +375,10 @@ FodyWeavers.xsd
 # Claude Code
 sessions/
 CLAUDE.local.md
-specs/
+# specs/ is tracked in the private .Dev repo and stripped from the public archive via
+# `.gitattributes export-ignore` (NOT gitignored — that would lose its history). Only the
+# copyrighted reference books stay out of git entirely (large binaries, not redistributable).
+specs/reference/
 
 # JetBrains Rider
 .idea/
@@ -384,3 +388,16 @@ specs/
 
 # macOS
 .DS_Store
+
+# Arena run EVIDENCE is git-tracked (findings, verdicts, fixes, audits, ledger).
+# Ignore ONLY machine state; durable evidence remains versioned.
+.code-arena/locks/
+.code-arena/**/reduced-supervisor-state.json
+.code-arena/**/preflight-ok.txt
+.code-arena/**/.preflight
+.code-arena/**/PENDING-SPAWNS.md
+.code-arena/**/__pycache__/
+.code-arena/**/*.pyc
+!.code-arena/**/*.log
+.code-arena/**/reference.txt
+.code-arena/reference/

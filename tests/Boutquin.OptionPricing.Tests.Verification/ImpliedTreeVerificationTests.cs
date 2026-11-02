@@ -22,14 +22,20 @@ namespace Boutquin.OptionPricing.Tests.Verification;
 
 /// <summary>
 /// Cross-language verification for the implied-tree calibrators
-/// (ImpliedBinomialTreeCalibrator and ImpliedVolatilityTreeCalibrator). The
-/// current C# implementations both build a CRR-structured lattice with
-/// clamped probabilities, so the Python reference replicates that actual
-/// behavior and asserts the calibrated tree, AD prices, and local vols
-/// match at <see cref="CrossLanguageVerificationBase.PrecisionNumeric"/>.
+/// (ImpliedBinomialTreeCalibrator and ImpliedVolatilityTreeCalibrator). Both build a
+/// genuine Derman-Kani implied tree by forward induction; rather than replicate that
+/// node-by-node solve in Python, the verifier asserts the analytic *correctness
+/// properties* the Python reference computes: the terminal Arrow-Debreu prices sum to
+/// the discount factor, the terminal forward equals S0·e^{-qT}, and the tree reprices
+/// near-the-money Black-Scholes calls to finite-tree accuracy.
 /// </summary>
 public sealed class ImpliedTreeVerificationTests : CrossLanguageVerificationBase
 {
+    // Finite-tree repricing accuracy for the near-the-money region across the scenario
+    // step counts (10, 20). The constant-vol lattice of the same depth has comparable error.
+    private const double RepricingTolerance = 0.6;
+    private const double ForwardTolerance = 0.3;
+
     public static IEnumerable<object[]> Scenarios()
     {
         using var doc = LoadVector("implied_tree");
@@ -42,20 +48,20 @@ public sealed class ImpliedTreeVerificationTests : CrossLanguageVerificationBase
 
     [Theory]
     [MemberData(nameof(Scenarios))]
-    public void RubinsteinCalibrator_MatchesPythonReference(int index, string scenarioJson)
+    public void RubinsteinCalibrator_SatisfiesReferenceProperties(int index, string scenarioJson)
     {
         var (input, expected) = ParseScenario(scenarioJson);
         var result = new ImpliedBinomialTreeCalibrator().Calibrate(input);
-        AssertTreeMatches(index, result, expected, "rubinstein");
+        AssertProperties(index, result, expected, "rubinstein");
     }
 
     [Theory]
     [MemberData(nameof(Scenarios))]
-    public void DermanKaniCalibrator_MatchesPythonReference(int index, string scenarioJson)
+    public void DermanKaniCalibrator_SatisfiesReferenceProperties(int index, string scenarioJson)
     {
         var (input, expected) = ParseScenario(scenarioJson);
         var result = new ImpliedVolatilityTreeCalibrator().Calibrate(input);
-        AssertTreeMatches(index, result, expected, "derman-kani");
+        AssertProperties(index, result, expected, "derman-kani");
     }
 
     private (ImpliedVolatilityTreeCalibrationInput Input, JsonElement Expected) ParseScenario(string scenarioJson)
@@ -82,43 +88,39 @@ public sealed class ImpliedTreeVerificationTests : CrossLanguageVerificationBase
         return (input, s.GetProperty("expected"));
     }
 
-    private void AssertTreeMatches(int index, ImpliedTreeResult result, JsonElement expected, string label)
+    private static void AssertProperties(int index, ImpliedTreeResult result, JsonElement expected, string label)
     {
         Assert.True(result.IsSuccess, $"implied_tree[{index}/{label}] did not succeed");
 
-        AssertWithin(result.Tree.UpFactor, expected.GetProperty("u").GetDouble(), PrecisionNumeric,
-            $"implied_tree[{index}/{label}] u");
-        AssertWithin(result.Tree.DownFactor, expected.GetProperty("d").GetDouble(), PrecisionNumeric,
-            $"implied_tree[{index}/{label}] d");
-        AssertWithin(result.Tree.RiskNeutralProbability, expected.GetProperty("p").GetDouble(),
-            PrecisionNumeric, $"implied_tree[{index}/{label}] p");
-        AssertWithin(result.Tree.DeltaTime, expected.GetProperty("dt").GetDouble(), PrecisionNumeric,
-            $"implied_tree[{index}/{label}] dt");
+        int n = result.Tree.Steps;
+        IReadOnlyList<double> terminalSpots = result.Tree.SpotLattice[n];
+        IReadOnlyList<double> terminalAd = result.ArrowDebreuPrices[n];
 
-        AssertLatticeEquals(result.Tree.SpotLattice, expected.GetProperty("spot_lattice"),
-            $"implied_tree[{index}/{label}] spot");
-        AssertLatticeEquals(result.ArrowDebreuPrices, expected.GetProperty("arrow_debreu_prices"),
-            $"implied_tree[{index}/{label}] AD");
-        AssertLatticeEquals(result.LocalVolatilities, expected.GetProperty("local_volatilities"),
-            $"implied_tree[{index}/{label}] σ_local");
-    }
-
-    private static void AssertLatticeEquals(
-        IReadOnlyList<IReadOnlyList<double>> actual,
-        JsonElement expected,
-        string label)
-    {
-        var expectedLayers = expected.EnumerateArray().ToArray();
-        Assert.Equal(expectedLayers.Length, actual.Count);
-        for (int step = 0; step < actual.Count; step++)
+        double mass = 0d;
+        double forward = 0d;
+        for (int j = 0; j < terminalSpots.Count; j++)
         {
-            var expectedLayer = expectedLayers[step].EnumerateArray().Select(e => e.GetDouble()).ToArray();
-            Assert.Equal(expectedLayer.Length, actual[step].Count);
-            for (int j = 0; j < expectedLayer.Length; j++)
+            Assert.True(terminalAd[j] >= -1e-12, $"implied_tree[{index}/{label}] negative AD price");
+            mass += terminalAd[j];
+            forward += terminalAd[j] * terminalSpots[j];
+        }
+
+        AssertWithin(mass, expected.GetProperty("discount_factor").GetDouble(), 1e-6,
+            $"implied_tree[{index}/{label}] AD mass = discount factor");
+        AssertWithin(forward, expected.GetProperty("forward").GetDouble(), ForwardTolerance,
+            $"implied_tree[{index}/{label}] terminal forward");
+
+        foreach (var quote in expected.GetProperty("near_money_calls").EnumerateArray())
+        {
+            double strike = quote.GetProperty("strike").GetDouble();
+            double treeCall = 0d;
+            for (int j = 0; j < terminalSpots.Count; j++)
             {
-                AssertWithin(actual[step][j], expectedLayer[j], PrecisionNumeric,
-                    $"{label} [{step}][{j}]");
+                treeCall += terminalAd[j] * Math.Max(terminalSpots[j] - strike, 0d);
             }
+
+            AssertWithin(treeCall, quote.GetProperty("call").GetDouble(), RepricingTolerance,
+                $"implied_tree[{index}/{label}] reprice K={strike}");
         }
     }
 }

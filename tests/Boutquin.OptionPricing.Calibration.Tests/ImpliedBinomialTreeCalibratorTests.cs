@@ -15,8 +15,9 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Calibration.ImpliedTrees;
 using Boutquin.OptionPricing.Calibration.Smile;
 using Boutquin.OptionPricing.Domain.Market;
@@ -46,25 +47,16 @@ public sealed class ImpliedBinomialTreeCalibratorTests
         result.IsSuccess.Should().BeTrue();
         result.Tree.Steps.Should().Be(steps);
 
-        // The calibrated tree should reproduce the surface-derived call prices
+        // Fixed near-money strikes avoid the finite lattice's unrepresented tails.
+        // The AD-weighted payoff is the actual tree premium, not a quote-provider tautology.
         var provider = new SurfaceDerivedPriceProvider(surface, market, s_expiryDate);
-        double dt = market.TimeToExpiryInYears(s_expiryDate) / steps;
-
-        for (int n = 1; n <= steps; n++)
+        double maturity = result.Tree.Steps * result.Tree.DeltaTime;
+        foreach (decimal strike in new[] { 90m, 100m, 110m })
         {
-            double maturity = n * dt;
-            for (int j = 0; j <= n; j++)
-            {
-                decimal nodeStrike = (decimal)result.Tree.SpotLattice[n][j];
-                double expectedCallPrice = provider.GetCallPrice(nodeStrike, maturity);
-
-                // Tree-implied price should be close to surface-derived price
-                // Only check if the call price is material (> 0.01)
-                if (expectedCallPrice > 0.01)
-                {
-                    expectedCallPrice.Should().BeGreaterThan(0d, "call prices at material nodes should be positive");
-                }
-            }
+            double expected = provider.GetCallPrice(strike, maturity);
+            double actual = result.ArrowDebreuPrices[^1].Select((ad, j) =>
+                ad * Math.Max(result.Tree.TerminalSpots[j] - (double)strike, 0d)).Sum();
+            actual.Should().BeApproximately(expected, 0.5, "near-money premiums have finite-tree discretization error");
         }
     }
 
@@ -104,8 +96,11 @@ public sealed class ImpliedBinomialTreeCalibratorTests
 
         result.IsSuccess.Should().BeTrue();
 
-        // The tree should have valid structure
-        result.Tree.SpotLattice.Should().HaveCount(steps + 1);
+        result.Tree.ProbabilityLattice.Should().NotBeNull();
+        foreach (IReadOnlyList<double> row in result.Tree.ProbabilityLattice!)
+        {
+            row.Should().OnlyContain(p => double.IsFinite(p) && p > 0d && p < 1d);
+        }
     }
 
     [Fact]
@@ -129,13 +124,38 @@ public sealed class ImpliedBinomialTreeCalibratorTests
         }
     }
 
+    [Fact]
+    public void Calibrate_NoArbitrageReversions_ShouldBeReportedAsDiagnostic()
+    {
+        // F-L6-02: the engine reverts no-arbitrage-violating nodes to the constant-volatility
+        // seed, but that degradation signal was discarded — every calibration reported
+        // unconditional Success. The reversion tally must now surface as a diagnostic and a
+        // flat surface (which never reverts) must stay a clean Success.
+        var market = CreateMarket(100m, 0.20, 0.05);
+        var surface = CreateFlatSurface(0.20);
+
+        var input = new ImpliedVolatilityTreeCalibrationInput(surface, 20, market);
+        var result = new ImpliedBinomialTreeCalibrator().Calibrate(input);
+
+        var diagnostics = result.Report.GetDiagnostics();
+        diagnostics.Should().ContainKey("nodeReversions",
+            "the engine's no-arbitrage reversion tally must reach the calibration report");
+        diagnostics["nodeReversions"].Should().BeOfType<int>()
+            .Which.Should().BeGreaterThanOrEqualTo(0);
+
+        // A flat surface never violates the bracket, so it converges cleanly with no reversions.
+        ((int)diagnostics["nodeReversions"]!).Should().Be(0);
+        result.Report.Status.Should().Be(Domain.Enums.CalculationStatus.Success);
+        result.IsSuccess.Should().BeTrue();
+    }
+
     private static OptionMarketData CreateMarket(decimal spot, double vol, double rate)
     {
         return new OptionMarketData(
             s_valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             vol,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, CurrencyCode.USD, rate));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, Currency.USD, rate));
     }
 
     private static VolatilitySurface CreateFlatSurface(double vol)

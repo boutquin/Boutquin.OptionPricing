@@ -14,6 +14,7 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Enumerations;
 using Boutquin.MarketData.Abstractions.Calendars;
 using Boutquin.OptionPricing.Domain.Enums;
 
@@ -35,7 +36,10 @@ public sealed record BarrierOption : OptionContract
     /// Creates a barrier option contract.
     /// </summary>
     /// <param name="callPut">Whether the underlying vanilla payoff is a call or a put.</param>
-    /// <param name="strike">The strike price. Must be positive.</param>
+    /// <param name="strike">The strike price, in the contract <paramref name="currency"/>. Must be positive.</param>
+    /// <param name="currency">
+    /// The contract currency. Must not be <see cref="Currency.Unspecified"/>.
+    /// </param>
     /// <param name="barrierLevel">
     /// The barrier level that triggers knock-in or knock-out behavior. Must be positive.
     /// </param>
@@ -60,9 +64,13 @@ public sealed record BarrierOption : OptionContract
     /// Thrown when <paramref name="strike"/> or <paramref name="barrierLevel"/> is zero
     /// or negative.
     /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="currency"/> is <see cref="Currency.Unspecified"/>.
+    /// </exception>
     public BarrierOption(
         CallPut callPut,
         decimal strike,
+        Currency currency,
         decimal barrierLevel,
         BarrierDirection direction,
         BarrierKnockType knockType,
@@ -70,7 +78,7 @@ public sealed record BarrierOption : OptionContract
         IBusinessCalendar? settlementCalendar = null,
         BusinessDayAdjustment? settlementAdjustment = null,
         int settlementLagDays = 0)
-        : base(callPut, strike, expiryDate, settlementCalendar, settlementAdjustment, settlementLagDays)
+        : base(callPut, strike, currency, expiryDate, settlementCalendar, settlementAdjustment, settlementLagDays)
     {
         if (barrierLevel <= 0m)
         {
@@ -84,19 +92,62 @@ public sealed record BarrierOption : OptionContract
 
     /// <summary>
     /// The price level at which the barrier event (knock-in or knock-out) is triggered,
-    /// expressed in the same currency units as the spot and strike prices.
+    /// expressed in the same currency units as the spot and strike prices. Must be positive;
+    /// the validation is enforced on <c>init</c> so it cannot be bypassed via a
+    /// <c>with</c> expression.
     /// </summary>
-    public decimal BarrierLevel { get; init; }
+    /// <remarks>Denominated in the contract currency, exactly like the strike amount; no FX conversion is implied.</remarks>
+    public decimal BarrierLevel
+    {
+        get => _barrierLevel;
+        init
+        {
+            if (value <= 0m)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Barrier level must be positive.");
+            }
+
+            _barrierLevel = value;
+        }
+    }
+
+    private readonly decimal _barrierLevel;
 
     /// <summary>
     /// Whether the underlying must approach the barrier from below (up) or from above
     /// (down) for the barrier event to trigger.
     /// </summary>
-    public BarrierDirection Direction { get; init; }
+    public BarrierDirection Direction
+    {
+        get => _direction;
+        init
+        {
+            if (!Enum.IsDefined(value))
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "A defined barrier direction is required.");
+            }
+            _direction = value;
+        }
+    }
+
+    private readonly BarrierDirection _direction;
 
     /// <summary>
     /// Whether breaching the barrier activates (knock-in) or extinguishes (knock-out)
     /// the option.
     /// </summary>
-    public BarrierKnockType KnockType { get; init; }
+    public BarrierKnockType KnockType
+    {
+        get => _knockType;
+        init
+        {
+            if (!Enum.IsDefined(value))
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "A defined barrier knocktype is required.");
+            }
+            _knockType = value;
+        }
+    }
+
+    private readonly BarrierKnockType _knockType;
 }

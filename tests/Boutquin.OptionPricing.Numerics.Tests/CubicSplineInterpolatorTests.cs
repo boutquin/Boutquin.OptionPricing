@@ -32,7 +32,7 @@ public sealed class CubicSplineInterpolatorTests
         double[] xs = Enumerable.Range(0, 21).Select(i => i * 0.2d).ToArray();
         double[] ys = xs.Select(x => (x * x * x) - (2d * x * x) + (3d * x) - 1d).ToArray();
 
-        var spline = new CubicSplineInterpolator(xs, ys);
+        var spline = new CubicSplineInterpolator<double>(xs, ys);
 
         // Test at interior midpoints (away from boundaries)
         double[] testPoints = [1.3d, 1.7d, 2.1d, 2.5d, 2.9d];
@@ -50,7 +50,7 @@ public sealed class CubicSplineInterpolatorTests
         double[] xs = [1d, 2d, 3d, 4d, 5d];
         double[] ys = [2.1d, 3.7d, 1.2d, 4.5d, 2.8d];
 
-        var spline = new CubicSplineInterpolator(xs, ys);
+        var spline = new CubicSplineInterpolator<double>(xs, ys);
 
         for (int i = 0; i < xs.Length; i++)
         {
@@ -65,7 +65,7 @@ public sealed class CubicSplineInterpolatorTests
         double[] xs = [0d, 1d, 2d];
         double[] ys = [0d, 1d, 0d];
 
-        var spline = new CubicSplineInterpolator(xs, ys);
+        var spline = new CubicSplineInterpolator<double>(xs, ys);
 
         spline.Interpolate(0.5d).Should().BeGreaterThan(0d);
         spline.Interpolate(1.5d).Should().BeGreaterThan(0d);
@@ -77,7 +77,7 @@ public sealed class CubicSplineInterpolatorTests
         double[] xs = [0d, 1d];
         double[] ys = [0d, 1d];
 
-        var act = () => new CubicSplineInterpolator(xs, ys);
+        var act = () => new CubicSplineInterpolator<double>(xs, ys);
         act.Should().Throw<ArgumentException>();
     }
 
@@ -87,7 +87,7 @@ public sealed class CubicSplineInterpolatorTests
         double[] xs = [0d, 2d, 1d];
         double[] ys = [0d, 1d, 2d];
 
-        var act = () => new CubicSplineInterpolator(xs, ys);
+        var act = () => new CubicSplineInterpolator<double>(xs, ys);
         act.Should().Throw<ArgumentException>();
     }
 
@@ -97,7 +97,7 @@ public sealed class CubicSplineInterpolatorTests
         double[] xs = [0d, 1d, 2d, 3d];
         double[] ys = [0d, 1d, 4d, 9d]; // roughly x^2
 
-        var spline = new CubicSplineInterpolator(xs, ys);
+        var spline = new CubicSplineInterpolator<double>(xs, ys);
 
         // Should not throw and should return a finite value
         double left = spline.Interpolate(-1d);

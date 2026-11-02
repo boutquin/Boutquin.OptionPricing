@@ -24,10 +24,11 @@ namespace Boutquin.OptionPricing.Analytics.Parity;
 /// </summary>
 /// <remarks>
 /// The forward price under risk-neutral valuation is
-/// <c>F = S * exp(-q*T) / [exp(-r*T) * exp(-b*T)]</c>,
-/// where <c>q</c> is the dividend yield, <c>r</c> is the risk-free rate, and
-/// <c>b</c> is the borrow cost. When expressed in terms of pre-computed discount
-/// factors this simplifies to <c>F = S * D_div / (D_rf * D_borrow)</c>.
+/// <c>F = S * exp((r - q - b) * T)</c>, where <c>q</c> is the dividend yield,
+/// <c>r</c> is the risk-free rate, and <c>b</c> is the borrow cost. The borrow
+/// cost behaves like an additional yield that reduces the forward, consistent with
+/// the pricer's <c>effectiveQ = q + b</c>. Expressed in terms of pre-computed
+/// discount factors this is <c>F = S * D_div * D_borrow / D_rf</c>.
 /// </remarks>
 public static class RiskNeutralValuation
 {
@@ -43,11 +44,23 @@ public static class RiskNeutralValuation
     /// Borrow-cost discount factor exp(-b*T). Defaults to 1 (no borrow cost).
     /// </param>
     /// <returns>
-    /// The forward price <c>S * D_div / (D_rf * D_borrow)</c>.
+    /// The forward price <c>S * D_div * D_borrow / D_rf</c>.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">Spot or a supplied factor is not finite and positive.</exception>
+    /// <exception cref="ArithmeticException">The forward cannot be represented as a finite positive double.</exception>
     public static double ForwardPrice(double spot, double discountFactor, double dividendDiscountFactor = 1d, double borrowDiscountFactor = 1d)
     {
-        return spot * dividendDiscountFactor / (discountFactor * borrowDiscountFactor);
+        ValidateFactor(spot, nameof(spot));
+        ValidateFactor(discountFactor, nameof(discountFactor));
+        ValidateFactor(dividendDiscountFactor, nameof(dividendDiscountFactor));
+        ValidateFactor(borrowDiscountFactor, nameof(borrowDiscountFactor));
+        double forward = spot * dividendDiscountFactor * borrowDiscountFactor / discountFactor;
+        if (!double.IsFinite(forward) || forward <= 0d)
+        {
+            throw new ArithmeticException("The forward price is outside the finite positive numeric range.");
+        }
+
+        return forward;
     }
 
     /// <summary>
@@ -59,8 +72,18 @@ public static class RiskNeutralValuation
     /// <returns>
     /// The forward price derived from the market's curve-based discount factors.
     /// </returns>
+    /// <exception cref="ArgumentNullException">The market snapshot is null.</exception>
     public static double ForwardPrice(OptionMarketData market, DateOnly expiryDate)
     {
+        ArgumentNullException.ThrowIfNull(market);
         return market.ForwardPrice(expiryDate);
+    }
+
+    private static void ValidateFactor(double value, string parameterName)
+    {
+        if (!double.IsFinite(value) || value <= 0d)
+        {
+            throw new ArgumentOutOfRangeException(parameterName, "Value must be finite and positive.");
+        }
     }
 }

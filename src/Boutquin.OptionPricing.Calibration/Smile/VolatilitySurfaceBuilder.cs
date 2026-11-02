@@ -30,6 +30,7 @@ public sealed class VolatilitySurfaceBuilder
     /// <returns>A fully constructed <see cref="VolatilitySurface"/> ready for calibration or arbitrage validation.</returns>
     public VolatilitySurface Build(IEnumerable<SurfacePoint> points)
     {
+        ArgumentNullException.ThrowIfNull(points);
         List<SmileSlice> slices = points
             .GroupBy(point => point.MaturityInYears)
             .OrderBy(group => group.Key)

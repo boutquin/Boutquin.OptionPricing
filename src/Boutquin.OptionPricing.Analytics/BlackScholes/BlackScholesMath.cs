@@ -51,9 +51,38 @@ internal static class BlackScholesMath
     /// A tuple <c>(D1, D2)</c> containing the two standard-normal arguments
     /// used throughout the Black-Scholes pricing and Greeks formulas.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="spot"/>, <paramref name="strike"/>,
+    /// <paramref name="volatility"/>, or <paramref name="timeToExpiry"/> is not strictly
+    /// positive. d1/d2 are undefined (NaN/∞) for those inputs; the guard makes the
+    /// precondition explicit at the math seam rather than producing silent NaN downstream.
+    /// </exception>
     public static (double D1, double D2) ComputeD1D2(double spot, double strike, double rate, double dividendYield, double volatility, double timeToExpiry)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(spot);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(strike);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(volatility);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(timeToExpiry);
+        if (!double.IsFinite(spot) || !double.IsFinite(strike) || !double.IsFinite(rate)
+            || !double.IsFinite(dividendYield) || !double.IsFinite(volatility) || !double.IsFinite(timeToExpiry))
+        {
+            throw new ArgumentOutOfRangeException(nameof(spot), "Black-Scholes inputs must be finite.");
+        }
+
         double sigmaSqrtT = volatility * Math.Sqrt(timeToExpiry);
+        if (!double.IsFinite(volatility * volatility) || sigmaSqrtT == 0d)
+        {
+            // Preserve the ordinary arithmetic path and its numerical baselines.
+            // Scaling before squaring avoids inf-inf in d2 at finite high vol,
+            // and dividing before multiplying retains the zero-volatility limit.
+            double sqrtT = Math.Sqrt(timeToExpiry);
+            double carry = rate - dividendYield;
+            double scaledCarry = double.IsFinite(carry) ? carry / volatility : rate / volatility - dividendYield / volatility;
+            double centre = Math.Log(spot / strike) / volatility / sqrtT + scaledCarry * sqrtT;
+            double halfWidth = 0.5d * volatility * sqrtT;
+            return (centre + halfWidth, centre - halfWidth);
+        }
+
         double d1 = (Math.Log(spot / strike) + ((rate - dividendYield + (0.5d * volatility * volatility)) * timeToExpiry)) / sigmaSqrtT;
         double d2 = d1 - sigmaSqrtT;
         return (d1, d2);

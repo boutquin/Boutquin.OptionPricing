@@ -17,8 +17,9 @@
 using System.Globalization;
 using System.Text.Json;
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Domain.Market;
@@ -44,26 +45,24 @@ public abstract class CrossLanguageVerificationBase
     /// <summary>Statistical / convergence bounds for tree → analytic-limit assertions.</summary>
     protected const double PrecisionStatistical = 1e-4;
 
-    private const CurrencyCode UsdCurrency = CurrencyCode.USD;
+    private const Currency UsdCurrency = Currency.USD;
 
-    private static string? s_vectorsDir;
+    // Thread-safe one-time resolution: parallel xUnit collections must not race to
+    // initialize the cached directory (F35).
+    private static readonly Lazy<string> s_vectorsDir = new(ResolveVectorsDir, LazyThreadSafetyMode.ExecutionAndPublication);
 
     /// <summary>
     /// Resolves the JSON vectors directory. Prefers the output-tree copy set up by
     /// the csproj's <c>Content Include</c>, falling back to walking up from the
     /// test assembly to <c>tests/Verification/vectors/</c> for local debugging.
     /// </summary>
-    protected static string GetVectorsDir()
-    {
-        if (s_vectorsDir != null)
-        {
-            return s_vectorsDir;
-        }
+    protected static string GetVectorsDir() => s_vectorsDir.Value;
 
+    private static string ResolveVectorsDir()
+    {
         var outputCopy = Path.Combine(AppContext.BaseDirectory, "Verification", "vectors");
         if (Directory.Exists(outputCopy))
         {
-            s_vectorsDir = outputCopy;
             return outputCopy;
         }
 
@@ -73,7 +72,6 @@ public abstract class CrossLanguageVerificationBase
             var candidate = Path.Combine(dir, "tests", "Verification", "vectors");
             if (Directory.Exists(candidate))
             {
-                s_vectorsDir = candidate;
                 return candidate;
             }
 
@@ -146,7 +144,7 @@ public abstract class CrossLanguageVerificationBase
 
         return new OptionMarketData(
             valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             sigma,
             discount,
             dividend,
@@ -154,8 +152,8 @@ public abstract class CrossLanguageVerificationBase
     }
 
     protected static EuropeanOption BuildEuropeanOption(decimal strike, DateOnly expiry, string callPut) =>
-        new(ParseCallPut(callPut), strike, expiry);
+        new(ParseCallPut(callPut), strike, Currency.USD, expiry);
 
     protected static AmericanOption BuildAmericanOption(decimal strike, DateOnly expiry, string callPut) =>
-        new(ParseCallPut(callPut), strike, expiry);
+        new(ParseCallPut(callPut), strike, Currency.USD, expiry);
 }

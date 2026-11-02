@@ -14,6 +14,7 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Enumerations;
 using Boutquin.Numerics.Distributions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Analytics.Hedging;
@@ -62,7 +63,9 @@ if (selectedChapter.HasValue)
 else
 {
     foreach (var chapterInfo in registry.Values)
+    {
         await RunChapterAsync(chapterInfo).ConfigureAwait(false);
+    }
 }
 
 // ── Registry ──────────────────────────────────────────────────────────────────
@@ -136,7 +139,9 @@ static int? ParseChapterArg(string[] args, out string? error)
         if (args[i] == "--chapter" && i + 1 < args.Length)
         {
             if (int.TryParse(args[i + 1], out int n))
+            {
                 return n;
+            }
             error = $"--chapter requires an integer argument, got '{args[i + 1]}'.";
             return null;
         }
@@ -144,7 +149,9 @@ static int? ParseChapterArg(string[] args, out string? error)
         {
             string val = args[i]["--chapter=".Length..];
             if (int.TryParse(val, out int n))
+            {
                 return n;
+            }
             error = $"--chapter requires an integer argument, got '{val}'.";
             return null;
         }
@@ -162,7 +169,9 @@ static void PrintListing(SortedDictionary<int, ChapterInfo> registry, int? selec
         string marker = selectedChapter == info.Number ? "▶" : " ";
         Console.WriteLine($"  {marker} --chapter {info.Number,2}  {info.Title}");
         foreach (var ex in info.Examples)
+        {
             Console.WriteLine($"                  {ex.Id,-5}  {ex.Description}");
+        }
     }
 }
 
@@ -173,7 +182,9 @@ static async Task RunChapterAsync(ChapterInfo chapter)
 {
     Console.WriteLine($"── Chapter {chapter.Number}: {chapter.Title} ──");
     foreach (var ex in chapter.Examples)
+    {
         await ex.Run().ConfigureAwait(false);
+    }
     Console.WriteLine();
 }
 
@@ -185,32 +196,32 @@ static void Example01BlackScholesVanilla()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly expiry        = valuationDate.AddYears(1);
-    var callOption = new EuropeanOption(CallPut.Call, 100m, expiry);
-    var putOption  = new EuropeanOption(CallPut.Put,  100m, expiry);
-    var market     = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
-    var pricer     = new BlackScholesPricer();
+    DateOnly expiry = valuationDate.AddYears(1);
+    var callOption = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry);
+    var putOption = new EuropeanOption(CallPut.Put, 100m, Currency.USD, expiry);
+    var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
+    var pricer = new BlackScholesPricer();
 
-    double S     = (double)market.Spot;
-    double K     = (double)callOption.Strike;
+    double S = (double)market.Spot.Amount;
+    double K = (double)callOption.Strike.Amount;
     double sigma = market.FlatVolatility;
-    double r     = market.RiskFreeRate(expiry);
-    double T     = market.TimeToExpiryInYears(expiry);
+    double r = market.RiskFreeRate(expiry);
+    double T = market.TimeToExpiryInYears(expiry);
     double sqrtT = Math.Sqrt(T);
 
     double d1 = (Math.Log(S / K) + (r + sigma * sigma / 2.0) * T) / (sigma * sqrtT);
     double d2 = d1 - sigma * sqrtT;
 
     var callResult = pricer.Price(callOption, market);
-    var putResult  = pricer.Price(putOption,  market);
+    var putResult = pricer.Price(putOption, market);
 
     Console.WriteLine($"  d₁ = (log(S/K) + (r+σ²/2)·T) / (σ·√T) = {d1:F4}");
     Console.WriteLine($"  d₂ = d₁ − σ·√T                         = {d2:F4}");
-    Console.WriteLine($"  N(d₁) = {CumulativeNormal.Evaluate(d1):F6}   N(d₂) = {CumulativeNormal.Evaluate(d2):F6}");
+    Console.WriteLine($"  N(d₁) = {CumulativeNormal<double>.Evaluate(d1):F6}   N(d₂) = {CumulativeNormal<double>.Evaluate(d2):F6}");
     Console.WriteLine();
-    Console.WriteLine($"  Call  C = S·N(d₁) − K·e^{{−rT}}·N(d₂)       = {callResult.Price:F4}");
-    Console.WriteLine($"  Put   P = K·e^{{−rT}}·N(−d₂) − S·N(−d₁)     = {putResult.Price:F4}");
-    Console.WriteLine($"  Parity: C − P = {callResult.Price - putResult.Price:F4},  S − K·e^{{−rT}} = {S - K * Math.Exp(-r * T):F4}");
+    Console.WriteLine($"  Call  C = S·N(d₁) − K·e^{{−rT}}·N(d₂)       = {callResult.Price.Amount:F4}");
+    Console.WriteLine($"  Put   P = K·e^{{−rT}}·N(−d₂) − S·N(−d₁)     = {putResult.Price.Amount:F4}");
+    Console.WriteLine($"  Parity: C − P = {(callResult.Price - putResult.Price).Amount:F4},  S − K·e^{{−rT}} = {S - K * Math.Exp(-r * T):F4}");
 }
 
 static void Example02GreeksAndParity()
@@ -221,29 +232,29 @@ static void Example02GreeksAndParity()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly expiry        = valuationDate.AddYears(1);
-    var callOption  = new EuropeanOption(CallPut.Call, 100m, expiry);
-    var putOption   = new EuropeanOption(CallPut.Put,  100m, expiry);
-    var market      = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
-    var pricer      = new BlackScholesPricer();
-    var greeks      = new BlackScholesGreeks();
+    DateOnly expiry = valuationDate.AddYears(1);
+    var callOption = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry);
+    var putOption = new EuropeanOption(CallPut.Put, 100m, Currency.USD, expiry);
+    var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
+    var pricer = new BlackScholesPricer();
+    var greeks = new BlackScholesGreeks();
 
-    var callResult  = pricer.Price(callOption, market);
-    var putResult   = pricer.Price(putOption,  market);
-    var callGreeks  = greeks.CalculateGreeks(callOption, market);
-    var putGreeks   = greeks.CalculateGreeks(putOption,  market);
-    var impliedCall = PutCallParity.ImpliedCallPrice(putResult.Price, market.Spot, callOption.Strike, market, expiry);
+    var callResult = pricer.Price(callOption, market);
+    var putResult = pricer.Price(putOption, market);
+    var callGreeks = greeks.CalculateGreeks(callOption, market);
+    var putGreeks = greeks.CalculateGreeks(putOption, market);
+    var impliedCall = PutCallParity.ImpliedCallPrice(putResult.Price.Amount, market.Spot.Amount, callOption.Strike.Amount, market, expiry);
 
     Console.WriteLine($"  {"Greek",8}  {"Call",12}  {"Put",12}  Parity identity");
     Console.WriteLine($"  {new string('─', 65)}");
-    Console.WriteLine($"  {"Price",8}  {callResult.Price,12:F4}  {putResult.Price,12:F4}  C − P = S − K·e^{{−rT}}");
+    Console.WriteLine($"  {"Price",8}  {callResult.Price.Amount,12:F4}  {putResult.Price.Amount,12:F4}  C − P = S − K·e^{{−rT}}");
     Console.WriteLine($"  {"Delta",8}  {callGreeks.Delta,12:F6}  {putGreeks.Delta,12:F6}  Δ_C − Δ_P = 1  (q=0)");
     Console.WriteLine($"  {"Gamma",8}  {callGreeks.Gamma,12:F6}  {putGreeks.Gamma,12:F6}  equal for call and put");
     Console.WriteLine($"  {"Vega",8}  {callGreeks.Vega,12:F6}  {putGreeks.Vega,12:F6}  equal for call and put");
     Console.WriteLine($"  {"Theta",8}  {callGreeks.Theta,12:F6}  {putGreeks.Theta,12:F6}  differ by r·K·e^{{−rT}}");
     Console.WriteLine($"  {"Rho",8}  {callGreeks.Rho,12:F6}  {putGreeks.Rho,12:F6}  differ in sign");
     Console.WriteLine();
-    Console.WriteLine($"  Parity-implied call = {impliedCall:F4}  (direct BS call = {callResult.Price:F4},  diff = {impliedCall - callResult.Price:E2})");
+    Console.WriteLine($"  Parity-implied call = {impliedCall:F4}  (direct BS call = {callResult.Price.Amount:F4},  diff = {impliedCall - callResult.Price.Amount:E2})");
     Console.WriteLine($"  Δ_C − Δ_P = {callGreeks.Delta - putGreeks.Delta:F6}  (should be 1.000000 when q=0)");
 }
 
@@ -255,14 +266,14 @@ static void Example03BinomialConvergence()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly expiry        = valuationDate.AddYears(1);
-    var option      = new EuropeanOption(CallPut.Call, 100m, expiry);
-    var market      = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
-    var analytic    = new BlackScholesPricer().Price(option, market);
-    var treePricer  = new EuropeanTreePricer();
+    DateOnly expiry = valuationDate.AddYears(1);
+    var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry);
+    var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
+    var analytic = new BlackScholesPricer().Price(option, market);
+    var treePricer = new EuropeanTreePricer();
     var treeBuilder = new CoxRossRubinsteinTreeBuilder();
 
-    Console.WriteLine($"  Analytic BS price: {analytic.Price:F6}");
+    Console.WriteLine($"  Analytic BS price: {analytic.Price.Amount:F6}");
     Console.WriteLine();
     Console.WriteLine($"  {"Steps",7}  {"Tree Price",12}  {"Error (bps)",13}");
     Console.WriteLine($"  {new string('─', 37)}");
@@ -270,11 +281,11 @@ static void Example03BinomialConvergence()
     int[] stepCounts = [10, 25, 50, 100, 200, 500];
     foreach (int steps in stepCounts)
     {
-        var input    = TreeModelInput.FromMarketData(market, option.Strike, expiry, steps);
-        var tree     = treeBuilder.Build(input);
-        var result   = treePricer.Price(option, market, tree);
-        double error = (double)(result.Price - analytic.Price) / (double)analytic.Price * 10000d;
-        Console.WriteLine($"  {steps,7}  {result.Price,12:F6}  {error,+13:F2}");
+        var input = TreeModelInput.FromMarketData(market, option.Strike.Amount, expiry, steps);
+        var tree = treeBuilder.Build(input);
+        var result = treePricer.Price(option, market, tree);
+        double error = (double)(result.Price.Amount - analytic.Price.Amount) / (double)analytic.Price.Amount * 10000d;
+        Console.WriteLine($"  {steps,7}  {result.Price.Amount,12:F6}  {error,+13:F2}");
     }
 }
 
@@ -286,9 +297,9 @@ static void Example04AmericanPutEarlyExercise()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly expiry        = valuationDate.AddYears(1);
-    var euPricer   = new EuropeanTreePricer();
-    var amPricer   = new AmericanTreePricer();
+    DateOnly expiry = valuationDate.AddYears(1);
+    var euPricer = new EuropeanTreePricer();
+    var amPricer = new AmericanTreePricer();
     var treeBuilder = new CoxRossRubinsteinTreeBuilder();
 
     Console.WriteLine($"  {"Spot",6}  {"European P",12}  {"American P",12}  {"Premium",9}  {"Intrinsic",10}");
@@ -297,15 +308,15 @@ static void Example04AmericanPutEarlyExercise()
     decimal[] spots = [70m, 75m, 80m, 85m, 90m, 95m, 100m, 105m, 110m];
     foreach (decimal s in spots)
     {
-        var market    = MarketHelpers.CreateFlatMarket(valuationDate, s, 0.20d, 0.05d, 0.00d);
-        var euOption  = new EuropeanOption(CallPut.Put, 100m, expiry);
-        var amOption  = new AmericanOption(CallPut.Put, 100m, expiry);
-        var input     = TreeModelInput.FromMarketData(market, 100m, expiry, 200);
-        var tree      = treeBuilder.Build(input);
-        decimal euP   = euPricer.Price(euOption, market, tree).Price;
-        decimal amP   = amPricer.Price(amOption, market, tree).Price;
-        decimal prem  = amP - euP;
-        decimal intr  = Math.Max(100m - s, 0m);
+        var market = MarketHelpers.CreateFlatMarket(valuationDate, s, 0.20d, 0.05d, 0.00d);
+        var euOption = new EuropeanOption(CallPut.Put, 100m, Currency.USD, expiry);
+        var amOption = new AmericanOption(CallPut.Put, 100m, Currency.USD, expiry);
+        var input = TreeModelInput.FromMarketData(market, 100m, expiry, 200);
+        var tree = treeBuilder.Build(input);
+        decimal euP = euPricer.Price(euOption, market, tree).Price.Amount;
+        decimal amP = amPricer.Price(amOption, market, tree).Price.Amount;
+        decimal prem = amP - euP;
+        decimal intr = Math.Max(100m - s, 0m);
         Console.WriteLine($"  {s,6:F0}  {euP,12:F4}  {amP,12:F4}  {prem,9:F4}  {intr,10:F2}");
     }
 
@@ -322,12 +333,12 @@ static void Example05ImpliedVolatilityRecovery()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly expiry        = valuationDate.AddYears(1);
-    var baseMarket  = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
-    var option      = new EuropeanOption(CallPut.Call, 100m, expiry);
-    var pricer      = new BlackScholesPricer();
-    var solver      = new ImpliedVolatilitySolver();
-    var guess       = baseMarket.WithFlatVolatility(0.15d);
+    DateOnly expiry = valuationDate.AddYears(1);
+    var baseMarket = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
+    var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry);
+    var pricer = new BlackScholesPricer();
+    var solver = new ImpliedVolatilitySolver();
+    var guess = baseMarket.WithFlatVolatility(0.15d);
 
     Console.WriteLine($"  {"True σ",8}  {"BS Price",10}  {"Recovered σ",13}  {"Error (bp)",12}");
     Console.WriteLine($"  {new string('─', 50)}");
@@ -335,12 +346,12 @@ static void Example05ImpliedVolatilityRecovery()
     double[] trueVols = [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40];
     foreach (double vol in trueVols)
     {
-        var market    = MarketHelpers.CreateFlatMarket(valuationDate, 100m, vol, 0.05d, 0.00d);
-        decimal price = pricer.Price(option, market).Price;
-        var request   = new ImpliedVolatilityRequest(option, guess, price, 0.15d);
-        var result    = solver.Solve(request);
+        var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, vol, 0.05d, 0.00d);
+        decimal price = pricer.Price(option, market).Price.Amount;
+        var request = new ImpliedVolatilityRequest(option, guess, price, 0.15d);
+        var result = solver.Solve(request);
         double recovered = result.ImpliedVolatility ?? double.NaN;
-        double errBp     = (recovered - vol) * 10000.0;
+        double errBp = (recovered - vol) * 10000.0;
         Console.WriteLine($"  {vol * 100,7:F1}%  {price,10:F4}  {recovered * 100,12:F6}%  {errBp,+11:F4}");
     }
 }
@@ -362,15 +373,17 @@ static void Example07SmileSliceConstruction()
         new(maturity, 120m, 0.26d),
     ];
 
-    var slice     = new SmileSliceBuilder().Build(maturity, quotes);
-    var surface   = new VolatilitySurface([slice]);
+    var slice = new SmileSliceBuilder().Build(maturity, quotes);
+    var surface = new VolatilitySurface([slice]);
     var arbResult = new QuoteArbitrageValidator().Validate(surface);
 
     Console.WriteLine($"  Market quotes (T={maturity:F1}):");
     Console.WriteLine($"  {"Strike",8}  {"σ (quoted)",12}  {"σ (surface)",13}");
     Console.WriteLine($"  {new string('─', 38)}");
     foreach (var q in quotes)
+    {
         Console.WriteLine($"  {q.Strike,8:F0}  {q.ImpliedVolatility * 100,11:F2}%  {surface.GetVol(q.Strike, maturity) * 100,12:F4}%");
+    }
 
     Console.WriteLine();
     Console.WriteLine("  Interpolated at intermediate strikes:");
@@ -378,7 +391,9 @@ static void Example07SmileSliceConstruction()
     Console.WriteLine($"  {new string('─', 24)}");
     decimal[] interp = [85m, 95m, 105m, 115m];
     foreach (decimal k in interp)
+    {
         Console.WriteLine($"  {k,8:F0}  {surface.GetVol(k, maturity) * 100,11:F4}%");
+    }
 
     Console.WriteLine();
     Console.WriteLine($"  Arbitrage-free: {arbResult.IsValid}   (calendar + butterfly spread checks)");
@@ -392,8 +407,8 @@ static void Example09DermanKaniImpliedTree()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    var market  = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
-    double mat  = 0.5d;
+    var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
+    double mat = 0.5d;
     SurfacePoint[] quotes =
     [
         new(mat,  80m, 0.28d),
@@ -402,10 +417,10 @@ static void Example09DermanKaniImpliedTree()
         new(mat, 110m, 0.22d),
         new(mat, 120m, 0.26d),
     ];
-    var surface    = new VolatilitySurfaceBuilder().Build(quotes);
-    int steps      = 30;
+    var surface = new VolatilitySurfaceBuilder().Build(quotes);
+    int steps = 30;
     var calibInput = new ImpliedVolatilityTreeCalibrationInput(surface, steps, market);
-    var dkResult   = new ImpliedVolatilityTreeCalibrator().Calibrate(calibInput);
+    var dkResult = new ImpliedVolatilityTreeCalibrator().Calibrate(calibInput);
 
     Console.WriteLine($"  Calibration: {steps} steps,  success: {dkResult.IsSuccess}");
     Console.WriteLine();
@@ -419,7 +434,10 @@ static void Example09DermanKaniImpliedTree()
         for (int t = 0; t < display; t++)
         {
             var row = dkResult.LocalVolatilities[t];
-            if (row.Count == 0) continue;
+            if (row.Count == 0)
+            {
+                continue;
+            }
             double mn = row.Min();
             double mx = row.Max();
             double av = row.Average();
@@ -440,8 +458,8 @@ static void Example10RubinsteinImpliedBinomialTree()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    var market  = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
-    double mat  = 0.5d;
+    var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
+    double mat = 0.5d;
     SurfacePoint[] quotes =
     [
         new(mat,  80m, 0.28d),
@@ -450,10 +468,10 @@ static void Example10RubinsteinImpliedBinomialTree()
         new(mat, 110m, 0.22d),
         new(mat, 120m, 0.26d),
     ];
-    var surface    = new VolatilitySurfaceBuilder().Build(quotes);
-    int steps      = 30;
+    var surface = new VolatilitySurfaceBuilder().Build(quotes);
+    int steps = 30;
     var calibInput = new ImpliedVolatilityTreeCalibrationInput(surface, steps, market);
-    var rubResult  = new ImpliedBinomialTreeCalibrator().Calibrate(calibInput);
+    var rubResult = new ImpliedBinomialTreeCalibrator().Calibrate(calibInput);
 
     Console.WriteLine($"  Calibration: {steps} steps,  success: {rubResult.IsSuccess}");
     Console.WriteLine();
@@ -467,7 +485,10 @@ static void Example10RubinsteinImpliedBinomialTree()
         for (int t = 0; t < display; t++)
         {
             var row = rubResult.LocalVolatilities[t];
-            if (row.Count == 0) continue;
+            if (row.Count == 0)
+            {
+                continue;
+            }
             double mn = row.Min();
             double mx = row.Max();
             double av = row.Average();
@@ -490,14 +511,14 @@ static void Example09BarrierOptionFlatVol()
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
     DateOnly expiry = valuationDate.AddMonths(6);
-    var market  = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.01d);
-    var input   = TreeModelInput.FromMarketData(market, 100m, expiry, 200);
-    var tree    = new CoxRossRubinsteinTreeBuilder().Build(input);
+    var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.01d);
+    var input = TreeModelInput.FromMarketData(market, 100m, expiry, 200);
+    var tree = new CoxRossRubinsteinTreeBuilder().Build(input);
     var barrier = new BarrierTreePricer();
     var vanilla = new EuropeanTreePricer();
 
-    var callVanilla = vanilla.Price(new EuropeanOption(CallPut.Call, 100m, expiry), market, tree).Price;
-    var putVanilla  = vanilla.Price(new EuropeanOption(CallPut.Put,  100m, expiry), market, tree).Price;
+    var callVanilla = vanilla.Price(new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry), market, tree).Price.Amount;
+    var putVanilla = vanilla.Price(new EuropeanOption(CallPut.Put, 100m, Currency.USD, expiry), market, tree).Price.Amount;
 
     Console.WriteLine($"  {"Option",22}  {"Barrier",8}  {"KI",8}  {"KO",8}  {"KI+KO",8}  {"Vanilla",8}");
     Console.WriteLine($"  {new string('─', 70)}");
@@ -512,12 +533,12 @@ static void Example09BarrierOptionFlatVol()
 
     foreach (var (dir, cp, bar, van) in families)
     {
-        var ki  = new BarrierOption(cp, 100m, bar, dir, BarrierKnockType.In,  expiry);
-        var ko  = new BarrierOption(cp, 100m, bar, dir, BarrierKnockType.Out, expiry);
-        decimal kiP = barrier.Price(ki, market, tree).Price;
-        decimal koP = barrier.Price(ko, market, tree).Price;
+        var ki = new BarrierOption(cp, 100m, Currency.USD, bar, dir, BarrierKnockType.In, expiry);
+        var ko = new BarrierOption(cp, 100m, Currency.USD, bar, dir, BarrierKnockType.Out, expiry);
+        decimal kiP = barrier.Price(ki, market, tree).Price.Amount;
+        decimal koP = barrier.Price(ko, market, tree).Price.Amount;
         string label = $"{dir}-{cp} H={bar}";
-        Console.WriteLine($"  {label,22}  {bar,8:F0}  {kiP,8:F4}  {koP,8:F4}  {kiP+koP,8:F4}  {van,8:F4}");
+        Console.WriteLine($"  {label,22}  {bar,8:F0}  {kiP,8:F4}  {koP,8:F4}  {kiP + koP,8:F4}  {van,8:F4}");
     }
 }
 
@@ -529,8 +550,8 @@ static void Example10BarrierOptionSmileAware()
     Console.WriteLine();
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    DateOnly expiry        = valuationDate.AddMonths(6);
-    double maturity        = 0.5d;
+    DateOnly expiry = valuationDate.AddMonths(6);
+    double maturity = 0.5d;
     var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.01d);
 
     SurfacePoint[] quotes =
@@ -543,9 +564,9 @@ static void Example10BarrierOptionSmileAware()
     ];
     var surface = new VolatilitySurfaceBuilder().Build(quotes);
 
-    int steps      = 50;
-    var flatInput  = TreeModelInput.FromMarketData(market, 100m, expiry, steps);
-    var flatTree   = new CoxRossRubinsteinTreeBuilder().Build(flatInput);
+    int steps = 50;
+    var flatInput = TreeModelInput.FromMarketData(market, 100m, expiry, steps);
+    var flatTree = new CoxRossRubinsteinTreeBuilder().Build(flatInput);
     var flatPricer = new BarrierTreePricer();
     var calibInput = new ImpliedVolatilityTreeCalibrationInput(surface, steps, market);
     var calibResult = new ImpliedVolatilityTreeCalibrator().Calibrate(calibInput);
@@ -553,10 +574,10 @@ static void Example10BarrierOptionSmileAware()
 
     var barriers = new (string label, BarrierOption option)[]
     {
-        ("Down-Out Call H=80",  new BarrierOption(CallPut.Call, 100m,  80m, BarrierDirection.Down, BarrierKnockType.Out, expiry)),
-        ("Up-Out   Call H=120", new BarrierOption(CallPut.Call, 100m, 120m, BarrierDirection.Up,   BarrierKnockType.Out, expiry)),
-        ("Down-Out Put  H=80",  new BarrierOption(CallPut.Put,  100m,  80m, BarrierDirection.Down, BarrierKnockType.Out, expiry)),
-        ("Up-Out   Put  H=120", new BarrierOption(CallPut.Put,  100m, 120m, BarrierDirection.Up,   BarrierKnockType.Out, expiry)),
+        ("Down-Out Call H=80",  new BarrierOption(CallPut.Call, 100m, Currency.USD,  80m, BarrierDirection.Down, BarrierKnockType.Out, expiry)),
+        ("Up-Out   Call H=120", new BarrierOption(CallPut.Call, 100m, Currency.USD, 120m, BarrierDirection.Up,   BarrierKnockType.Out, expiry)),
+        ("Down-Out Put  H=80",  new BarrierOption(CallPut.Put,  100m, Currency.USD,  80m, BarrierDirection.Down, BarrierKnockType.Out, expiry)),
+        ("Up-Out   Put  H=120", new BarrierOption(CallPut.Put,  100m, Currency.USD, 120m, BarrierDirection.Up,   BarrierKnockType.Out, expiry)),
     };
 
     Console.WriteLine($"  {"Option",22}  {"Flat-vol",10}  {"Smile-aware",12}  {"Skew impact",12}");
@@ -564,8 +585,14 @@ static void Example10BarrierOptionSmileAware()
 
     foreach (var (label, opt) in barriers)
     {
-        decimal flatP  = flatPricer.Price(opt, market, flatTree).Price;
-        decimal smileP = smilePricer.Price(opt, market, calibResult).Price;
+        var flatResult = flatPricer.Price(opt, market, flatTree);
+        var smileResult = smilePricer.Price(opt, market, calibResult);
+        if (!flatResult.IsSuccess || !smileResult.IsSuccess)
+        {
+            throw new InvalidOperationException($"Barrier comparison failed: flat={flatResult.Status}, smile={smileResult.Status}.");
+        }
+        decimal flatP = flatResult.Price.Amount;
+        decimal smileP = smileResult.Price.Amount;
         Console.WriteLine($"  {label,22}  {flatP,10:F4}  {smileP,12:F4}  {smileP - flatP,+12:F4}");
     }
 
@@ -581,14 +608,14 @@ static void Example16DeltaHedgingSimulation()
     Console.WriteLine("      S=100, K=100, T=6M, r=5%, σ=20%, q=0%;  126 daily rebalance steps");
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-    var option = new EuropeanOption(CallPut.Call, 100m, valuationDate.AddMonths(6));
+    var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, valuationDate.AddMonths(6));
     var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
 
     double sigma = market.FlatVolatility;
     double r = market.RiskFreeRate(option.ExpiryDate);
     double T = market.TimeToExpiryInYears(option.ExpiryDate);
 
-    decimal bsPrice = new BlackScholesPricer().Price(option, market).Price;
+    decimal bsPrice = new BlackScholesPricer().Price(option, market).Price.Amount;
     Console.WriteLine($"Example 16 | BS price: {bsPrice:F4}");
 
     var simulator = new DeltaHedgeSimulator();
@@ -600,8 +627,8 @@ static void Example16DeltaHedgingSimulation()
 
     for (int path = 0; path < pathCount; path++)
     {
-        var spots = new List<decimal>(rebalanceSteps + 1) { market.Spot };
-        double currentSpot = (double)market.Spot;
+        var spots = new List<decimal>(rebalanceSteps + 1) { market.Spot.Amount };
+        double currentSpot = (double)market.Spot.Amount;
         for (int step = 0; step < rebalanceSteps; step++)
         {
             double z = SimulationHelpers.NormalSample(rng);
@@ -671,7 +698,7 @@ static void Example18DividendImpact()
 
     DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
     DateOnly expiry = valuationDate.AddMonths(6);
-    var option = new EuropeanOption(CallPut.Call, 100m, expiry);
+    var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry);
     var pricer = new BlackScholesPricer();
     var greekProvider = new BlackScholesGreeks();
 
@@ -687,7 +714,7 @@ static void Example18DividendImpact()
         var greeks = greekProvider.CalculateGreeks(option, market);
         double fwd = market.ForwardPrice(expiry);
 
-        Console.WriteLine($"  {q * 100d,7:F1}%  {fwd,10:F4}  {result.Price,12:F4}  {greeks.Delta,8:F4}");
+        Console.WriteLine($"  {q * 100d,7:F1}%  {fwd,10:F4}  {result.Price.Amount,12:F4}  {greeks.Delta,8:F4}");
     }
 }
 
@@ -703,14 +730,14 @@ static void Example19DigitalOptionOnTree()
     DateOnly expiry = valuationDate.AddMonths(6);
     var market = MarketHelpers.CreateFlatMarket(valuationDate, 100m, 0.20d, 0.05d, 0.00d);
 
-    double S = (double)market.Spot;
+    double S = (double)market.Spot.Amount;
     double K = (double)strike;
     double sigma = market.FlatVolatility;
     double r = market.RiskFreeRate(expiry);
     double T = market.TimeToExpiryInYears(expiry);
 
     double d2 = (Math.Log(S / K) + (r - sigma * sigma / 2d) * T) / (sigma * Math.Sqrt(T));
-    double closedForm = Math.Exp(-r * T) * CumulativeNormal.Evaluate(d2);
+    double closedForm = Math.Exp(-r * T) * CumulativeNormal<double>.Evaluate(d2);
 
     Console.WriteLine($"  {"Steps",7}  {"Tree Price",12}  {"Closed Form",13}  {"Error (bps)",13}");
     Console.WriteLine($"  {new string('─', 52)}");
@@ -728,13 +755,17 @@ static void Example19DigitalOptionOnTree()
         int terminalNodes = tree.Steps + 1;
         double[] values = new double[terminalNodes];
         for (int j = 0; j < terminalNodes; j++)
+        {
             values[j] = tree.TerminalSpots[j] > K ? 1d : 0d;
+        }
 
         for (int t = tree.Steps - 1; t >= 0; t--)
         {
             double[] newValues = new double[t + 1];
             for (int j = 0; j <= t; j++)
+            {
                 newValues[j] = discount * (p * values[j] + (1d - p) * values[j + 1]);
+            }
             values = newValues;
         }
 
@@ -775,14 +806,14 @@ static void Example20BarrierInOutParity()
     foreach (var (dir, cp, barrier) in families)
     {
         var vanilla = cp == CallPut.Call
-            ? new EuropeanOption(CallPut.Call, 100m, expiry)
-            : new EuropeanOption(CallPut.Put, 100m, expiry);
-        var vanillaPrice = vanillaPricer.Price(vanilla, market, tree).Price;
+            ? new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry)
+            : new EuropeanOption(CallPut.Put, 100m, Currency.USD, expiry);
+        var vanillaPrice = vanillaPricer.Price(vanilla, market, tree).Price.Amount;
 
-        var kiOption = new BarrierOption(cp, 100m, barrier, dir, BarrierKnockType.In, expiry);
-        var koOption = new BarrierOption(cp, 100m, barrier, dir, BarrierKnockType.Out, expiry);
-        var kiPrice = barrierPricer.Price(kiOption, market, tree).Price;
-        var koPrice = barrierPricer.Price(koOption, market, tree).Price;
+        var kiOption = new BarrierOption(cp, 100m, Currency.USD, barrier, dir, BarrierKnockType.In, expiry);
+        var koOption = new BarrierOption(cp, 100m, Currency.USD, barrier, dir, BarrierKnockType.Out, expiry);
+        var kiPrice = barrierPricer.Price(kiOption, market, tree).Price.Amount;
+        var koPrice = barrierPricer.Price(koOption, market, tree).Price.Amount;
         decimal parityError = kiPrice + koPrice - vanillaPrice;
 
         string label = $"{dir}-{cp} H={barrier}";
@@ -796,7 +827,7 @@ static void Chapter01_SecurityPayoffDiagrams()
     Console.WriteLine("Chapter 01 | Stocks, Options, and Futures (Black-Scholes and Beyond, Ch. 1)");
 
     const double K_payoff = 100.0;
-    const double premium  = 5.0;
+    const double premium = 5.0;
 
     Console.WriteLine();
     Console.WriteLine("§1.7  Payoff at expiry  (K=100, option premium=5)");
@@ -805,11 +836,11 @@ static void Chapter01_SecurityPayoffDiagrams()
     double[] spots = { 70, 80, 90, 95, 100, 105, 110, 120, 130 };
     foreach (double s in spots)
     {
-        double lc  =  Math.Max(s - K_payoff, 0) - premium;
-        double sc  = -Math.Max(s - K_payoff, 0) + premium;
-        double lp  =  Math.Max(K_payoff - s, 0) - premium;
-        double sp  = -Math.Max(K_payoff - s, 0) + premium;
-        double ls  = s - K_payoff;
+        double lc = Math.Max(s - K_payoff, 0) - premium;
+        double sc = -Math.Max(s - K_payoff, 0) + premium;
+        double lp = Math.Max(K_payoff - s, 0) - premium;
+        double sp = -Math.Max(K_payoff - s, 0) + premium;
+        double ls = s - K_payoff;
         Console.WriteLine($"  {s,6:F0} {lc,10:F2} {sc,10:F2} {lp,9:F2} {sp,9:F2} {ls,10:F2}");
     }
 
@@ -817,14 +848,14 @@ static void Chapter01_SecurityPayoffDiagrams()
     Console.WriteLine("§1.9  Put-call parity   C − P = S − e^{−r(T−t)}·K");
     Console.WriteLine("      Book example: C=$8.60, P=$3.50, S=K=$100, r=5%, T−t=1 yr");
     Console.WriteLine();
-    const double C   = 8.60;
-    const double P   = 3.50;
-    const double S   = 100.0;
-    const double K   = 100.0;
-    const double r   = 0.05;
-    const double Tt  = 1.0;
-    double cMinusP   = C - P;
-    double pvK       = Math.Exp(-r * Tt) * K;
+    const double C = 8.60;
+    const double P = 3.50;
+    const double S = 100.0;
+    const double K = 100.0;
+    const double r = 0.05;
+    const double Tt = 1.0;
+    double cMinusP = C - P;
+    double pvK = Math.Exp(-r * Tt) * K;
     double sMinusPvK = S - pvK;
     double mispricing = cMinusP - sMinusPvK;
     Console.WriteLine($"  C − P               = {C:F2} − {P:F2} = {cMinusP:F2}");
@@ -848,22 +879,22 @@ static void Chapter01_SecurityPayoffDiagrams()
     Console.WriteLine("§1.12 Forward contract value  C_F = PV(S component) − e^{−r(T−t)}·F");
     Console.WriteLine("      Display 1.11.1 — three underlying types");
 
-    const double q  = 0.02;
+    const double q = 0.02;
     const double rf = 0.03;
-    const double F  = 102.0;
+    const double F = 102.0;
 
     double fwdStock = Math.Exp((r - q) * Tt) * S;
-    double cFStock  = Math.Exp(-q * Tt) * S - Math.Exp(-r * Tt) * F;
+    double cFStock = Math.Exp(-q * Tt) * S - Math.Exp(-r * Tt) * F;
     Console.WriteLine();
-    Console.WriteLine($"  [Stock/index, q={q*100:F0}% continuous yield, F={F}]");
+    Console.WriteLine($"  [Stock/index, q={q * 100:F0}% continuous yield, F={F}]");
     Console.WriteLine($"    Fair forward  = e^(r−q)(T−t)·S = {fwdStock:F4}");
     Console.WriteLine($"    C_F           = e^(−q·Δt)·S − e^(−r·Δt)·F = {cFStock:F4}");
 
-    const double D  = 3.0;
+    const double D = 3.0;
     const double tD = 0.5;
-    double pvD      = Math.Exp(-r * tD) * D;
-    double fwdDiv   = Math.Exp(r * Tt) * (S - pvD);
-    double cFDiv    = S - pvD - Math.Exp(-r * Tt) * F;
+    double pvD = Math.Exp(-r * tD) * D;
+    double fwdDiv = Math.Exp(r * Tt) * (S - pvD);
+    double cFDiv = S - pvD - Math.Exp(-r * Tt) * F;
     Console.WriteLine();
     Console.WriteLine($"  [Stock + lumpy dividend D={D} at t={tD} yr, F={F}]");
     Console.WriteLine($"    PV(D)         = e^(−r·t_D)·D = {pvD:F4}");
@@ -873,9 +904,9 @@ static void Chapter01_SecurityPayoffDiagrams()
     const double Sfx = 1.25;
     const double Ffx = 1.22;
     double fwdFx = Math.Exp((r - rf) * Tt) * Sfx;
-    double cFFx  = Math.Exp(-rf * Tt) * Sfx - Math.Exp(-r * Tt) * Ffx;
+    double cFFx = Math.Exp(-rf * Tt) * Sfx - Math.Exp(-r * Tt) * Ffx;
     Console.WriteLine();
-    Console.WriteLine($"  [Currency, spot={Sfx}, r_f={rf*100:F0}%, F={Ffx}]");
+    Console.WriteLine($"  [Currency, spot={Sfx}, r_f={rf * 100:F0}%, F={Ffx}]");
     Console.WriteLine($"    Fair forward  = e^(r−r_f)(T−t)·S = {fwdFx:F4}");
     Console.WriteLine($"    C_F           = e^(−r_f·Δt)·S − e^(−r·Δt)·F = {cFFx:F4}");
 }
@@ -893,7 +924,9 @@ static void Chapter02_NormalDistributionProperties()
     Console.WriteLine($"  {new string('─', 28)}");
     int[] ns = { 1, 10, 50, 100, 500, 1000, 10000, 1_000_000 };
     foreach (int n in ns)
+    {
         Console.WriteLine($"  {n,8}  {Math.Pow(1.0 + r / n, n),16:F10}");
+    }
     Console.WriteLine($"  {"e^r",8}  {Math.Exp(r),16:F10}");
 
     Console.WriteLine();
@@ -911,7 +944,7 @@ static void Chapter02_NormalDistributionProperties()
     };
     foreach (var (nv, label) in cases)
     {
-        double r1    = 0.05;
+        double r1 = 0.05;
         double rCont = nv * Math.Log(1.0 + r1 / nv);
         double rBack = nv * (Math.Exp(rCont / nv) - 1.0);
         Console.WriteLine($"  {label,22} {nv,6} {rCont,12:F8} {rBack,12:F8}");
@@ -932,14 +965,14 @@ static void Chapter02_NormalDistributionProperties()
     {
         Console.WriteLine($"  {x,5:F1} {BookPoly1(x),10:F6} {BookPoly2(x),10:F6}" +
                           $" {BookRational1(x),10:F6} {BookRational2(x),10:F6}" +
-                          $" {CumulativeNormal.Evaluate(x),10:F6}");
+                          $" {CumulativeNormal<double>.Evaluate(x),10:F6}");
     }
 
     Console.WriteLine();
     Console.WriteLine("§2.6  Properties of N(x)");
-    Console.WriteLine($"  N(0)        = {CumulativeNormal.Evaluate(0.0):F6}  (should be 0.500000)");
-    Console.WriteLine($"  N(1)+N(−1)  = {CumulativeNormal.Evaluate(1.0) + CumulativeNormal.Evaluate(-1.0):F6}  (should be 1.000000)");
-    Console.WriteLine($"  N(2)+N(−2)  = {CumulativeNormal.Evaluate(2.0) + CumulativeNormal.Evaluate(-2.0):F6}  (should be 1.000000)");
+    Console.WriteLine($"  N(0)        = {CumulativeNormal<double>.Evaluate(0.0):F6}  (should be 0.500000)");
+    Console.WriteLine($"  N(1)+N(−1)  = {CumulativeNormal<double>.Evaluate(1.0) + CumulativeNormal<double>.Evaluate(-1.0):F6}  (should be 1.000000)");
+    Console.WriteLine($"  N(2)+N(−2)  = {CumulativeNormal<double>.Evaluate(2.0) + CumulativeNormal<double>.Evaluate(-2.0):F6}  (should be 1.000000)");
 }
 
 static void Chapter03_GbmPriceDistribution()
@@ -962,16 +995,18 @@ static void Chapter03_GbmPriceDistribution()
     for (int i = 0; i < prices.Length; i++)
     {
         if (i == 0)
-            Console.WriteLine($"  {i+1,4}  {prices[i],8:F2}  {"—",24}");
+        {
+            Console.WriteLine($"  {i + 1,4}  {prices[i],8:F2}  {"—",24}");
+        }
         else
         {
-            logReturns[i-1] = Math.Log(prices[i] / prices[i-1]);
-            Console.WriteLine($"  {i+1,4}  {prices[i],8:F2}  {logReturns[i-1],24:F6}");
+            logReturns[i - 1] = Math.Log(prices[i] / prices[i - 1]);
+            Console.WriteLine($"  {i + 1,4}  {prices[i],8:F2}  {logReturns[i - 1],24:F6}");
         }
     }
 
-    int N         = logReturns.Length;
-    double rBar   = logReturns.Average();
+    int N = logReturns.Length;
+    double rBar = logReturns.Average();
     double varEst = logReturns.Sum(ri => (ri - rBar) * (ri - rBar)) / N;
     double sigEst = Math.Sqrt(varEst / dt);
 
@@ -980,20 +1015,20 @@ static void Chapter03_GbmPriceDistribution()
     Console.WriteLine($"  Step 1: Δt = 1/365 = {dt:F6}");
     Console.WriteLine($"  Step 2: {prices.Length} prices → N = {N} log-returns");
     Console.WriteLine("  Step 3: r_i = log(S_{i+1}/S_i)  — see table above");
-    Console.WriteLine($"  Step 4: r̄   = (1/N)·Σr_i = {rBar:F6}   ({rBar*100:F2}%)  [book: −0.0043]");
-    Console.WriteLine($"  Step 5: σ̂   = (1/√Δt)·√((1/N)·Σ(r_i−r̄)²) = {sigEst:F4}  ({sigEst*100:F2}%)  [book: 24.07%]");
+    Console.WriteLine($"  Step 4: r̄   = (1/N)·Σr_i = {rBar:F6}   ({rBar * 100:F2}%)  [book: −0.0043]");
+    Console.WriteLine($"  Step 5: σ̂   = (1/√Δt)·√((1/N)·Σ(r_i−r̄)²) = {sigEst:F4}  ({sigEst * 100:F2}%)  [book: 24.07%]");
     Console.WriteLine($"          True σ = 20%.  Small-sample error is expected (N=19 returns).");
 
     Console.WriteLine();
     Console.WriteLine("§3.4  GBM log-price distribution:  log(S_T/S_0) ~ N((μ−σ²/2)·Δt,  σ²·Δt)");
-    const double mu    = 0.08;
+    const double mu = 0.08;
     const double sigma = 0.20;
-    const double S0    = 50.0;
-    double horizon     = 1.0;
-    double meanLog  = (mu - sigma * sigma / 2.0) * horizon;
-    double stdLog   = sigma * Math.Sqrt(horizon);
+    const double S0 = 50.0;
+    double horizon = 1.0;
+    double meanLog = (mu - sigma * sigma / 2.0) * horizon;
+    double stdLog = sigma * Math.Sqrt(horizon);
     Console.WriteLine();
-    Console.WriteLine($"  S_0={S0},  μ={mu*100:F0}%,  σ={sigma*100:F0}%,  T−t={horizon:F1} yr");
+    Console.WriteLine($"  S_0={S0},  μ={mu * 100:F0}%,  σ={sigma * 100:F0}%,  T−t={horizon:F1} yr");
     Console.WriteLine($"  Mean  log-return = (μ−σ²/2)·(T−t) = {meanLog:F4}");
     Console.WriteLine($"  Std   log-return = σ·√(T−t)       = {stdLog:F4}");
     Console.WriteLine();
@@ -1004,30 +1039,30 @@ static void Chapter03_GbmPriceDistribution()
     double[] strikes = { 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0 };
     foreach (double kk in strikes)
     {
-        double d2   = (Math.Log(S0 / kk) + meanLog) / stdLog;
-        double d1   = d2 + stdLog;
-        double prob = CumulativeNormal.Evaluate(d2);
-        double eSt  = S0 * Math.Exp(mu * horizon) * CumulativeNormal.Evaluate(d1);
+        double d2 = (Math.Log(S0 / kk) + meanLog) / stdLog;
+        double d1 = d2 + stdLog;
+        double prob = CumulativeNormal<double>.Evaluate(d2);
+        double eSt = S0 * Math.Exp(mu * horizon) * CumulativeNormal<double>.Evaluate(d1);
         Console.WriteLine($"  {kk,8:F0} {d2,8:F4} {prob,12:F6} {eSt,18:F4}");
     }
     double eStFull = S0 * Math.Exp(mu * horizon);
     Console.WriteLine();
-    Console.WriteLine($"  E[S_T] = S_0·e^(μ·(T−t)) = {S0}·e^{mu*horizon:F4} = {eStFull:F4}");
+    Console.WriteLine($"  E[S_T] = S_0·e^(μ·(T−t)) = {S0}·e^{mu * horizon:F4} = {eStFull:F4}");
 }
 
 // Book N(x) approximations reproducing the text formulas from Ch. 2.
-// Intentionally kept at their historical precision — not replacements for CumulativeNormal.Evaluate.
+// Intentionally kept at their historical precision — not replacements for CumulativeNormal<double>.Evaluate.
 
 static double BookPoly1(double x)
 {
     bool neg = x < 0;
     double ax = Math.Abs(x);
-    const double p  =  0.33267;
-    const double a1 =  0.4361836;
+    const double p = 0.33267;
+    const double a1 = 0.4361836;
     const double a2 = -0.1201676;
-    const double a3 =  0.9372980;
-    double t   = 1.0 / (1.0 + p * ax);
-    double z   = Math.Exp(-ax * ax / 2.0) / Math.Sqrt(2.0 * Math.PI);
+    const double a3 = 0.9372980;
+    double t = 1.0 / (1.0 + p * ax);
+    double z = Math.Exp(-ax * ax / 2.0) / Math.Sqrt(2.0 * Math.PI);
     double res = 1.0 - z * t * (a1 + t * (a2 + t * a3));
     return neg ? 1.0 - res : res;
 }
@@ -1036,14 +1071,14 @@ static double BookPoly2(double x)
 {
     bool neg = x < 0;
     double ax = Math.Abs(x);
-    const double p  =  0.2316419;
-    const double b1 =  0.319381530;
+    const double p = 0.2316419;
+    const double b1 = 0.319381530;
     const double b2 = -0.356563782;
-    const double b3 =  1.781477937;
+    const double b3 = 1.781477937;
     const double b4 = -1.821255978;
-    const double b5 =  1.330274429;
-    double t   = 1.0 / (1.0 + p * ax);
-    double z   = Math.Exp(-ax * ax / 2.0) / Math.Sqrt(2.0 * Math.PI);
+    const double b5 = 1.330274429;
+    double t = 1.0 / (1.0 + p * ax);
+    double z = Math.Exp(-ax * ax / 2.0) / Math.Sqrt(2.0 * Math.PI);
     double res = 1.0 - z * t * (b1 + t * (b2 + t * (b3 + t * (b4 + t * b5))));
     return neg ? 1.0 - res : res;
 }
@@ -1057,7 +1092,7 @@ static double BookRational1(double x)
     const double c3 = 0.000344;
     const double c4 = 0.019527;
     double inner = 1.0 + ax * (c1 + ax * (c2 + ax * (c3 + ax * c4)));
-    double res   = 1.0 - 0.5 * Math.Pow(inner, -4);
+    double res = 1.0 - 0.5 * Math.Pow(inner, -4);
     return neg ? 1.0 - res : res;
 }
 
@@ -1072,7 +1107,7 @@ static double BookRational2(double x)
     const double d5 = 0.0000488906;
     const double d6 = 0.0000053830;
     double inner = 1.0 + ax * (d1 + ax * (d2 + ax * (d3 + ax * (d4 + ax * (d5 + ax * d6)))));
-    double res   = 1.0 - 0.5 * Math.Pow(inner, -16);
+    double res = 1.0 - 0.5 * Math.Pow(inner, -16);
     return neg ? 1.0 - res : res;
 }
 

@@ -14,6 +14,7 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Enumerations;
 using Boutquin.MarketData.Abstractions.Calendars;
 using Boutquin.OptionPricing.Domain.Enums;
 
@@ -34,7 +35,10 @@ public sealed record EuropeanOption : OptionContract
     /// </summary>
     /// <param name="callPut">Whether the option is a call or a put.</param>
     /// <param name="strike">
-    /// The strike price. Must be positive.
+    /// The strike price, in the contract <paramref name="currency"/>. Must be positive.
+    /// </param>
+    /// <param name="currency">
+    /// The contract currency. Must not be <see cref="Currency.Unspecified"/>.
     /// </param>
     /// <param name="expiryDate">The date on which the option expires.</param>
     /// <param name="settlementCalendar">
@@ -49,14 +53,18 @@ public sealed record EuropeanOption : OptionContract
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="strike"/> is zero or negative.
     /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="currency"/> is <see cref="Currency.Unspecified"/>.
+    /// </exception>
     public EuropeanOption(
         CallPut callPut,
         decimal strike,
+        Currency currency,
         DateOnly expiryDate,
         IBusinessCalendar? settlementCalendar = null,
         BusinessDayAdjustment? settlementAdjustment = null,
         int settlementLagDays = 0)
-        : base(callPut, strike, expiryDate, settlementCalendar, settlementAdjustment, settlementLagDays)
+        : base(callPut, strike, currency, expiryDate, settlementCalendar, settlementAdjustment, settlementLagDays)
     {
     }
 }

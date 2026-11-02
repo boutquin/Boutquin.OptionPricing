@@ -26,13 +26,29 @@ namespace Boutquin.OptionPricing.Calibration.ImpliedTrees;
 /// so consumers can inspect success/failure and internal solver state uniformly.
 /// </summary>
 /// <param name="ModelName">Identifier of the calibration model that produced this report (e.g. "ImpliedBinomialTreeCalibrator").</param>
-/// <param name="Status">Convergence or scaffold status of the calibration attempt.</param>
+/// <param name="Status">Convergence status of the calibration attempt.</param>
 /// <param name="Diagnostics">Model-produced diagnostic entries keyed by descriptive name (e.g. step count, slice count, failure reason).</param>
 public sealed record CalibrationReport(
     string ModelName,
     CalculationStatus Status,
     IReadOnlyDictionary<string, object?> Diagnostics) : ICalculationResult, IDiagnosticSource
 {
+    private readonly IReadOnlyDictionary<string, object?> _diagnostics = CopyDiagnostics(Diagnostics);
+
+    /// <summary>A snapshot of named calculation diagnostics; payload objects retain their own value semantics.</summary>
+    public IReadOnlyDictionary<string, object?> Diagnostics
+    {
+        get => _diagnostics;
+        init => _diagnostics = CopyDiagnostics(value);
+    }
+
+    private static IReadOnlyDictionary<string, object?> CopyDiagnostics(IReadOnlyDictionary<string, object?> value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return new System.Collections.ObjectModel.ReadOnlyDictionary<string, object?>(
+            value.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal));
+    }
+
     /// <summary>
     /// <see langword="true"/> when calibration converged within the requested tolerance,
     /// possibly with non-fatal warnings.
@@ -40,6 +56,7 @@ public sealed record CalibrationReport(
     public bool IsSuccess =>
         Status is CalculationStatus.Success or CalculationStatus.ConvergedWithWarnings;
 
-    /// <inheritdoc />
+    /// <summary>Returns the named diagnostics accompanying this calculation outcome.</summary>
+    /// <returns>A read-only diagnostic snapshot; payload objects retain their own value semantics.</returns>
     public IReadOnlyDictionary<string, object?> GetDiagnostics() => Diagnostics;
 }

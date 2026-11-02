@@ -15,8 +15,9 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Calibration.ImpliedTrees;
 using Boutquin.OptionPricing.Calibration.Smile;
@@ -44,8 +45,8 @@ public sealed class SurfaceDerivedPriceProviderTests
         var surface = CreateFlatSurface(0.20, 100m);
         var provider = new SurfaceDerivedPriceProvider(surface, market, s_expiryDate);
 
-        var option = new EuropeanOption(CallPut.Call, 100m, s_expiryDate);
-        double bsPrice = (double)new BlackScholesPricer().Price(option, market).Price;
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, s_expiryDate);
+        double bsPrice = (double)new BlackScholesPricer().Price(option, market).Price.Amount;
         double t = market.TimeToExpiryInYears(s_expiryDate);
 
         double providerPrice = provider.GetCallPrice(100m, t);
@@ -60,8 +61,8 @@ public sealed class SurfaceDerivedPriceProviderTests
         var surface = CreateFlatSurface(0.20, 100m);
         var provider = new SurfaceDerivedPriceProvider(surface, market, s_expiryDate);
 
-        var option = new EuropeanOption(CallPut.Put, 100m, s_expiryDate);
-        double bsPrice = (double)new BlackScholesPricer().Price(option, market).Price;
+        var option = new EuropeanOption(CallPut.Put, 100m, Currency.USD, s_expiryDate);
+        double bsPrice = (double)new BlackScholesPricer().Price(option, market).Price.Amount;
         double t = market.TimeToExpiryInYears(s_expiryDate);
 
         double providerPrice = provider.GetPutPrice(100m, t);
@@ -93,9 +94,9 @@ public sealed class SurfaceDerivedPriceProviderTests
     {
         return new OptionMarketData(
             s_valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             vol,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, CurrencyCode.USD, rate));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, Currency.USD, rate));
     }
 
     private static VolatilitySurface CreateFlatSurface(double vol, decimal atm)

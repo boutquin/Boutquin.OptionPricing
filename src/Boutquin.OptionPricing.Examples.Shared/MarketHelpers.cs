@@ -20,6 +20,8 @@ using Boutquin.Curves.Bootstrap.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
 using Boutquin.Curves.Recipes;
 using Boutquin.Curves.Recipes.Testing;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.MarketData.Calendars.Holidays;
 using Boutquin.MarketData.Conventions;
@@ -43,9 +45,9 @@ public static class MarketHelpers
         double riskFreeRate,
         double dividendYield)
     {
-        var discountCurve = new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, CurrencyCode.USD, riskFreeRate);
-        var dividendCurve = new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, CurrencyCode.USD, dividendYield);
-        return new OptionMarketData(valuationDate, spot, flatVolatility, discountCurve, dividendCurve);
+        var discountCurve = new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, Currency.USD, riskFreeRate);
+        var dividendCurve = new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, Currency.USD, dividendYield);
+        return new OptionMarketData(valuationDate, Currency.USD.Amount(spot), flatVolatility, discountCurve, dividendCurve);
     }
 
     /// <summary>
@@ -76,10 +78,12 @@ public static class MarketHelpers
         {
             double maxError = snapshot.Diagnostics.Repricing.Max(r => r.AbsoluteError);
             if (maxError > 1e-6)
+            {
                 throw new InvalidOperationException($"Curve failed quality gate: max repricing error {maxError:E2}");
+            }
         }
         return OptionMarketData.FromCurveGroup(
-            snapshot.CurveGroup, CurrencyCode.USD, spot, flatVol, new BenchmarkName("SOFR"));
+            snapshot.CurveGroup, Currency.USD, spot, flatVol, new BenchmarkName("SOFR"));
     }
 
     /// <summary>
@@ -90,7 +94,7 @@ public static class MarketHelpers
         var calendars = HolidayCalendarFactory.SupportedCodes.Select(HolidayCalendarFactory.Create).ToList();
         var benchmarks = new[]
         {
-            new RateBenchmark(new BenchmarkName("SOFR"), CurrencyCode.USD, BenchmarkKind.OvernightRiskFree, null, 0, 1, "USNY", "ACT/360", true),
+            new RateBenchmark(new BenchmarkName("SOFR"), Currency.USD, BenchmarkKind.OvernightRiskFree, null, 0, 1, "USNY", "ACT/360", true),
         };
         var registry = InstrumentConventionRegistry.CreateDefault();
         var conventions = new[]

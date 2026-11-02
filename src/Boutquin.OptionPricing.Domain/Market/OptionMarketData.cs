@@ -16,9 +16,13 @@
 
 using Boutquin.Curves.Abstractions.Curves;
 using Boutquin.Curves.Abstractions.Environments;
-using Boutquin.Curves.Abstractions.Fixings;
-using Boutquin.Curves.Abstractions.Identifiers;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Exceptions;
+using Boutquin.Domain.Extensions;
+using Boutquin.Domain.ValueObjects;
+using Boutquin.MarketData.Abstractions;
 using Boutquin.MarketData.Abstractions.ReferenceData;
+using Boutquin.MarketData.Storage.InMemory;
 
 namespace Boutquin.OptionPricing.Domain.Market;
 
@@ -45,7 +49,10 @@ public sealed record OptionMarketData
     /// Creates a market data snapshot for option pricing.
     /// </summary>
     /// <param name="valuationDate">The as-of date for the pricing calculation.</param>
-    /// <param name="spot">The current underlying asset price. Must be positive.</param>
+    /// <param name="spot">
+    /// The current underlying asset price as a <see cref="Money"/>. Its amount must be positive;
+    /// its currency denominates the market and must match the priced contract's currency.
+    /// </param>
     /// <param name="flatVolatility">
     /// Annualized volatility as a decimal fraction (for example 0.20 for 20%). Must be positive.
     /// </param>
@@ -73,12 +80,18 @@ public sealed record OptionMarketData
     /// Thrown when <paramref name="spot"/> or <paramref name="flatVolatility"/> is zero
     /// or negative.
     /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="spot"/>'s currency is <see cref="Currency.Unspecified"/> — the
+    /// spot currency denominates the market and must be a real currency (so a later
+    /// <c>with</c>-expression re-set cannot change it away from the <see cref="Currency.Unspecified"/>
+    /// sentinel).
+    /// </exception>
     /// <exception cref="ArgumentNullException">
     /// Thrown when <paramref name="discountCurve"/> is <see langword="null"/>.
     /// </exception>
     public OptionMarketData(
         DateOnly valuationDate,
-        decimal spot,
+        Money spot,
         double flatVolatility,
         IDiscountCurve discountCurve,
         IDiscountCurve? dividendCurve = null,
@@ -87,14 +100,22 @@ public sealed record OptionMarketData
         string? marketLabel = null,
         IFixingsStore? fixingsStore = null)
     {
-        if (spot <= 0m)
+        if (spot.Amount <= 0m)
         {
             throw new ArgumentOutOfRangeException(nameof(spot), "Spot must be positive.");
         }
 
-        if (flatVolatility <= 0d)
+        if (spot.Currency == Currency.Unspecified)
         {
-            throw new ArgumentOutOfRangeException(nameof(flatVolatility), "Flat volatility must be positive.");
+            throw new ArgumentException(
+                "Spot currency must not be Currency.Unspecified; it denominates the market and " +
+                "must match the priced contract's currency.",
+                nameof(spot));
+        }
+
+        if (!double.IsFinite(flatVolatility) || flatVolatility <= 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(flatVolatility), "Flat volatility must be positive and finite.");
         }
 
         ValuationDate = valuationDate;
@@ -115,19 +136,72 @@ public sealed record OptionMarketData
     public DateOnly ValuationDate { get; init; }
 
     /// <summary>
-    /// The current underlying asset price, in the same currency units as option strikes.
+    /// The current underlying asset price as a <see cref="Money"/>, in the same currency as the
+    /// priced contract's strike. The amount must be positive; the validation is enforced on
+    /// <c>init</c> so it cannot be bypassed via a <c>with</c> expression. Re-setting the spot via a
+    /// <c>with</c> expression must preserve the existing currency.
     /// </summary>
-    public decimal Spot { get; init; }
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown on <c>init</c> when the spot amount is zero or negative.
+    /// </exception>
+    /// <exception cref="CurrencyMismatchException">
+    /// Thrown on <c>init</c> when the new spot currency differs from the existing spot currency
+    /// (a <c>with</c>-expression re-set may not change the market currency).
+    /// </exception>
+    public Money Spot
+    {
+        get => _spot;
+        init
+        {
+            if (value.Amount <= 0m)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Spot must be positive.");
+            }
+
+            // The default(Money) currency on a freshly-initialized backing field is
+            // Currency.Unspecified; the ctor's first assignment establishes the market currency.
+            // A subsequent with-expression re-set must keep that currency.
+            if (_spot.Currency != Currency.Unspecified && value.Currency != _spot.Currency)
+            {
+                throw new CurrencyMismatchException(_spot.Currency, value.Currency);
+            }
+
+            _spot = value;
+        }
+    }
 
     /// <summary>
     /// Annualized Black-Scholes volatility as a decimal fraction (for example 0.20 for 20%).
+    /// Must be positive; the validation is enforced on <c>init</c> so it cannot be
+    /// bypassed via a <c>with</c> expression.
     /// </summary>
-    public double FlatVolatility { get; init; }
+    public double FlatVolatility
+    {
+        get => _flatVolatility;
+        init
+        {
+            if (!double.IsFinite(value) || value <= 0d)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Flat volatility must be positive and finite.");
+            }
+
+            _flatVolatility = value;
+        }
+    }
+
+    private readonly Money _spot;
+    private readonly double _flatVolatility;
 
     /// <summary>
     /// The risk-free discount curve used to compute present values and implied rates.
     /// </summary>
-    public IDiscountCurve DiscountCurve { get; init; }
+    public IDiscountCurve DiscountCurve
+    {
+        get => _discountCurve;
+        init => _discountCurve = value ?? throw new ArgumentNullException(nameof(value));
+    }
+
+    private readonly IDiscountCurve _discountCurve = null!;
 
     /// <summary>
     /// Optional dividend yield discount curve. When <see langword="null"/>, dividend
@@ -175,7 +249,7 @@ public sealed record OptionMarketData
     /// </exception>
     public static OptionMarketData FromCurveGroup(
         ICurveGroup curveGroup,
-        CurrencyCode currency,
+        Currency currency,
         decimal spot,
         double flatVolatility,
         BenchmarkName? benchmark = null,
@@ -190,7 +264,7 @@ public sealed record OptionMarketData
 
         return new OptionMarketData(
             curveGroup.ValuationDate,
-            spot,
+            currency.Amount(spot),
             flatVolatility,
             discount,
             dividend,
@@ -215,7 +289,7 @@ public sealed record OptionMarketData
     /// </exception>
     public static OptionMarketData FromMarketEnvironment(
         MarketEnvironment env,
-        CurrencyCode currency,
+        Currency currency,
         decimal spot,
         double flatVolatility,
         string? marketLabel = null)
@@ -241,16 +315,13 @@ public sealed record OptionMarketData
         InMemoryFixingsStore? fixingsStore = null;
         if (env.Fixings.Count > 0)
         {
-            fixingsStore = new InMemoryFixingsStore();
-            foreach ((string key, decimal value) in env.Fixings)
-            {
-                fixingsStore.AddFixing(key, env.ValuationDate, value);
-            }
+            fixingsStore = new InMemoryFixingsStore(
+                env.Fixings.Select(fixing => (new BenchmarkName(fixing.Key), env.ValuationDate, fixing.Value)));
         }
 
         return new OptionMarketData(
             env.ValuationDate,
-            spot,
+            currency.Amount(spot),
             flatVolatility,
             discount,
             dividend,
@@ -273,9 +344,9 @@ public sealed record OptionMarketData
     /// </exception>
     public OptionMarketData WithFlatVolatility(double flatVolatility)
     {
-        if (flatVolatility <= 0d)
+        if (!double.IsFinite(flatVolatility) || flatVolatility <= 0d)
         {
-            throw new ArgumentOutOfRangeException(nameof(flatVolatility), "Flat volatility must be positive.");
+            throw new ArgumentOutOfRangeException(nameof(flatVolatility), "Flat volatility must be positive and finite.");
         }
 
         return this with { FlatVolatility = flatVolatility };
@@ -291,7 +362,8 @@ public sealed record OptionMarketData
     /// The new valuation date. Must be at or after the original <see cref="ValuationDate"/>.
     /// </param>
     /// <param name="newSpot">
-    /// The realized spot at <paramref name="stepDate"/>. Must be positive.
+    /// The realized spot at <paramref name="stepDate"/> as a <see cref="Money"/>. Its amount must
+    /// be positive and its currency must match the existing <see cref="Spot"/> currency.
     /// </param>
     /// <returns>
     /// A new <see cref="OptionMarketData"/> with <paramref name="stepDate"/> as
@@ -299,8 +371,12 @@ public sealed record OptionMarketData
     /// and every contained discount and projection curve rolled forward.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="newSpot"/> is zero or negative, or
+    /// Thrown when the <paramref name="newSpot"/> amount is zero or negative, or
     /// <paramref name="stepDate"/> precedes <see cref="ValuationDate"/>.
+    /// </exception>
+    /// <exception cref="CurrencyMismatchException">
+    /// Thrown when the <paramref name="newSpot"/> currency differs from the existing
+    /// <see cref="Spot"/> currency.
     /// </exception>
     /// <remarks>
     /// <para>
@@ -317,11 +393,16 @@ public sealed record OptionMarketData
     /// that do not support rolling will throw <see cref="NotSupportedException"/>.
     /// </para>
     /// </remarks>
-    public OptionMarketData RolledTo(DateOnly stepDate, decimal newSpot)
+    public OptionMarketData RolledTo(DateOnly stepDate, Money newSpot)
     {
-        if (newSpot <= 0m)
+        if (newSpot.Amount <= 0m)
         {
             throw new ArgumentOutOfRangeException(nameof(newSpot), "Spot must be positive.");
+        }
+
+        if (newSpot.Currency != _spot.Currency)
+        {
+            throw new CurrencyMismatchException(_spot.Currency, newSpot.Currency);
         }
 
         if (stepDate < ValuationDate)
@@ -377,7 +458,9 @@ public sealed record OptionMarketData
     /// When <paramref name="maturityInYears"/> is zero, returns <see cref="ValuationDate"/>.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="maturityInYears"/> is negative.
+    /// Thrown when <paramref name="maturityInYears"/> is negative, or when it exceeds the
+    /// representable date horizon (the year fraction from <see cref="ValuationDate"/> to
+    /// <see cref="DateOnly.MaxValue"/> under the discount curve's day count).
     /// </exception>
     /// <remarks>
     /// <para>
@@ -397,11 +480,11 @@ public sealed record OptionMarketData
     /// </remarks>
     public DateOnly InvertYearFraction(double maturityInYears)
     {
-        if (maturityInYears < 0d)
+        if (!double.IsFinite(maturityInYears) || maturityInYears < 0d)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(maturityInYears),
-                "Maturity year fraction must be non-negative.");
+                "Maturity year fraction must be finite and non-negative.");
         }
 
         if (maturityInYears == 0d)
@@ -411,16 +494,35 @@ public sealed record OptionMarketData
 
         var dayCount = DiscountCurve.DayCount;
 
+        // Upper-bound guard: the result must land on a representable DateOnly. Reject any
+        // maturity beyond the curve's horizon (ValuationDate → DateOnly.MaxValue) up front,
+        // rather than letting the 366-day seed below overflow the int cast or throw an
+        // opaque ArgumentOutOfRangeException from DateOnly.AddDays. With this guard in place
+        // maturityInYears is bounded by ~(maxDays / 365), so the seed cast cannot saturate.
+        double maxYearFraction = dayCount.YearFraction(ValuationDate, DateOnly.MaxValue);
+        if (maturityInYears > maxYearFraction)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maturityInYears),
+                maturityInYears,
+                $"Maturity year fraction exceeds the representable date horizon " +
+                $"({maxYearFraction:R} years to {DateOnly.MaxValue:O}).");
+        }
+
+        int maxDays = DateOnly.MaxValue.DayNumber - ValuationDate.DayNumber;
+
         // Seed the upper bound using 366-day years, guaranteeing the target year fraction
         // is bracketed for every sub-daily or sub-annual day-count convention in use.
-        int upperDays = Math.Max(1, (int)Math.Ceiling((maturityInYears + 1d) * 366d));
+        // Clamp to maxDays so the bracket date never exceeds DateOnly.MaxValue.
+        int upperDays = Math.Min(maxDays, Math.Max(1, (int)Math.Ceiling((maturityInYears + 1d) * 366d)));
         DateOnly upper = ValuationDate.AddDays(upperDays);
 
         // Expand the upper bound defensively in the unlikely event the seed undershoots
-        // (e.g., a convention that deflates year fractions below 1/366 per calendar day).
-        while (dayCount.YearFraction(ValuationDate, upper) < maturityInYears)
+        // (e.g., a convention that deflates year fractions below 1/366 per calendar day),
+        // never past maxDays — which brackets the target per the horizon guard above.
+        while (dayCount.YearFraction(ValuationDate, upper) < maturityInYears && upperDays < maxDays)
         {
-            upperDays *= 2;
+            upperDays = Math.Min(maxDays, upperDays * 2);
             upper = ValuationDate.AddDays(upperDays);
         }
 
@@ -528,26 +630,32 @@ public sealed record OptionMarketData
     /// The forward price. When the expiry is on or before the valuation date, returns
     /// the current spot price. When a projection curve is available, uses
     /// F = S × exp(projectedRate × T); otherwise uses the cost-of-carry formula
-    /// F = S × DF_div / (DF_disc × DF_borrow).
+    /// F = S × DF_div × DF_borrow / DF_disc = S × exp((r − q − b) × T), where the
+    /// borrow cost b reduces the forward (consistent with the pricer's effectiveQ = q + b).
     /// </returns>
     public double ForwardPrice(DateOnly expiryDate)
     {
         if (expiryDate <= ValuationDate)
         {
-            return (double)Spot;
+            return (double)Spot.Amount;
         }
 
         if (ProjectionCurve is not null)
         {
             double projectedRate = ProjectionCurve.ForwardRate(ValuationDate, expiryDate);
             double timeInYears = TimeToExpiryInYears(expiryDate);
-            return (double)Spot * Math.Exp(projectedRate * timeInYears);
+            return (double)Spot.Amount * Math.Exp(projectedRate * timeInYears);
         }
 
         double discountFactor = DiscountFactor(expiryDate);
         double dividendDiscountFactor = DividendDiscountFactor(expiryDate);
         double borrowDiscountFactor = BorrowDiscountFactor(expiryDate);
-        return (double)Spot * dividendDiscountFactor / (discountFactor * borrowDiscountFactor);
+
+        // Borrow cost behaves like an additional yield that reduces the forward,
+        // consistent with the pricer's effectiveQ = q + b (see BlackScholesPricer).
+        // Hence the borrow discount factor multiplies (it does not divide) the spot:
+        //   F = S * DF_div * DF_borrow / DF_disc = S * exp((r - q - b) * T).
+        return (double)Spot.Amount * dividendDiscountFactor * borrowDiscountFactor / discountFactor;
     }
 
     private static double ImpliedContinuousRate(double discountFactor, double timeInYears)
@@ -557,17 +665,31 @@ public sealed record OptionMarketData
             return 0d;
         }
 
+        if (!double.IsFinite(discountFactor) || discountFactor <= 0d)
+        {
+            throw new InvalidOperationException(
+                $"Curve produced a non-positive or non-finite discount factor ({discountFactor}); cannot derive a continuous rate.");
+        }
+
         return -Math.Log(discountFactor) / timeInYears;
     }
 
     /// <summary>
-    /// Resolves a curve by role, currency, and optional benchmark. When a benchmark is
-    /// provided, the lookup is exact. When <c>null</c>, the method first tries the
-    /// null-benchmark key (for manually-built groups) and then falls back to the first
-    /// match by role and currency (for recipe-based groups where curves carry a benchmark name).
+    /// Resolves a curve by an exact <see cref="CurveReference"/> key (role, currency, and the
+    /// supplied <paramref name="benchmark"/>), returning <c>null</c> when no curve matches that
+    /// key or the matched curve is not a <typeparamref name="TCurve"/>.
     /// </summary>
+    /// <remarks>
+    /// The lookup is a single exact-key match — <see cref="ICurveGroup"/> exposes no way to
+    /// enumerate curves by role and currency independent of benchmark, so there is no
+    /// benchmark-agnostic fallback. Callers using a recipe-built group whose curves carry a
+    /// benchmark identity must pass the matching <paramref name="benchmark"/>; passing
+    /// <c>null</c> resolves only curves stored under the null-benchmark key (the manual-build
+    /// convention). Note that <see cref="FromCurveGroup"/> looks up the dividend and borrow
+    /// curves with a null benchmark, so those resolve only when stored under the null key.
+    /// </remarks>
     private static TCurve? FindCurveByRoleAndCurrency<TCurve>(
-        ICurveGroup curveGroup, CurveRole role, CurrencyCode currency, BenchmarkName? benchmark = null)
+        ICurveGroup curveGroup, CurveRole role, Currency currency, BenchmarkName? benchmark = null)
         where TCurve : class, ICurve
     {
         var reference = new CurveReference(role, currency, benchmark);

@@ -59,7 +59,7 @@ public sealed class BlackScholesVerificationTests : CrossLanguageVerificationBas
         var market = BuildMarket(valuationDate, spot, sigma, r, q, b);
         var option = BuildEuropeanOption(strike, expiry, callPut);
 
-        var actual = (double)new BlackScholesPricer().Price(option, market).Price;
+        var actual = (double)new BlackScholesPricer().Price(option, market).Price.Amount;
 
         AssertWithin(actual, expected, PrecisionNumeric,
             $"scenario[{index}] price ({callPut} K={strike} T={(expiry.DayNumber - valuationDate.DayNumber)}d σ={sigma} r={r} q={q} b={b})");
@@ -105,8 +105,8 @@ public sealed class BlackScholesVerificationTests : CrossLanguageVerificationBas
         var put = BuildEuropeanOption(strike, expiry, "Put");
 
         var pricer = new BlackScholesPricer();
-        var callPrice = (double)pricer.Price(call, market).Price;
-        var putPrice = (double)pricer.Price(put, market).Price;
+        var callPrice = (double)pricer.Price(call, market).Price.Amount;
+        var putPrice = (double)pricer.Price(put, market).Price.Amount;
 
         var lhs = callPrice - putPrice;
         var rhs = scenario.GetProperty("parity_rhs").GetDouble();

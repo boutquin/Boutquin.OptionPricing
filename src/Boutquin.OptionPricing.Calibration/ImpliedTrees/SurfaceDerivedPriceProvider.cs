@@ -42,30 +42,66 @@ public sealed class SurfaceDerivedPriceProvider : IOptionPriceProvider
     /// <param name="surface">The volatility surface supplying implied vols at each (strike, maturity).</param>
     /// <param name="market">Market data providing spot, discount curve, and dividend curve.</param>
     /// <param name="expiryDate">The expiry date used to derive rates from curves.</param>
+    /// <exception cref="ArgumentNullException">The surface or market is null.</exception>
     public SurfaceDerivedPriceProvider(VolatilitySurface surface, OptionMarketData market, DateOnly expiryDate)
     {
+        ArgumentNullException.ThrowIfNull(surface);
+        ArgumentNullException.ThrowIfNull(market);
         _surface = surface;
         _market = market;
         _expiryDate = expiryDate;
     }
 
-    /// <inheritdoc />
+    /// <summary>Prices a European call using the surface volatility and curve carry at the requested year fraction.</summary>
+    /// <param name="strike">Positive strike in the market spot currency.</param>
+    /// <param name="maturityInYears">Finite non-negative year fraction; zero returns intrinsic value.</param>
+    /// <returns>The call premium in the market currency.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">The strike or maturity is invalid.</exception>
     public double GetCallPrice(decimal strike, double maturityInYears)
     {
-        // Phase 5c: route the surface read through the Curves-aligned dated overload
-        // when the maturity year fraction is positive — maturityInYears is already in
-        // the discount curve's day-count units because the calibrator derives it from
-        // OptionMarketData.TimeToExpiryInYears, but going through the dated API pins
-        // the contract so future refactors cannot silently diverge.
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(strike);
+        if (!double.IsFinite(maturityInYears) || maturityInYears < 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maturityInYears));
+        }
         double sigma = _surface.GetVol(strike, maturityInYears);
-        return BlackScholesCall(sigma, strike, maturityInYears);
+        (double r, double q) = RatesAt(maturityInYears);
+        return BlackScholesCall(sigma, strike, maturityInYears, r, q);
     }
 
-    /// <inheritdoc />
+    /// <summary>Prices a European put using the surface volatility and curve carry at the requested year fraction.</summary>
+    /// <param name="strike">Positive strike in the market spot currency.</param>
+    /// <param name="maturityInYears">Finite non-negative year fraction; zero returns intrinsic value.</param>
+    /// <returns>The put premium in the market currency.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">The strike or maturity is invalid.</exception>
     public double GetPutPrice(decimal strike, double maturityInYears)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(strike);
+        if (!double.IsFinite(maturityInYears) || maturityInYears < 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maturityInYears));
+        }
         double sigma = _surface.GetVol(strike, maturityInYears);
-        return BlackScholesPut(sigma, strike, maturityInYears);
+        (double r, double q) = RatesAt(maturityInYears);
+        return BlackScholesPut(sigma, strike, maturityInYears, r, q);
+    }
+
+    // Derive the risk-free rate and effective yield at the queried maturity (not at the
+    // fixed terminal expiry), so multi-maturity queries during forward induction respect
+    // the curve term structure. For flat curves this is identical to the terminal rates.
+    // The effective yield folds the borrow cost into the dividend yield (effectiveQ = q + b),
+    // matching the library-wide cost-of-carry convention used by BlackScholesPricer, the tree
+    // builders, and OptionMarketData.ForwardPrice (F = S·exp((r − q − b)·T)). This keeps the
+    // surface-derived target prices on the same carry as the calibrated tree's forward.
+    private (double Rate, double EffectiveYield) RatesAt(double maturityInYears)
+    {
+        if (maturityInYears <= 0d)
+        {
+            return (_market.RiskFreeRate(_expiryDate), _market.DividendYield(_expiryDate) + _market.BorrowRate(_expiryDate));
+        }
+
+        DateOnly date = _market.InvertYearFraction(maturityInYears);
+        return (_market.RiskFreeRate(date), _market.DividendYield(date) + _market.BorrowRate(date));
     }
 
     /// <summary>
@@ -77,9 +113,12 @@ public sealed class SurfaceDerivedPriceProvider : IOptionPriceProvider
     /// <returns>The surface-derived Black-Scholes call price.</returns>
     public double GetCallPrice(decimal strike, DateOnly expiryDate)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(strike);
         double sigma = _surface.GetVol(strike, _market.ValuationDate, expiryDate, _market.DiscountCurve.DayCount);
         double t = _market.TimeToExpiryInYears(expiryDate);
-        return BlackScholesCall(sigma, strike, t);
+        // Effective yield folds borrow into the dividend yield (effectiveQ = q + b), matching the
+        // library carry convention (BlackScholesPricer / OptionMarketData.ForwardPrice).
+        return BlackScholesCall(sigma, strike, t, _market.RiskFreeRate(expiryDate), _market.DividendYield(expiryDate) + _market.BorrowRate(expiryDate));
     }
 
     /// <summary>
@@ -91,50 +130,57 @@ public sealed class SurfaceDerivedPriceProvider : IOptionPriceProvider
     /// <returns>The surface-derived Black-Scholes put price.</returns>
     public double GetPutPrice(decimal strike, DateOnly expiryDate)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(strike);
         double sigma = _surface.GetVol(strike, _market.ValuationDate, expiryDate, _market.DiscountCurve.DayCount);
         double t = _market.TimeToExpiryInYears(expiryDate);
-        return BlackScholesPut(sigma, strike, t);
+        // Effective yield folds borrow into the dividend yield (effectiveQ = q + b), matching the
+        // library carry convention (BlackScholesPricer / OptionMarketData.ForwardPrice).
+        return BlackScholesPut(sigma, strike, t, _market.RiskFreeRate(expiryDate), _market.DividendYield(expiryDate) + _market.BorrowRate(expiryDate));
     }
 
-    private double BlackScholesCall(double sigma, decimal strike, double t)
+    private double BlackScholesCall(double sigma, decimal strike, double t, double r, double q)
     {
         if (t <= 0d)
         {
-            return Math.Max((double)_market.Spot - (double)strike, 0d);
+            return Math.Max((double)_market.Spot.Amount - (double)strike, 0d);
         }
 
-        double s = (double)_market.Spot;
+        double s = (double)_market.Spot.Amount;
         double k = (double)strike;
-        double r = _market.RiskFreeRate(_expiryDate);
-        double q = _market.DividendYield(_expiryDate);
 
         double sigmaSqrtT = sigma * Math.Sqrt(t);
-        double d1 = (Math.Log(s / k) + ((r - q + (0.5d * sigma * sigma)) * t)) / sigmaSqrtT;
+        if (!double.IsFinite(sigmaSqrtT) || sigmaSqrtT > Math.Sqrt(double.MaxValue))
+        {
+            throw new InvalidOperationException("The surface quote produces non-representable total variance.");
+        }
+        double d1 = ((Math.Log(s / k) + ((r - q) * t)) / sigmaSqrtT) + (0.5d * sigmaSqrtT);
         double d2 = d1 - sigmaSqrtT;
 
-        // Phase 5b: route N(d1), N(d2) through CumulativeNormal.Evaluate directly —
-        // Laikov 2025 exponential-free erf, ~14-digit precision (arXiv:2504.05068).
-        return (s * Math.Exp(-q * t) * CumulativeNormal.Evaluate(d1)) - (k * Math.Exp(-r * t) * CumulativeNormal.Evaluate(d2));
+        // N(d1), N(d2) via CumulativeNormal<double>.Evaluate — exponential-free erf,
+        // ~14-digit precision (Laikov 2025, arXiv:2504.05068).
+        return (s * Math.Exp(-q * t) * CumulativeNormal<double>.Evaluate(d1)) - (k * Math.Exp(-r * t) * CumulativeNormal<double>.Evaluate(d2));
     }
 
-    private double BlackScholesPut(double sigma, decimal strike, double t)
+    private double BlackScholesPut(double sigma, decimal strike, double t, double r, double q)
     {
         if (t <= 0d)
         {
-            return Math.Max((double)strike - (double)_market.Spot, 0d);
+            return Math.Max((double)strike - (double)_market.Spot.Amount, 0d);
         }
 
-        double s = (double)_market.Spot;
+        double s = (double)_market.Spot.Amount;
         double k = (double)strike;
-        double r = _market.RiskFreeRate(_expiryDate);
-        double q = _market.DividendYield(_expiryDate);
 
         double sigmaSqrtT = sigma * Math.Sqrt(t);
-        double d1 = (Math.Log(s / k) + ((r - q + (0.5d * sigma * sigma)) * t)) / sigmaSqrtT;
+        if (!double.IsFinite(sigmaSqrtT) || sigmaSqrtT > Math.Sqrt(double.MaxValue))
+        {
+            throw new InvalidOperationException("The surface quote produces non-representable total variance.");
+        }
+        double d1 = ((Math.Log(s / k) + ((r - q) * t)) / sigmaSqrtT) + (0.5d * sigmaSqrtT);
         double d2 = d1 - sigmaSqrtT;
 
-        // Phase 5b: route N(-d1), N(-d2) through CumulativeNormal.Evaluate directly —
+        // Phase 5b: route N(-d1), N(-d2) through CumulativeNormal<double>.Evaluate directly —
         // Laikov 2025 exponential-free erf, ~14-digit precision (arXiv:2504.05068).
-        return (k * Math.Exp(-r * t) * CumulativeNormal.Evaluate(-d2)) - (s * Math.Exp(-q * t) * CumulativeNormal.Evaluate(-d1));
+        return (k * Math.Exp(-r * t) * CumulativeNormal<double>.Evaluate(-d2)) - (s * Math.Exp(-q * t) * CumulativeNormal<double>.Evaluate(-d1));
     }
 }

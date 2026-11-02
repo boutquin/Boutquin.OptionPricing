@@ -41,10 +41,13 @@ public static class PutCallParity
     /// The call price implied by put-call parity:
     /// <c>P + S * exp(-q*T) - K * exp(-r*T)</c>.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">The observed price is negative, spot or strike is non-positive, or a discount factor is not finite and positive.</exception>
+    /// <exception cref="ArithmeticException">The parity-implied price exceeds the decimal range.</exception>
     public static decimal ImpliedCallPrice(decimal putPrice, decimal spot, decimal strike, double discountFactor, double dividendDiscountFactor = 1d)
     {
+        Validate(putPrice, spot, strike, discountFactor, dividendDiscountFactor);
         double result = (double)putPrice + ((double)spot * dividendDiscountFactor) - ((double)strike * discountFactor);
-        return Convert.ToDecimal(result);
+        return RepresentablePrice(result);
     }
 
     /// <summary>
@@ -62,10 +65,13 @@ public static class PutCallParity
     /// The put price implied by put-call parity:
     /// <c>C - S * exp(-q*T) + K * exp(-r*T)</c>.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">The observed price is negative, spot or strike is non-positive, or a discount factor is not finite and positive.</exception>
+    /// <exception cref="ArithmeticException">The parity-implied price exceeds the decimal range.</exception>
     public static decimal ImpliedPutPrice(decimal callPrice, decimal spot, decimal strike, double discountFactor, double dividendDiscountFactor = 1d)
     {
+        Validate(callPrice, spot, strike, discountFactor, dividendDiscountFactor);
         double result = (double)callPrice - ((double)spot * dividendDiscountFactor) + ((double)strike * discountFactor);
-        return Convert.ToDecimal(result);
+        return RepresentablePrice(result);
     }
 
     /// <summary>
@@ -75,14 +81,18 @@ public static class PutCallParity
     /// <param name="putPrice">Observed European put price.</param>
     /// <param name="spot">Current underlying spot price.</param>
     /// <param name="strike">Option strike price.</param>
-    /// <param name="market">Market snapshot supplying discount and dividend curves.</param>
+    /// <param name="market">Market snapshot supplying discount, dividend and borrow curves; carry is the product of dividend and borrow factors.</param>
     /// <param name="expiryDate">Option expiry date used to read curve discount factors.</param>
     /// <returns>
     /// The call price implied by put-call parity using curve-derived discount factors.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">The observed price is negative, spot or strike is non-positive, or a discount factor is not finite and positive.</exception>
+    /// <exception cref="ArithmeticException">The parity-implied price exceeds the decimal range.</exception>
+    /// <exception cref="ArgumentNullException">The market snapshot is null.</exception>
     public static decimal ImpliedCallPrice(decimal putPrice, decimal spot, decimal strike, OptionMarketData market, DateOnly expiryDate)
     {
-        return ImpliedCallPrice(putPrice, spot, strike, market.DiscountFactor(expiryDate), market.DividendDiscountFactor(expiryDate));
+        ArgumentNullException.ThrowIfNull(market);
+        return ImpliedCallPrice(putPrice, spot, strike, market.DiscountFactor(expiryDate), market.DividendDiscountFactor(expiryDate) * market.BorrowDiscountFactor(expiryDate));
     }
 
     /// <summary>
@@ -92,14 +102,18 @@ public static class PutCallParity
     /// <param name="callPrice">Observed European call price.</param>
     /// <param name="spot">Current underlying spot price.</param>
     /// <param name="strike">Option strike price.</param>
-    /// <param name="market">Market snapshot supplying discount and dividend curves.</param>
+    /// <param name="market">Market snapshot supplying discount, dividend and borrow curves; carry is the product of dividend and borrow factors.</param>
     /// <param name="expiryDate">Option expiry date used to read curve discount factors.</param>
     /// <returns>
     /// The put price implied by put-call parity using curve-derived discount factors.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">The observed price is negative, spot or strike is non-positive, or a discount factor is not finite and positive.</exception>
+    /// <exception cref="ArithmeticException">The parity-implied price exceeds the decimal range.</exception>
+    /// <exception cref="ArgumentNullException">The market snapshot is null.</exception>
     public static decimal ImpliedPutPrice(decimal callPrice, decimal spot, decimal strike, OptionMarketData market, DateOnly expiryDate)
     {
-        return ImpliedPutPrice(callPrice, spot, strike, market.DiscountFactor(expiryDate), market.DividendDiscountFactor(expiryDate));
+        ArgumentNullException.ThrowIfNull(market);
+        return ImpliedPutPrice(callPrice, spot, strike, market.DiscountFactor(expiryDate), market.DividendDiscountFactor(expiryDate) * market.BorrowDiscountFactor(expiryDate));
     }
 
     /// <summary>
@@ -121,9 +135,42 @@ public static class PutCallParity
     /// <see langword="true"/> if <c>|C_observed - C_implied| &lt;= tolerance</c>;
     /// otherwise <see langword="false"/>.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">The observed price is negative, spot or strike is non-positive, or a discount factor is not finite and positive.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The call price or tolerance is negative.</exception>
+    /// <exception cref="ArithmeticException">The parity-implied price or residual exceeds the decimal range.</exception>
     public static bool IsApproximatelySatisfied(decimal callPrice, decimal putPrice, decimal spot, decimal strike, double discountFactor, decimal tolerance, double dividendDiscountFactor = 1d)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(callPrice);
+        ArgumentOutOfRangeException.ThrowIfNegative(tolerance);
         decimal impliedCall = ImpliedCallPrice(putPrice, spot, strike, discountFactor, dividendDiscountFactor);
         return Math.Abs(impliedCall - callPrice) <= tolerance;
+    }
+
+    private static void Validate(decimal price, decimal spot, decimal strike, double discountFactor, double carryDiscountFactor)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(price);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(spot);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(strike);
+        if (!double.IsFinite(discountFactor) || discountFactor <= 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(discountFactor), "Discount factors must be finite and positive.");
+        }
+
+        if (!double.IsFinite(carryDiscountFactor) || carryDiscountFactor <= 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(carryDiscountFactor), "Carry discount factors must be finite and positive.");
+        }
+    }
+
+    private static decimal RepresentablePrice(double value)
+    {
+        try
+        {
+            return Convert.ToDecimal(value);
+        }
+        catch (OverflowException error)
+        {
+            throw new ArithmeticException("The parity-implied price exceeds the supported finite decimal range.", error);
+        }
     }
 }

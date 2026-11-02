@@ -15,8 +15,9 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Domain.Market;
 using FluentAssertions;
 
@@ -32,12 +33,12 @@ namespace Boutquin.OptionPricing.Domain.Tests;
 public sealed class OptionMarketDataInvertYearFractionTests
 {
     private static readonly DateOnly s_valuationDate = new(2026, 1, 15);
-    private const CurrencyCode s_usd = CurrencyCode.USD;
+    private const Currency Usd = Currency.USD;
 
     private static OptionMarketData CreateMarket()
     {
-        var disc = new FlatDiscountCurve(new CurveName("USD-DISC"), s_valuationDate, s_usd, 0.04);
-        return new OptionMarketData(s_valuationDate, spot: 100m, flatVolatility: 0.20, discountCurve: disc);
+        var disc = new FlatDiscountCurve(new CurveName("USD-DISC"), s_valuationDate, Usd, 0.04);
+        return new OptionMarketData(s_valuationDate, Currency.USD.Amount(100m), flatVolatility: 0.20, discountCurve: disc);
     }
 
     [Fact]
@@ -88,8 +89,8 @@ public sealed class OptionMarketDataInvertYearFractionTests
         double errorAtPrev = Math.Abs(prevYf - 1d);
         double errorAtNext = Math.Abs(nextYf - 1d);
 
-        errorAtInverted.Should().BeLessOrEqualTo(errorAtPrev);
-        errorAtInverted.Should().BeLessOrEqualTo(errorAtNext);
+        errorAtInverted.Should().BeLessThanOrEqualTo(errorAtPrev);
+        errorAtInverted.Should().BeLessThanOrEqualTo(errorAtNext);
     }
 
     [Fact]
@@ -100,5 +101,33 @@ public sealed class OptionMarketDataInvertYearFractionTests
         Action act = () => market.InvertYearFraction(-0.01);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Theory]
+    [InlineData(1e6)]   // far beyond the ~8000-year DateOnly horizon
+    [InlineData(1e15)]  // large enough to saturate the int seed cast pre-fix
+    public void InvertYearFraction_BeyondRepresentableHorizon_ThrowsWithMaturityParam(double years)
+    {
+        var market = CreateMarket();
+
+        Action act = () => market.InvertYearFraction(years);
+
+        // Must surface a clean argument error naming the offending parameter — not an
+        // opaque ArgumentOutOfRangeException bubbling out of DateOnly.AddDays.
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .Which.ParamName.Should().Be("maturityInYears");
+    }
+
+    [Fact]
+    public void InvertYearFraction_LargeButRepresentable_ReturnsDateWithinHorizon()
+    {
+        var market = CreateMarket();
+
+        // ~1000 years is comfortably inside the DateOnly horizon and must still resolve
+        // (regression guard: the new upper-bound clamp must not reject valid long tenors).
+        DateOnly inverted = market.InvertYearFraction(1000d);
+
+        inverted.Should().BeAfter(s_valuationDate);
+        inverted.Should().BeOnOrBefore(DateOnly.MaxValue);
     }
 }

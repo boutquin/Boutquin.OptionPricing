@@ -14,6 +14,7 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Enumerations;
 using Boutquin.MarketData.Abstractions.Calendars;
 using Boutquin.MarketData.Calendars;
 using Boutquin.OptionPricing.Domain.Contracts;
@@ -28,7 +29,7 @@ public sealed class OptionContractSettlementTests
     public void SettlementDate_ShouldEqualExpiryDate_WhenNoCalendar()
     {
         var expiry = new DateOnly(2025, 7, 18); // Friday
-        var option = new EuropeanOption(CallPut.Call, 100m, expiry);
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry);
 
         option.SettlementDate.Should().Be(expiry);
     }
@@ -39,7 +40,7 @@ public sealed class OptionContractSettlementTests
         // 2025-07-19 is Saturday
         var expiry = new DateOnly(2025, 7, 19);
         var calendar = new WeekendOnlyCalendar();
-        var option = new EuropeanOption(CallPut.Call, 100m, expiry,
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry,
             settlementCalendar: calendar,
             settlementAdjustment: BusinessDayAdjustment.Following);
 
@@ -53,7 +54,7 @@ public sealed class OptionContractSettlementTests
         // 2025-07-18 is Friday
         var expiry = new DateOnly(2025, 7, 18);
         var calendar = new WeekendOnlyCalendar();
-        var option = new EuropeanOption(CallPut.Call, 100m, expiry,
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry,
             settlementCalendar: calendar,
             settlementAdjustment: BusinessDayAdjustment.Following,
             settlementLagDays: 1);
@@ -68,7 +69,7 @@ public sealed class OptionContractSettlementTests
         var expiry = new DateOnly(2025, 7, 18);
         var calendar = new WeekendOnlyCalendar();
 
-        var option = new EuropeanOption(CallPut.Call, 100m, expiry,
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry,
             settlementCalendar: calendar,
             settlementAdjustment: BusinessDayAdjustment.ModifiedFollowing);
 
@@ -82,7 +83,7 @@ public sealed class OptionContractSettlementTests
         var expiry = new DateOnly(2025, 7, 19); // Saturday
         var calendar = new WeekendOnlyCalendar();
 
-        var option = new AmericanOption(CallPut.Put, 100m, expiry,
+        var option = new AmericanOption(CallPut.Put, 100m, Currency.USD, expiry,
             settlementCalendar: calendar,
             settlementAdjustment: BusinessDayAdjustment.Following);
 
@@ -95,7 +96,7 @@ public sealed class OptionContractSettlementTests
         var expiry = new DateOnly(2025, 7, 19); // Saturday
         var calendar = new WeekendOnlyCalendar();
 
-        var option = new BarrierOption(CallPut.Call, 100m, 120m,
+        var option = new BarrierOption(CallPut.Call, 100m, Currency.USD, 120m,
             BarrierDirection.Up, BarrierKnockType.Out, expiry,
             settlementCalendar: calendar,
             settlementAdjustment: BusinessDayAdjustment.Following);
@@ -109,9 +110,9 @@ public sealed class OptionContractSettlementTests
         var expiry = new DateOnly(2025, 7, 18);
 
         // These should compile and work exactly as before
-        var european = new EuropeanOption(CallPut.Call, 100m, expiry);
-        var american = new AmericanOption(CallPut.Put, 100m, expiry);
-        var barrier = new BarrierOption(CallPut.Call, 100m, 120m,
+        var european = new EuropeanOption(CallPut.Call, 100m, Currency.USD, expiry);
+        var american = new AmericanOption(CallPut.Put, 100m, Currency.USD, expiry);
+        var barrier = new BarrierOption(CallPut.Call, 100m, Currency.USD, 120m,
             BarrierDirection.Up, BarrierKnockType.Out, expiry);
 
         european.ExpiryDate.Should().Be(expiry);

@@ -15,8 +15,9 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
@@ -62,14 +63,14 @@ public sealed class JarrowRuddTreeBuilderTests
     [Fact]
     public void JarrowRuddTree_ShouldConvergeToBlackScholes()
     {
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-        var option = new EuropeanOption(CallPut.Call, 100m, valuationDate.AddMonths(6));
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, valuationDate.AddMonths(6));
         var market = CreateMarket(valuationDate, 100m, 0.20d, 0.03d, 0.01d);
 
-        decimal analytic = new BlackScholesPricer().Price(option, market).Price;
-        var input = TreeModelInput.FromMarketData(market, option.Strike, option.ExpiryDate, 400);
+        decimal analytic = new BlackScholesPricer().Price(option, market).Price.Amount;
+        var input = TreeModelInput.FromMarketData(market, option.Strike.Amount, option.ExpiryDate, 400);
         var tree = new JarrowRuddTreeBuilder().Build(input);
-        decimal treePrice = new EuropeanTreePricer().Price(option, market, tree).Price;
+        decimal treePrice = new EuropeanTreePricer().Price(option, market, tree).Price.Amount;
 
         treePrice.Should().BeApproximately(analytic, 0.10m);
     }
@@ -77,7 +78,7 @@ public sealed class JarrowRuddTreeBuilderTests
     [Fact]
     public void FlexibleBuilder_JarrowRudd_ShouldMatchDirectBuilder()
     {
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
         var market = CreateMarket(valuationDate, 100m, 0.20d, 0.03d, 0.01d);
         var input = TreeModelInput.FromMarketData(market, 100m, valuationDate.AddMonths(6), 100);
 
@@ -92,7 +93,7 @@ public sealed class JarrowRuddTreeBuilderTests
     [Fact]
     public void FlexibleBuilder_DefaultCrr_ShouldMatchCrrBuilder()
     {
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
         var market = CreateMarket(valuationDate, 100m, 0.20d, 0.03d, 0.01d);
         var input = TreeModelInput.FromMarketData(market, 100m, valuationDate.AddMonths(6), 100);
 
@@ -106,7 +107,7 @@ public sealed class JarrowRuddTreeBuilderTests
 
     private static BinomialTree BuildJarrowRuddTree(int steps)
     {
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
         var market = CreateMarket(valuationDate, 100m, 0.20d, 0.03d, 0.01d);
         var input = TreeModelInput.FromMarketData(market, 100m, valuationDate.AddMonths(6), steps);
         return new JarrowRuddTreeBuilder().Build(input);
@@ -116,9 +117,9 @@ public sealed class JarrowRuddTreeBuilderTests
     {
         return new OptionMarketData(
             valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             flatVolatility,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, CurrencyCode.USD, riskFreeRate),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, CurrencyCode.USD, dividendYield));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, Currency.USD, riskFreeRate),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, Currency.USD, dividendYield));
     }
 }

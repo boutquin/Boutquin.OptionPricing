@@ -27,4 +27,5 @@ namespace Boutquin.OptionPricing.Domain.Market;
 /// <param name="Amount">
 /// The dividend cash amount per share, in the same currency as the spot price.
 /// </param>
+/// <remarks>The amount uses the currency of the market/option receiving this schedule. A schedule must not mix currencies.</remarks>
 public sealed record DividendPayment(DateOnly ExDate, decimal Amount);

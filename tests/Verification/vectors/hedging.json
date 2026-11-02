@@ -204,9 +204,9 @@
         1.318427281071971e-08,
         4.7270896807462404e-15
       ],
-      "expected_final_portfolio": 0.4410506559246071,
+      "expected_final_portfolio": 0.832661125795786,
       "expected_option_payoff": 0.0,
-      "expected_hedging_error": 0.4410506559246071
+      "expected_hedging_error": 0.832661125795786
     },
     {
       "valuation_date": "2026-01-02",
@@ -278,9 +278,9 @@
         -0.8995638381651763,
         -0.9882393082370735
       ],
-      "expected_final_portfolio": 11.32423926893459,
+      "expected_final_portfolio": 10.614024723706407,
       "expected_option_payoff": 9.251547219020921,
-      "expected_hedging_error": 2.0726920499136696
+      "expected_hedging_error": 1.3624775046854865
     },
     {
       "valuation_date": "2026-01-02",
@@ -530,9 +530,9 @@
         -0.9996164664426154,
         -0.9998082375668476
       ],
-      "expected_final_portfolio": 20.181188668479223,
+      "expected_final_portfolio": 19.458897400499993,
       "expected_option_payoff": 19.814777614668188,
-      "expected_hedging_error": 0.366411053811035
+      "expected_hedging_error": -0.35588021416819515
     }
   ]
 }

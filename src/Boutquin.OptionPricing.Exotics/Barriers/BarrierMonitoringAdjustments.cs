@@ -26,14 +26,15 @@ namespace Boutquin.OptionPricing.Exotics.Barriers;
 /// <remarks>
 /// The correction formula is:
 /// <c>H_adj = H × exp(±β × σ × √(T/m))</c>,
-/// where β ≈ 0.5826 (related to the Euler–Mascheroni constant: β = ζ(1/2) / √(2π)),
+/// where β = −ζ(1/2) / √(2π) ≈ 0.5826 (ζ is the Riemann zeta function evaluated at 1/2,
+/// where ζ(1/2) ≈ −1.4603545; the leading minus sign makes β positive),
 /// m is the number of monitoring dates, the sign is + for up barriers and − for down barriers.
 /// As the number of monitoring dates increases, the adjustment converges to 1.0 (continuous monitoring).
 /// </remarks>
 public static class BarrierMonitoringAdjustments
 {
     /// <summary>
-    /// The BGK constant β ≈ 0.5826, derived from ζ(1/2) / √(2π).
+    /// The BGK constant β ≈ 0.5826, equal to −ζ(1/2) / √(2π) (Riemann zeta at 1/2).
     /// </summary>
     private const double Beta = 0.5826;
 
@@ -66,12 +67,12 @@ public static class BarrierMonitoringAdjustments
             throw new ArgumentOutOfRangeException(nameof(barrierLevel), "Barrier level must be positive.");
         }
 
-        if (volatility <= 0d)
+        if (!double.IsFinite(volatility) || volatility <= 0d)
         {
             throw new ArgumentOutOfRangeException(nameof(volatility), "Volatility must be positive.");
         }
 
-        if (timeToExpiry <= 0d)
+        if (!double.IsFinite(timeToExpiry) || timeToExpiry <= 0d)
         {
             throw new ArgumentOutOfRangeException(nameof(timeToExpiry), "Time to expiry must be positive.");
         }
@@ -81,10 +82,20 @@ public static class BarrierMonitoringAdjustments
             throw new ArgumentOutOfRangeException(nameof(monitoringDates), "Monitoring dates must be at least 1.");
         }
 
-        double sign = direction == BarrierDirection.Up ? 1d : -1d;
+        double sign = direction switch
+        {
+            BarrierDirection.Up => 1d,
+            BarrierDirection.Down => -1d,
+            _ => throw new NotSupportedException($"Unsupported barrier direction: {direction}.")
+        };
         double exponent = sign * Beta * volatility * Math.Sqrt(timeToExpiry / monitoringDates);
         double adjustmentFactor = Math.Exp(exponent);
 
-        return barrierLevel * (decimal)adjustmentFactor;
+        double adjusted = (double)barrierLevel * adjustmentFactor;
+        if (!double.IsFinite(adjusted) || adjusted <= 0d || adjusted >= (double)decimal.MaxValue || adjusted < 1e-28)
+        {
+            throw new ArgumentOutOfRangeException(nameof(volatility), "The adjusted barrier must fit a positive decimal amount.");
+        }
+        return (decimal)adjusted;
     }
 }

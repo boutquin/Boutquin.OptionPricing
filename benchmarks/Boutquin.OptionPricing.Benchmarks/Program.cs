@@ -17,9 +17,9 @@
 using BenchmarkDotNet.Running;
 using Boutquin.OptionPricing.Benchmarks;
 
-BenchmarkRunner.Run([
+BenchmarkSwitcher.FromTypes([
     typeof(BlackScholesBenchmarks),
     typeof(TreeBenchmarks),
     typeof(CalibrationBenchmarks),
     typeof(ExoticsBenchmarks),
-    typeof(NumericalBenchmarks)]);
+    typeof(NumericalBenchmarks)]).Run(args);

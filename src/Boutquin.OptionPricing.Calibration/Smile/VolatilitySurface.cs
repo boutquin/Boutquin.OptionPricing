@@ -30,17 +30,17 @@ namespace Boutquin.OptionPricing.Calibration.Smile;
 /// <remarks>
 /// <para>
 /// <b>Strike axis:</b> Implied volatility is interpolated across strikes within a slice
-/// using <see cref="MonotoneCubicInterpolator"/> (Fritsch-Carlson with the
+/// using <see cref="MonotoneCubicInterpolator{T}"/> (Fritsch-Carlson with the
 /// arXiv:2402.01324 endpoint refinement — O(h²) boundary error, monotonicity-preserving,
 /// no spurious oscillation). Adopted under Phase 5b of the Numerics migration to
-/// eliminate the arbitrage-producing wing oscillation that plain cubic splines or naïve
-/// linear interpolation introduce at off-grid strikes. With exactly two strikes, the
+/// reduce wing oscillation at off-grid strikes. Interpolating volatilities does not
+/// enforce convex call prices or guarantee an arbitrage-free surface. With exactly two strikes, the
 /// monotone-cubic Hermite reduces algebraically to linear interpolation, so two-point
 /// slices behave identically to the prior linear implementation.
 /// </para>
 /// <para>
 /// <b>Maturity axis:</b> Across slices the surface uses an adaptive cubic-spline scheme
-/// from <see cref="CubicSplineInterpolator"/>:
+/// from <see cref="CubicSplineInterpolator{T}"/>:
 /// </para>
 /// <list type="bullet">
 ///   <item>≥4 slices — <see cref="SplineBoundary.ModifiedNotAKnot"/> (Jarre 2025,
@@ -62,6 +62,81 @@ public sealed record VolatilitySurface(
     IReadOnlyList<SmileSlice> Slices)
 {
     /// <summary>
+    /// Maturity-ordered collection of smile slices that define the surface.
+    /// This field initializer validates on the primary-constructor path only — must be
+    /// non-empty and strictly maturity-ascending so that GetVol's clamps and cubic-spline
+    /// interpolation are correct (F-004). The <see cref="Slices"/> property's <c>init</c>
+    /// accessor (not this initializer) is what covers the <see langword="with"/>-expression
+    /// path; see that property's documentation.
+    /// </summary>
+    private readonly IReadOnlyList<SmileSlice> _slices = ValidateSlices(Slices, nameof(Slices));
+
+    /// <summary>
+    /// Maturity-ordered collection of smile slices that define the surface.
+    /// Validated on every construction path — both <see langword="new"/> and
+    /// <see langword="with"/> — to be non-empty and strictly maturity-ascending so that
+    /// <see cref="GetVol(decimal, double)"/>'s boundary clamps and cubic-spline
+    /// interpolation read the correct slice (F-004). The validation lives in the
+    /// <c>init</c> accessor body (not merely a property initializer) precisely because a
+    /// positional-record <c>with</c> expression invokes the init setter rather than the
+    /// primary constructor — an initializer-only check would leave the <c>with</c> path
+    /// unguarded.
+    /// </summary>
+    public IReadOnlyList<SmileSlice> Slices
+    {
+        get => _slices;
+        init => _slices = ValidateSlices(value, nameof(Slices));
+    }
+
+    private static IReadOnlyList<SmileSlice> ValidateSlices(
+        IReadOnlyList<SmileSlice> value, string paramName)
+    {
+        ArgumentNullException.ThrowIfNull(value, paramName);
+
+        if (value.Count == 0)
+        {
+            throw new ArgumentException(
+                "VolatilitySurface requires at least one SmileSlice.",
+                paramName);
+        }
+
+        if (value.Any(slice => slice is null))
+        {
+            throw new ArgumentException("Slices must not contain null entries.", paramName);
+        }
+        for (var i = 1; i < value.Count; i++)
+        {
+            if (value[i].MaturityInYears <= value[i - 1].MaturityInYears)
+            {
+                throw new ArgumentException(
+                    $"Slices must be in strictly ascending maturity order. " +
+                    $"Found Slices[{i - 1}].MaturityInYears = {value[i - 1].MaturityInYears} " +
+                    $">= Slices[{i}].MaturityInYears = {value[i].MaturityInYears}.",
+                    paramName);
+            }
+        }
+
+        foreach (SmileSlice slice in value)
+        {
+            if (slice is null || !double.IsFinite(slice.MaturityInYears) || slice.MaturityInYears <= 0d || slice.Points.Count == 0)
+            {
+                throw new ArgumentException("Slices require positive finite maturities and at least one quote.", paramName);
+            }
+            for (int i = 0; i < slice.Points.Count; i++)
+            {
+                SurfacePoint point = slice.Points[i];
+                if (point is null || point.Strike <= 0m || !double.IsFinite(point.ImpliedVolatility) || point.ImpliedVolatility <= 0d
+                    || !double.IsFinite(point.MaturityInYears) || Math.Abs(point.MaturityInYears - slice.MaturityInYears) >= 1e-9d
+                    || (i > 0 && (double)point.Strike <= (double)slice.Points[i - 1].Strike))
+                {
+                    throw new ArgumentException("Quotes require positive finite volatility, the slice maturity, and strictly increasing representable positive strikes.", paramName);
+                }
+            }
+        }
+        return Array.AsReadOnly(value.ToArray());
+    }
+
+    /// <summary>
     /// Returns the implied volatility at the specified strike and maturity. Strike
     /// interpolation uses monotone-cubic Hermite (arXiv:2402.01324 endpoint fix);
     /// maturity interpolation uses an adaptive cubic spline (ModifiedNotAKnot, Natural,
@@ -74,6 +149,11 @@ public sealed record VolatilitySurface(
     /// <exception cref="InvalidOperationException">Thrown when the surface contains no slices.</exception>
     public double GetVol(decimal strike, double maturityInYears)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(strike);
+        if (!double.IsFinite(maturityInYears) || maturityInYears < 0d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maturityInYears), "Query maturity must be finite and non-negative.");
+        }
         if (Slices.Count == 0)
         {
             throw new InvalidOperationException("Cannot query an empty volatility surface.");
@@ -102,7 +182,7 @@ public sealed record VolatilitySurface(
         {
             double v0 = InterpolateStrike(Slices[0], strike);
             double v1 = InterpolateStrike(Slices[1], strike);
-            return TwoPointLinearInterpolator.Interpolate(
+            return TwoPointLinearInterpolator<double>.Interpolate(
                 Slices[0].MaturityInYears, v0,
                 Slices[1].MaturityInYears, v1,
                 maturityInYears);
@@ -125,8 +205,13 @@ public sealed record VolatilitySurface(
             ? SplineBoundary.ModifiedNotAKnot
             : SplineBoundary.Natural;
 
-        var spline = new CubicSplineInterpolator(maturities, vols, boundary);
-        return spline.Interpolate(maturityInYears);
+        var spline = new CubicSplineInterpolator<double>(maturities, vols, boundary);
+        double volatility = spline.Interpolate(maturityInYears);
+        if (!double.IsFinite(volatility) || volatility <= 0d)
+        {
+            throw new InvalidOperationException("Maturity interpolation produced a non-positive or non-finite volatility; use a better-resolved term grid.");
+        }
+        return volatility;
     }
 
     /// <summary>
@@ -190,6 +275,6 @@ public sealed record VolatilitySurface(
             ys[i] = points[i].ImpliedVolatility;
         }
 
-        return MonotoneCubicInterpolator.Instance.Interpolate((double)strike, xs, ys);
+        return MonotoneCubicInterpolator<double>.Instance.Interpolate((double)strike, xs, ys);
     }
 }

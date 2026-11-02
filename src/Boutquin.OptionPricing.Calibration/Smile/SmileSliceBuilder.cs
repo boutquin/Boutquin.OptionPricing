@@ -33,6 +33,7 @@ public sealed class SmileSliceBuilder
     /// <returns>A <see cref="SmileSlice"/> containing only the points at the requested maturity, sorted by strike.</returns>
     public SmileSlice Build(double maturityInYears, IEnumerable<SurfacePoint> points)
     {
+        ArgumentNullException.ThrowIfNull(points);
         List<SurfacePoint> materialized = points
             .Where(point => Math.Abs(point.MaturityInYears - maturityInYears) < 1e-9d)
             .OrderBy(point => point.Strike)

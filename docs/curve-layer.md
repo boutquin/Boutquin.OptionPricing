@@ -12,8 +12,9 @@ re-implementing them.
 These are consumed as external NuGet packages (not embedded under OptionPricing `src/`):
 
 - `Boutquin.Curves.Abstractions` — curve interfaces (`IDiscountCurve`, `IForwardCurve`,
-  `ICurveGroup`), `MarketEnvironment`, `IFixingsStore`, compounding and curve-reference
-  contracts.
+  `ICurveGroup`), `MarketEnvironment`, compounding and curve-reference contracts.
+- `Boutquin.MarketData.Abstractions` / `Boutquin.MarketData.Storage` — `IFixingsStore`
+  (keyed by `BenchmarkName`) and its `InMemoryFixingsStore` implementation.
 - `Boutquin.Curves.Core` — flat and interpolated discount/forward curves
   (`FlatDiscountCurve`, `InterpolatedDiscountCurve`, `FlatForwardCurve`), `CurveGroup`.
 - `Boutquin.Curves.Bootstrap` — piecewise bootstrap engine for OIS, deposit, futures,

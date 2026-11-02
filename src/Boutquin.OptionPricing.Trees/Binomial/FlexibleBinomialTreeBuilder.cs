@@ -57,9 +57,13 @@ public sealed class FlexibleBinomialTreeBuilder : ITreeBuilder
     /// Market and contract parameters forwarded to the underlying tree builder.
     /// </param>
     /// <returns>A fully populated <see cref="BinomialTree"/>.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="input"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="input"/> has non-positive spot, non-positive volatility,
-    /// non-positive time to expiry, or non-positive step count.
+    /// non-positive time to expiry, or a step count outside the range
+    /// [1, <see cref="TreeBuilderLimits.MaxSteps"/>].
     /// </exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the derived risk-neutral probability falls outside the open interval (0, 1)

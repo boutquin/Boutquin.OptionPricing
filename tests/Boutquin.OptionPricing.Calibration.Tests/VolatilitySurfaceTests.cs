@@ -20,7 +20,7 @@ using FluentAssertions;
 namespace Boutquin.OptionPricing.Calibration.Tests;
 
 /// <summary>
-/// Tests for <see cref="VolatilitySurface.GetVol"/> — strike-axis monotone-cubic
+/// Tests for <see cref="VolatilitySurface.GetVol(decimal, double)"/> — strike-axis monotone-cubic
 /// (Fritsch-Carlson with arXiv:2402.01324 endpoint refinement) and maturity-axis
 /// linear interpolation, with flat extrapolation in both axes.
 /// </summary>
@@ -235,5 +235,90 @@ public sealed class VolatilitySurfaceTests
                 because: "monotone-cubic interpolation must preserve the monotone shape of the input data");
             prev = current;
         }
+    }
+
+    // ── Finding 004: unsorted slice order must be rejected at construction ────────
+
+    [Fact]
+    public void Constructor_UnsortedSlices_ShouldThrowArgumentException()
+    {
+        // Slices provided in T=1.0, T=0.1, T=0.5 order (descending then out-of-order).
+        // GetVol's clamps + CubicSpline assume ascending order; silent wrong-slice vol
+        // is produced today (critic probe confirmed T=1.0 vol returned for T=0.3 query).
+        // After the fix the ctor must throw with the offending pair named.
+        var slices = new[]
+        {
+            new SmileSlice(1.0, new[] { new SurfacePoint(1.0, 100m, 0.40) }),
+            new SmileSlice(0.1, new[] { new SurfacePoint(0.1, 100m, 0.30) }),
+            new SmileSlice(0.5, new[] { new SurfacePoint(0.5, 100m, 0.35) }),
+        };
+
+        Action act = () => _ = new VolatilitySurface(slices);
+        act.Should().Throw<ArgumentException>(
+            because: "slices must be strictly maturity-ascending; violating pair (1.0, 0.1) must be named");
+    }
+
+    [Fact]
+    public void Constructor_DuplicateMaturity_ShouldThrowArgumentException()
+    {
+        // Duplicate maturities violate strict ascending order.
+        var slices = new[]
+        {
+            new SmileSlice(0.25, new[] { new SurfacePoint(0.25, 100m, 0.20) }),
+            new SmileSlice(0.25, new[] { new SurfacePoint(0.25, 100m, 0.22) }),
+        };
+
+        Action act = () => _ = new VolatilitySurface(slices);
+        act.Should().Throw<ArgumentException>(
+            because: "duplicate maturity 0.25 is not strictly ascending");
+    }
+
+    [Fact]
+    public void Constructor_EmptySlices_ShouldThrowArgumentException()
+    {
+        // An empty Slices list should be rejected at construction, not deferred to GetVol.
+        Action act = () => _ = new VolatilitySurface(Array.Empty<SmileSlice>());
+        act.Should().Throw<ArgumentException>(
+            because: "empty Slices is invalid; the error must fire at construction time");
+    }
+
+    [Fact]
+    public void Constructor_SortedSlices_ShouldNotThrow()
+    {
+        // The happy path must remain unchanged: builder output passes, direct ctor with
+        // sorted slices passes.
+        var slices = new[]
+        {
+            new SmileSlice(0.25, new[] { new SurfacePoint(0.25, 100m, 0.20) }),
+            new SmileSlice(0.50, new[] { new SurfacePoint(0.50, 100m, 0.21) }),
+            new SmileSlice(1.00, new[] { new SurfacePoint(1.00, 100m, 0.22) }),
+        };
+
+        Action act = () => _ = new VolatilitySurface(slices);
+        act.Should().NotThrow(because: "a strictly maturity-ascending surface is valid");
+    }
+
+    [Fact]
+    public void VolatilitySurface_WithExpression_UnsortedSlices_Throws()
+    {
+        // `with` expressions copy then run init setters. The maturity-ascending invariant
+        // must be re-validated on the with-path, not only in the original construction.
+        var valid = new VolatilitySurface(new[]
+        {
+            new SmileSlice(0.25, new[] { new SurfacePoint(0.25, 100m, 0.20) }),
+            new SmileSlice(0.50, new[] { new SurfacePoint(0.50, 100m, 0.21) }),
+            new SmileSlice(1.00, new[] { new SurfacePoint(1.00, 100m, 0.22) }),
+        });
+
+        var unsorted = new[]
+        {
+            new SmileSlice(1.00, new[] { new SurfacePoint(1.00, 100m, 0.40) }),
+            new SmileSlice(0.10, new[] { new SurfacePoint(0.10, 100m, 0.30) }),
+            new SmileSlice(0.50, new[] { new SurfacePoint(0.50, 100m, 0.35) }),
+        };
+
+        Action act = () => _ = valid with { Slices = unsorted };
+        act.Should().Throw<ArgumentException>(
+            because: "the with-expression must re-validate the maturity-ascending invariant");
     }
 }

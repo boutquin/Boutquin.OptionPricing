@@ -61,9 +61,9 @@ public sealed class BinomialTreeVerificationTests : CrossLanguageVerificationBas
 
         var market = BuildMarket(valuationDate, spot, sigma, r, q);
         var option = BuildEuropeanOption(strike, expiry, callPut);
-        var tree = BuildTree(market, option.Strike, option.ExpiryDate, steps, scheme);
+        var tree = BuildTree(market, option.Strike.Amount, option.ExpiryDate, steps, scheme);
 
-        var actual = (double)new EuropeanTreePricer().Price(option, market, tree).Price;
+        var actual = (double)new EuropeanTreePricer().Price(option, market, tree).Price.Amount;
 
         AssertWithin(actual, expected, PrecisionNumeric,
             $"europe[{index}] {scheme} N={steps} ({callPut} K={strike} σ={sigma} r={r} q={q})");
@@ -79,9 +79,9 @@ public sealed class BinomialTreeVerificationTests : CrossLanguageVerificationBas
 
         var market = BuildMarket(valuationDate, spot, sigma, r, q);
         var option = BuildAmericanOption(strike, expiry, callPut);
-        var tree = BuildTree(market, option.Strike, option.ExpiryDate, steps, scheme);
+        var tree = BuildTree(market, option.Strike.Amount, option.ExpiryDate, steps, scheme);
 
-        var actual = (double)new AmericanTreePricer().Price(option, market, tree).Price;
+        var actual = (double)new AmericanTreePricer().Price(option, market, tree).Price.Amount;
 
         AssertWithin(actual, expected, PrecisionNumeric,
             $"america[{index}] {scheme} N={steps} ({callPut} K={strike} σ={sigma} r={r} q={q})");
@@ -98,8 +98,8 @@ public sealed class BinomialTreeVerificationTests : CrossLanguageVerificationBas
 
         var market = BuildMarket(valuationDate, spot, sigma, r, q);
         var option = BuildEuropeanOption(strike, expiry, callPut);
-        var tree = BuildTree(market, option.Strike, option.ExpiryDate, steps, scheme);
-        var csharpTree = (double)new EuropeanTreePricer().Price(option, market, tree).Price;
+        var tree = BuildTree(market, option.Strike.Amount, option.ExpiryDate, steps, scheme);
+        var csharpTree = (double)new EuropeanTreePricer().Price(option, market, tree).Price.Amount;
 
         // 1. C# matches Python tree to PRECISION_NUMERIC — they run the same algorithm.
         AssertWithin(csharpTree, pythonTree, PrecisionNumeric,
@@ -127,7 +127,7 @@ public sealed class BinomialTreeVerificationTests : CrossLanguageVerificationBas
 
         var market = BuildMarket(valuationDate, spot, sigma, r, q);
         var option = BuildEuropeanOption(strike, expiry, callPut);
-        var input = TreeModelInput.FromMarketData(market, option.Strike, option.ExpiryDate, steps);
+        var input = TreeModelInput.FromMarketData(market, option.Strike.Amount, option.ExpiryDate, steps);
         var parameterization = scheme switch
         {
             "crr" => TreeParameterization.CoxRossRubinstein,
@@ -136,7 +136,7 @@ public sealed class BinomialTreeVerificationTests : CrossLanguageVerificationBas
         };
         var tree = new FlexibleBinomialTreeBuilder(parameterization).Build(input);
 
-        var actual = (double)new EuropeanTreePricer().Price(option, market, tree).Price;
+        var actual = (double)new EuropeanTreePricer().Price(option, market, tree).Price.Amount;
 
         // Flexible wraps the same algorithm — match Python reference at PRECISION_NUMERIC.
         AssertWithin(actual, expected, PrecisionNumeric,

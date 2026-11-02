@@ -18,9 +18,17 @@ hooks/** export-ignore
 .claude/** export-ignore
 review-accepted.yaml export-ignore
 
+# Arena run evidence: versioned and shared, but never in a `git archive`.
+.code-arena/ export-ignore
+.code-arena/** export-ignore
+
 ###############################################################################
 # behavior for image files
 ###############################################################################
 #*.jpg   binary
 #*.png   binary
 #*.gif   binary
+
+# Preserve exact qualification receipt bytes.
+specs/verification/rc-2026-10-27/** -text
+AGENTS.md export-ignore

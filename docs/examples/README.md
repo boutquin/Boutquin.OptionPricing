@@ -1,8 +1,8 @@
 # Examples
 
-This folder contains five chapter-style walkthroughs that explain the conceptual progression of the library alongside the twenty console programs in `src/Boutquin.OptionPricing.Examples/`. Each walkthrough covers the theory, key types, and code patterns for a group of examples. The console programs produce runnable output — numbers you can verify by hand or compare against a textbook.
+This folder contains nine chapter-style walkthroughs that explain the conceptual progression of the library alongside the ten console programs in `src/Boutquin.OptionPricing.Examples/` (examples 01–06 covering infrastructure and market data, and examples 21–24 covering the new pricing topics). Each walkthrough covers the theory, key types, and code patterns for a group of examples. The console programs produce runnable output — numbers you can verify by hand or compare against a textbook.
 
-Run all twenty examples at once:
+Run all ten examples at once (all run by default; use `--example <id>` to run a single one):
 
 ```bash
 /usr/local/share/dotnet/dotnet run --project src/Boutquin.OptionPricing.Examples --configuration Release
@@ -57,6 +57,46 @@ A flat-vol CRR tree mis-prices barrier options and exotic payoffs because it ass
 
 ---
 
+## Discrete Dividends → [06-discrete-dividends.md](06-discrete-dividends.md)
+
+Merton's escrowed-dividend approximation prices European options in the presence of known cash dividends without leaving the closed-form world. The stock price is split into a deterministic escrowed component (present value of dividends before expiry) and a stochastic component; the option is priced by Black-Scholes on the smaller stochastic base with an uplifted volatility.
+
+| Example | What it does |
+|---------|-------------|
+| **Example 21** — Discrete dividends (Merton escrowed) | Prices an ATM one-year call with two $0.80 cash dividends using `MertonDiscreteDividendPricer`. Compares the Merton escrowed price to the no-dividend Black-Scholes price and prints the intermediates — `PV(divs)`, `S*`, `σ*` — so the escrowed-dividend adjustment is traceable. |
+
+---
+
+## Tree Greeks → [07-tree-greeks.md](07-tree-greeks.md)
+
+Chriss (Display 7.2.1) shows that a recombining binomial lattice already contains the nodes needed to read Δ, Γ, and Θ directly — no bump-and-reprice, no second tree valuation. The `TreeGreeksCalculator` reads these finite differences off the valued lattice returned by `EuropeanTreePricer.PriceWithLattice` or `AmericanTreePricer.PriceWithLattice`.
+
+| Example | What it does |
+|---------|-------------|
+| **Example 22** — Tree Greeks (lattice finite differences) | Builds a 400-step CRR tree for a six-month ATM option, reads the European-call Δ/Γ/Θ off the lattice next to the analytical Black-Scholes Greeks, and shows the American-put Greeks with their sign/range invariants. Vega and Rho are `null` — they are not lattice-extractable. |
+
+---
+
+## Tree Dividends → [08-tree-dividends.md](08-tree-dividends.md)
+
+The CRR tree models dividends as a continuous yield `q` in the risk-neutral probability. When `q > 0`, the forward price is lower and an American call can become worth exercising early. This walkthrough demonstrates the early-exercise-boundary shift: the boundary is empty at `q = 0%` and activates when a dividend yield is added.
+
+| Example | What it does |
+|---------|-------------|
+| **Example 23** — Tree dividends (CRR, with vs. without continuous yield) | Prices a European call and a deep-ITM American call at `q = 0%` and `q = 3%`, then demonstrates the early-exercise-boundary shift with a 12-month deep-ITM American call comparing `q = 0%` vs. `q = 8%`. |
+
+---
+
+## Heston Stochastic-Vol MC → [09-heston-smile.md](09-heston-smile.md)
+
+Black-Scholes assigns the same volatility to every strike. The Heston (1993) model lets volatility itself be random (mean-reverting, correlated with the spot), generating a volatility smile directly from the model dynamics. Negative spot/variance correlation produces the downward-sloping skew of equity-index options.
+
+| Example | What it does |
+|---------|-------------|
+| **Example 24** — Heston stochastic-vol MC (smile) | Verifies the zero-vol-of-vol Black-Scholes limit (`SimpleHestonMcPricer` reproduces `BlackScholesPricer` within MC standard error), then prices across five strikes at `ρ = −0.80` to show the downward-sloping implied-volatility smile that flat-vol Black-Scholes cannot produce. |
+
+---
+
 ## Barrier Pricing → [05-barrier-pricing.md](05-barrier-pricing.md)
 
 Barrier options are among the most smile-sensitive instruments. The payoff depends on whether the underlying crosses a level — and that crossing probability is exactly what the smile tells you is mispriced by flat-vol assumptions. Run Example 09 first to understand the flat-vol mechanics, then Example 10 to see the skew impact.
@@ -81,7 +121,7 @@ The book's Ch 5 devotes ~20 pages to simulated Black-Scholes hedging — showing
 
 ## Market Integration → [curve-layer](../../docs/curve-layer.md)
 
-These examples demonstrate the deeper integration with `Boutquin.Analytics`: curve-group factories, multi-curve discounting, and diagnostic-gated pricing. They use `OptionMarketData.FromCurveGroup()` and `TreeModelInput.FromMarketData()` rather than manual curve extraction and parameter duplication.
+These examples demonstrate the deeper integration with `Boutquin.Curves`: curve-group factories, multi-curve discounting, and diagnostic-gated pricing. They use `OptionMarketData.FromCurveGroup()` and `TreeModelInput.FromMarketData()` rather than manual curve extraction and parameter duplication.
 
 | Example | What it does |
 |---------|-------------|

@@ -25,9 +25,9 @@ namespace Boutquin.OptionPricing.Benchmarks;
 [MemoryDiagnoser]
 public class NumericalBenchmarks
 {
-    private BisectionSolver _bisection = null!;
-    private BrentSolver _brent = null!;
-    private NewtonRaphsonSolver _newton = null!;
+    private BisectionSolver<double> _bisection = null!;
+    private BrentSolver<double> _brent = null!;
+    private NewtonRaphsonSolver<double> _newton = null!;
 
     /// <summary>
     /// Initializes solver instances.
@@ -35,9 +35,9 @@ public class NumericalBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _bisection = new BisectionSolver();
-        _brent = new BrentSolver();
-        _newton = new NewtonRaphsonSolver();
+        _bisection = new BisectionSolver<double>(functionTolerance: 1e-12, bracketTolerance: 1e-12);
+        _brent = new BrentSolver<double>(tolerance: 1e-12);
+        _newton = new NewtonRaphsonSolver<double>(functionTolerance: 1e-12, bracketTolerance: 1e-12, stepTolerance: 0);
     }
 
     /// <summary>Bisection solver: find sqrt(5) via f(x) = x^2 - 5.</summary>

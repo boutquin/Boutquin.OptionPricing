@@ -44,11 +44,13 @@ public sealed class VolatilitySurfaceBuilderTests
     }
 
     [Fact]
-    public void Build_EmptyInput_ShouldReturnEmptySurface()
+    public void Build_EmptyInput_ShouldThrowArgumentException()
     {
-        var surface = new VolatilitySurfaceBuilder().Build(Array.Empty<SurfacePoint>());
-
-        surface.Slices.Should().BeEmpty();
+        // VolatilitySurface now rejects empty Slices at construction (F-004 fix).
+        // Build() passes the empty list to the ctor which throws ArgumentException.
+        Action act = () => new VolatilitySurfaceBuilder().Build(Array.Empty<SurfacePoint>());
+        act.Should().Throw<ArgumentException>(
+            because: "VolatilitySurface requires at least one SmileSlice");
     }
 
     [Fact]

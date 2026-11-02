@@ -101,4 +101,22 @@ public sealed class BarrierMonitoringAdjustmentsTests
 
         adjusted.Should().BeApproximately(95.08m, 0.05m);
     }
+
+    // ── RED test for F-L23-03 (017): unrecognized BarrierDirection must throw, not silently treat as Down ──
+    [Fact]
+    public void AdjustedBarrierLevel_UnrecognizedDirection_Throws()
+    {
+        // (BarrierDirection)999 is an unrecognized value. The sibling method IsBarrierBreached
+        // throws NotSupportedException; AdjustedBarrierLevel must match the family contract.
+        // The undefined value must not be assigned the valid Down-barrier sign.
+        Action act = () => BarrierMonitoringAdjustments.AdjustedBarrierLevel(
+            barrierLevel: 100m,
+            direction: (BarrierDirection)999,
+            volatility: 0.20,
+            timeToExpiry: 1.0,
+            monitoringDates: 12);
+
+        act.Should().Throw<NotSupportedException>(
+            "an unrecognized BarrierDirection must throw rather than silently applying Down-barrier sign");
+    }
 }

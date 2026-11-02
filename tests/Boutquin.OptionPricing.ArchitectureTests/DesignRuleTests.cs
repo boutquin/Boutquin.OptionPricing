@@ -45,6 +45,8 @@ public sealed class DesignRuleTests : BaseArchitectureTest
                 .AreNotStatic()
                 .And()
                 .AreNotAbstract()
+                .And()
+                .DoNotResideInNamespace("Coverlet.Core.Instrumentation") // injected, non-sealed, under coverage
                 .Should()
                 .BeSealed()
                 .GetResult();

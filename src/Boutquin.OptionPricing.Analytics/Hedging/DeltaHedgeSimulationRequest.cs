@@ -35,4 +35,14 @@ namespace Boutquin.OptionPricing.Analytics.Hedging;
 public sealed record DeltaHedgeSimulationRequest(
     EuropeanOption Option,
     OptionMarketData InitialMarket,
-    IReadOnlyList<decimal> PathSpots);
+    IReadOnlyList<decimal> PathSpots)
+{
+    /// <summary>Owned read-only snapshot of the realized path from inception to expiry.</summary>
+    public IReadOnlyList<decimal> PathSpots { get; init => field = Copy(value); } = Copy(PathSpots);
+
+    private static IReadOnlyList<decimal> Copy(IReadOnlyList<decimal> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        return Array.AsReadOnly(values.ToArray());
+    }
+}

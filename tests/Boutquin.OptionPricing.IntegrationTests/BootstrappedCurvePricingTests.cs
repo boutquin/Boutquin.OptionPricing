@@ -15,19 +15,20 @@
 //
 
 using Boutquin.Curves.Abstractions.Curves;
-using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Bootstrap;
 using Boutquin.Curves.Bootstrap.ReferenceData;
-using Boutquin.MarketData.Conventions;
 using Boutquin.Curves.Recipes;
 using Boutquin.Curves.Recipes.Testing;
+using Boutquin.Domain.Enumerations;
+using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.MarketData.Calendars.Holidays;
+using Boutquin.MarketData.Conventions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Calibration.ImpliedVolatility;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Domain.Market;
+using Boutquin.OptionPricing.Examples.Shared;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -42,7 +43,7 @@ namespace Boutquin.OptionPricing.IntegrationTests;
 public sealed class BootstrappedCurvePricingTests
 {
     private static readonly DateOnly s_valuationDate = FixtureData.FixtureDate;
-    private static readonly CurveReference s_usdDiscountRef = new(CurveRole.Discount, CurrencyCode.USD, new BenchmarkName("SOFR"));
+    private static readonly CurveReference s_usdDiscountRef = new(CurveRole.Discount, Currency.USD, new BenchmarkName("SOFR"));
 
     [Fact]
     public async Task BlackScholesPrice_WithBootstrappedCurve_ShouldRoundTripImpliedVol()
@@ -50,15 +51,14 @@ public sealed class BootstrappedCurvePricingTests
         // Arrange — bootstrap USD SOFR discount from fixtures
         var snapshot = await BuildUsdSnapshotAsync().ConfigureAwait(true);
 
-        // Verify bootstrap quality
-        if (snapshot.Diagnostics.Repricing.Count > 0)
-        {
-            snapshot.Diagnostics.Repricing.Max(r => r.AbsoluteError).Should().BeLessThan(1e-6);
-        }
+        // Keep the same native-rate quality bar as the executable example. Sparse coupon
+        // dates must be repriced on the calibrated curve, not an earlier extrapolated tail.
+        snapshot.Diagnostics.Repricing.Should().NotBeEmpty();
+        snapshot.Diagnostics.Repricing.Should().AllSatisfy(item => item.AbsoluteError.Should().BeLessThan(1e-6));
 
-        var option = new EuropeanOption(CallPut.Call, 100m, s_valuationDate.AddMonths(6));
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, s_valuationDate.AddMonths(6));
         var market = OptionMarketData.FromCurveGroup(
-            snapshot.CurveGroup, CurrencyCode.USD, 100m, 0.20d, new BenchmarkName("SOFR"));
+            snapshot.CurveGroup, Currency.USD, 100m, 0.20d, new BenchmarkName("SOFR"));
 
         // Act — price, then recover implied vol from that price
         var price = new BlackScholesPricer().Price(option, market).Price;
@@ -66,12 +66,24 @@ public sealed class BootstrappedCurvePricingTests
             new ImpliedVolatilityRequest(
                 option,
                 market.WithFlatVolatility(0.15d),
-                price,
+                price.Amount,
                 0.15d));
 
         // Assert — recovered IV should match input within 1e-4
         ivResult.ImpliedVolatility.Should().NotBeNull();
         ivResult.ImpliedVolatility!.Value.Should().BeApproximately(0.20d, 1e-4d);
+    }
+
+    [Fact]
+    public async Task ExampleMarketHelper_ShouldPassItsRepricingGate_AndPriceAnOption()
+    {
+        var market = await MarketHelpers.CreateBootstrappedMarketAsync(s_valuationDate, 100m, 0.20d).ConfigureAwait(true);
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, s_valuationDate.AddMonths(6));
+
+        var result = new BlackScholesPricer().Price(option, market);
+
+        result.Price.Amount.Should().BeGreaterThan(0m);
+        market.DiscountFactor(option.ExpiryDate).Should().BeInRange(0d, 1d);
     }
 
     [Fact]
@@ -113,7 +125,7 @@ public sealed class BootstrappedCurvePricingTests
         var calendars = HolidayCalendarFactory.SupportedCodes.Select(HolidayCalendarFactory.Create).ToList();
         var benchmarks = new[]
         {
-            new RateBenchmark(new BenchmarkName("SOFR"), CurrencyCode.USD, BenchmarkKind.OvernightRiskFree, null, 0, 1, "USNY", "ACT/360", true),
+            new RateBenchmark(new BenchmarkName("SOFR"), Currency.USD, BenchmarkKind.OvernightRiskFree, null, 0, 1, "USNY", "ACT/360", true),
         };
         var registry = InstrumentConventionRegistry.CreateDefault();
         var conventions = new[]

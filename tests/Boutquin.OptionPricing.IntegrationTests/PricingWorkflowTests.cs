@@ -15,8 +15,9 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Calibration.ImpliedVolatility;
 using Boutquin.OptionPricing.Domain.Contracts;
@@ -31,11 +32,11 @@ public sealed class PricingWorkflowTests
     [Fact]
     public void BlackScholesPrice_ShouldRoundTripThroughImpliedVolatilitySolver()
     {
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
-        var option = new EuropeanOption(CallPut.Call, 100m, valuationDate.AddMonths(6));
+        DateOnly valuationDate = new DateOnly(2026, 6, 15);
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, valuationDate.AddMonths(6));
         var market = CreateMarket(valuationDate, 100m, 0.22d, 0.03d, 0.01d);
 
-        decimal observedPrice = new BlackScholesPricer().Price(option, market).Price;
+        decimal observedPrice = new BlackScholesPricer().Price(option, market).Price.Amount;
         var result = new ImpliedVolatilitySolver().Solve(
             new ImpliedVolatilityRequest(option, market.WithFlatVolatility(0.18d), observedPrice, 0.18d));
 
@@ -47,9 +48,9 @@ public sealed class PricingWorkflowTests
     {
         return new OptionMarketData(
             valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             flatVolatility,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, CurrencyCode.USD, riskFreeRate),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, CurrencyCode.USD, dividendYield));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, Currency.USD, riskFreeRate),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, Currency.USD, dividendYield));
     }
 }

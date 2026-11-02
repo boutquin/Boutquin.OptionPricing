@@ -15,11 +15,13 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Calibration.ImpliedTrees;
 using Boutquin.OptionPricing.Calibration.Smile;
 using Boutquin.OptionPricing.Domain.Market;
+using Boutquin.OptionPricing.Trees.Binomial;
 using FluentAssertions;
 
 namespace Boutquin.OptionPricing.Calibration.Tests;
@@ -114,13 +116,78 @@ public sealed class ImpliedVolatilityTreeCalibratorTests
         }
     }
 
+    [Fact]
+    public void Calibrate_WithBorrowCurve_RiskNeutralForward_HonoursLibraryCarryConvention()
+    {
+        // Borrow-curve carry seam (canonical OPTIONPRICING-CARRY-IMPLIEDTREE-BORROW-001; same class
+        // as the round-1 Heston borrow fix): the library-wide cost-of-carry convention is
+        // effectiveQ = q + b, so the implied tree's risk-neutral forward growth must be exp((r-q-b)*dt),
+        // exactly like BlackScholesPricer and OptionMarketData.ForwardPrice (= S*exp((r-q-b)T)). The
+        // calibrated tree's root risk-neutral one-step forward E[S_dt] = p*S_up + (1-p)*S_down must
+        // therefore equal s0*exp((r-q-b)*dt). With borrow omitted the forward is s0*exp((r-q)*dt) —
+        // too high by a borrow-sized factor — so this assertion is RED until the carry path reads borrow.
+        var market = CreateMarketWithBorrow(100m, 0.20, riskFreeRate: 0.05, dividendYield: 0.02, borrowRate: 0.03);
+        var surface = CreateFlatSurface(0.20);
+        int steps = 10;
+
+        var input = new ImpliedVolatilityTreeCalibrationInput(surface, steps, market);
+        var result = new ImpliedVolatilityTreeCalibrator().Calibrate(input);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Tree.ProbabilityLattice.Should().NotBeNull();
+
+        DateOnly expiry = market.InvertYearFraction(surface.Slices.Max(s => s.MaturityInYears));
+        double r = market.RiskFreeRate(expiry);
+        double q = market.DividendYield(expiry);
+        double b = market.BorrowRate(expiry);
+        double dt = result.Tree.DeltaTime;
+
+        double s0 = (double)market.Spot.Amount;
+        double pUp = result.Tree.ProbabilityLattice![0][0];
+        double sUp = result.Tree.SpotLattice[1][0];     // higher-spot child of the root
+        double sDown = result.Tree.SpotLattice[1][1];   // lower-spot child of the root
+        double rnForward = (pUp * sUp) + ((1d - pUp) * sDown);
+
+        double expectedForward = s0 * Math.Exp((r - q - b) * dt);
+        rnForward.Should().BeApproximately(expectedForward, 1e-6,
+            because: "the calibrated implied tree's risk-neutral forward must honour the library carry " +
+                     "convention effectiveQ = q + b (growth exp((r-q-b)*dt)), matching OptionMarketData.ForwardPrice");
+    }
+
+    [Fact]
+    public void Calibrate_StepsAboveMaxSteps_ShouldThrow()
+    {
+        // The implied-tree calibration path feeds Steps into an O(steps^2) lattice build
+        // (~5 triangular lattices). Like the CRR/JR builders (fix 012), it must reject a
+        // caller-controlled step count above TreeBuilderLimits.MaxSteps before allocating.
+        var market = CreateMarket(100m, 0.20, 0.05);
+        var surface = CreateFlatSurface(0.20);
+        var input = new ImpliedVolatilityTreeCalibrationInput(surface, TreeBuilderLimits.MaxSteps + 1, market);
+
+        Action act = () => new ImpliedVolatilityTreeCalibrator().Calibrate(input);
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
     private static OptionMarketData CreateMarket(decimal spot, double vol, double rate)
     {
         return new OptionMarketData(
             s_valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             vol,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, CurrencyCode.USD, rate));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, Currency.USD, rate));
+    }
+
+    private static OptionMarketData CreateMarketWithBorrow(
+        decimal spot, double vol, double riskFreeRate, double dividendYield, double borrowRate)
+    {
+        return new OptionMarketData(
+            s_valuationDate,
+            Currency.USD.Amount(spot),
+            vol,
+            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, Currency.USD, riskFreeRate),
+            new FlatDiscountCurve(new CurveName("USD-DIV"), s_valuationDate, Currency.USD, dividendYield),
+            new FlatDiscountCurve(new CurveName("USD-BORROW"), s_valuationDate, Currency.USD, borrowRate));
     }
 
     private static VolatilitySurface CreateFlatSurface(double vol)

@@ -35,5 +35,12 @@ public interface ITreeBuilder
     /// <returns>
     /// A <see cref="BinomialTree"/> ready for pricing via backward induction.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="input"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="input"/> carries an out-of-range parameter, including a
+    /// step count outside the range [1, <see cref="TreeBuilderLimits.MaxSteps"/>].
+    /// </exception>
     BinomialTree Build(TreeModelInput input);
 }

@@ -1,12 +1,14 @@
 # Boutquin.OptionPricing
 
 [![NuGet](https://img.shields.io/nuget/v/Boutquin.OptionPricing.Domain.svg)](https://www.nuget.org/packages/Boutquin.OptionPricing.Domain)
-[![License](https://img.shields.io/github/license/boutquin/Boutquin.OptionPricing)](https://github.com/boutquin/Boutquin.OptionPricing/blob/main/LICENSE.txt)
+[![License](https://img.shields.io/github/license/boutquin/Boutquin.OptionPricing)](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/LICENSE.txt)
 [![Build](https://github.com/boutquin/Boutquin.OptionPricing/actions/workflows/pr-verify.yml/badge.svg)](https://github.com/boutquin/Boutquin.OptionPricing/actions/workflows/pr-verify.yml)
+
+> **2.0.0:** targets .NET 10, `Boutquin.Curves` 2.0.0, `Boutquin.MarketData` 2.0.1 and `Boutquin.Numerics` 2.0.0 from NuGet.org. See the [changelog](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/CHANGELOG.md).
 
 `Boutquin.OptionPricing` is a concept-first, model-oriented C# library that maps the full conceptual arc of *Black-Scholes and Beyond: Option Pricing Models* into a clean, testable, modular codebase. It is designed as a companion to your reading of the book — every package corresponds to a chapter group, every model carries the assumptions stated in the text, and every example traces the progression from closed-form pricing through tree methods to calibrated implied surfaces.
 
-The library depends on `Boutquin.Analytics` for all curve infrastructure: discount factors, forward rates, dividend curves, and carry. This keeps the option-pricing layer free from data-fetching and bootstrapping concerns. A flat-curve helper is provided for quick exploration; a bootstrapped curve from the NY Fed or Bank of Canada fixtures is one call away for production-grade discounting.
+The library depends on [`Boutquin.Curves`](https://github.com/boutquin/Boutquin.Curves) for all curve infrastructure: discount factors, forward rates, dividend curves, and carry. This keeps the option-pricing layer free from data-fetching and bootstrapping concerns. A flat-curve helper is provided for quick exploration; a bootstrapped curve from the NY Fed or Bank of Canada fixtures is one call away for production-grade discounting.
 
 The design is production-grade in engineering terms — strict code quality, full test coverage, documented XML API surface — while remaining concept-first in scope. This is not a trading system or a brokerage integration. It is a reference implementation: the kind you study alongside a textbook and then use as the starting point for your own pricing work.
 
@@ -34,6 +36,9 @@ Working through this codebase alongside *Black-Scholes and Beyond* gives practic
 | Implied volatility trees (Derman-Kani) | `Calibration` |
 | Implied binomial trees (Rubinstein) | `Calibration` |
 | Barrier options in the presence of the smile | `Exotics` |
+| Discrete dividends (escrowed-dividend / Merton) | `Analytics` |
+| Hedge parameters from tree lattices (Δ, Γ, Θ) | `Trees` |
+| Stochastic volatility (Heston Euler MC) | `Analytics` |
 
 ## Packages
 
@@ -54,8 +59,8 @@ Closed-form and tree-based pricing for European and American options.
 
 | Package | Description |
 |---------|-------------|
-| `Boutquin.OptionPricing.Analytics` | `BlackScholesPricer`, `BlackScholesGreeks`, `BlackScholesDividendPricer`, `DeltaHedgeSimulator`, put-call parity and risk-neutral valuation |
-| `Boutquin.OptionPricing.Trees` | CRR, Jarrow-Rudd, and flexible binomial tree builders; `EuropeanTreePricer`, `AmericanTreePricer`; Arrow-Debreu state prices |
+| `Boutquin.OptionPricing.Analytics` | `BlackScholesPricer`, `BlackScholesGreeks`, `BlackScholesDividendPricer`, `MertonDiscreteDividendPricer`, `SimpleHestonMcPricer`, `DeltaHedgeSimulator`, put-call parity and risk-neutral valuation |
+| `Boutquin.OptionPricing.Trees` | CRR, Jarrow-Rudd, and flexible binomial tree builders; `EuropeanTreePricer`, `AmericanTreePricer`, `TreeGreeksCalculator`; Arrow-Debreu state prices |
 
 **Smile, Calibration, And Exotics**
 
@@ -68,10 +73,12 @@ Surface fitting, implied tree calibration, and barrier pricing.
 
 **Examples And Delivery**
 
+The two executable examples and benchmark harness are verification applications. The seven reusable libraries, including `Examples.Shared`, are packed.
+
 | Package | Description |
 |---------|-------------|
 | `Boutquin.OptionPricing.BlackScholesAndBeyond` | Book-aligned executable tracing all eleven chapter groups in *Black-Scholes and Beyond* (Chriss). CLI: `--chapter <n>` runs a single chapter; default runs all. |
-| `Boutquin.OptionPricing.Examples` | Infrastructure-focused executable for six examples covering bootstrapped curves, term-structure Greeks, multi-curve borrow cost, diagnostic gating, and live market data pricing. CLI: `--example <id>` runs a single example. |
+| `Boutquin.OptionPricing.Examples` | Infrastructure-focused executable for ten examples covering bootstrapped curves, term-structure Greeks, multi-curve borrow cost, diagnostic gating, live market data pricing, discrete-dividend Merton pricing, tree-derived Greeks, tree dividend impact, and Heston stochastic-volatility Monte Carlo. CLI: `--example <id>` runs a single example. |
 | `Boutquin.OptionPricing.Examples.Shared` | Shared class library consumed by both executables: `MarketHelpers` (flat and bootstrapped market construction) and `SimulationHelpers` (normal sampling for hedging simulation). |
 | `Boutquin.OptionPricing.Benchmarks` | BenchmarkDotNet performance suite |
 
@@ -91,6 +98,33 @@ Surface fitting, implied tree calibration, and barrier pricing.
 - optional flat continuous dividend yield
 - American exercise evaluated at each node via early-exercise comparison
 - converges to Black-Scholes as step count increases
+
+### Merton escrowed-dividend model
+
+- European exercise only (the closed form does not handle early exercise)
+- present value of known cash dividends is removed from the spot ("escrowed") before option pricing: `S* = S₀ − PV(divs)`, `σ* = (S₀ / S*) · σ`
+- volatility is uplifted to `σ*` strictly above `σ` whenever `PV(divs) > 0`; the uplift preserves instantaneous dollar volatility (`S*σ* = S₀σ`), not exact terminal stock-price variance
+- discount factors `DF(tᵢ)` for each ex-dividend date `tᵢ` are read from `OptionMarketData`'s discount curve
+- dividends with ex-dates on or after expiry are excluded from `PV(divs)`
+- `S* > 0` is guarded; if dividends equal or exceed spot the pricer returns an `UnsupportedScenario` rather than a price
+
+### CRR lattice Greeks (finite differences)
+
+- Δ, Γ, and Θ are extracted directly from the valued binomial lattice via finite differences on the first two time steps (Chriss Display 7.2.1); no second tree valuation is required
+- Vega and Rho are not lattice-extractable (they are derivatives with respect to parameters that change the tree geometry) and are returned as `null`
+- Θ is reported per calendar day (divided by 365) to match the `BlackScholesGreeks.Theta` convention
+- at least two steps are required; a two-step tree is the minimal lattice the differences can read
+- accuracy converges asymptotically: within 1% of analytical Black-Scholes Greeks at ≥ 200 steps for European options
+
+### Heston full-truncation Euler Monte Carlo
+
+- variance follows a Cox-Ingersoll-Ross mean-reversion process correlated with the spot: `dv = κ(θ − v) dt + σ_v √v dW₂`
+- full-truncation Euler discretization: `v⁺ = max(v, 0)` applied to the variance drift and diffusion at each step
+- spot follows `S_{t+dt} = S_t · exp((r − q − b − ½v⁺) dt + √v⁺ √dt · Z₁)` over `m` steps per path
+- correlated shocks use the identity `Z₂ = ρ Z₁ + √(1 − ρ²) Z⊥` where `Z₁` and `Z⊥` are independent standard normals; no Cholesky factorisation is needed for the 2×2 case
+- the Feller condition (`2κθ ≥ σ_v²`) is not enforced — full-truncation Euler is well defined in the non-Feller regime; it is reported in diagnostics
+- result price is the mean discounted terminal payoff across all paths; standard error and a 95% confidence interval are reported in diagnostics
+- the pricer is single-threaded by contract; a fixed seed yields bit-identical reproducible prices; for parallel pricing, construct one pricer per thread with its own seeded source
 
 ### Implied binomial tree (Rubinstein)
 
@@ -118,19 +152,23 @@ Tests enforce the following relationships across model families:
 
 ### Installation
 
+Install the explicit version to keep the package family aligned; every dependency is a signed package on nuget.org (see [build verification](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/runner-dependencies.md)).
+
 ```sh
-dotnet add package Boutquin.OptionPricing.Domain
-dotnet add package Boutquin.OptionPricing.Analytics
-dotnet add package Boutquin.OptionPricing.Trees
+dotnet add package Boutquin.OptionPricing.Domain --version 2.0.0
+dotnet add package Boutquin.OptionPricing.Analytics --version 2.0.0
+dotnet add package Boutquin.OptionPricing.Trees --version 2.0.0
 ```
 
 ### Price a European Call (flat-curve market)
 
-`OptionMarketData` requires a discount curve. For exploration, wrap a constant rate in `FlatDiscountCurve` from `Boutquin.Analytics.Curves`:
+`OptionMarketData` requires a discount curve. For exploration, wrap a constant rate in `FlatDiscountCurve` from `Boutquin.Curves.Core`:
 
 ```csharp
-using Boutquin.Analytics.Abstractions.Identifiers;
-using Boutquin.Analytics.Curves.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
+using Boutquin.Curves.Abstractions.Identifiers;
+using Boutquin.Curves.Core.Discounting;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
@@ -138,15 +176,15 @@ using Boutquin.OptionPricing.Domain.Market;
 
 DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
 var discountCurve = new FlatDiscountCurve(
-    new CurveName("USD-OIS"), valuationDate, CurrencyCode.USD, riskFreeRate: 0.03);
+    new CurveName("USD-OIS"), valuationDate, Currency.USD, continuouslyCompoundedZeroRate: 0.03);
 var dividendCurve = new FlatDiscountCurve(
-    new CurveName("DIVIDEND"), valuationDate, CurrencyCode.USD, riskFreeRate: 0.01);
+    new CurveName("DIVIDEND"), valuationDate, Currency.USD, continuouslyCompoundedZeroRate: 0.01);
 
-var market = new OptionMarketData(valuationDate, spot: 100m, flatVolatility: 0.20, discountCurve, dividendCurve);
-var option = new EuropeanOption(CallPut.Call, strike: 100m, valuationDate.AddMonths(6));
+var market = new OptionMarketData(valuationDate, spot: Currency.USD.Amount(100m), flatVolatility: 0.20, discountCurve, dividendCurve);
+var option = new EuropeanOption(CallPut.Call, strike: 100m, Currency.USD, valuationDate.AddMonths(6));
 
 var result = new BlackScholesPricer().Price(option, market);
-Console.WriteLine($"Call price: {result.Price:F4}");
+Console.WriteLine($"Call price: {result.Price.Amount:F4}");
 ```
 
 ### Price with a Bootstrapped Curve (Fixture Data)
@@ -154,33 +192,38 @@ Console.WriteLine($"Call price: {result.Price:F4}");
 For deterministic testing, use `FixtureData.CreatePipeline()` — pre-built market data for USD, CAD, GBP, EUR with no network calls:
 
 ```csharp
-using Boutquin.Analytics.Abstractions.Identifiers;
-using Boutquin.Analytics.Recipes;
-using Boutquin.Analytics.Recipes.Testing;
+using Boutquin.MarketData.Abstractions.Contracts;
+using Boutquin.Domain.Enumerations;
+using Boutquin.MarketData.Abstractions.ReferenceData;
+using Boutquin.OptionPricing.Domain.Market;
+using Boutquin.Curves.Recipes;
+using Boutquin.Curves.Recipes.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 services.AddAnalytics();                                    // registers CurveBuilder, calibrator, conventions
 services.AddSingleton<IDataPipeline>(FixtureData.CreatePipeline());  // deterministic fixture data
 services.AddLogging();
-var sp = services.BuildServiceProvider();
+using var sp = services.BuildServiceProvider();
 
 var builder = sp.GetRequiredService<CurveBuilder>();
 var recipe = StandardCurveRecipes.UsdSofrDiscount();
-var snapshot = await builder.BuildAsync(recipe, new DateOnly(2026, 4, 9));
+var snapshot = await builder.BuildAsync(recipe, new DateOnly(2026, 4, 9)).ConfigureAwait(false);
 
 // Verify bootstrap quality before pricing
 double maxError = snapshot.Diagnostics.Repricing.Max(r => r.AbsoluteError);
-if (maxError > 1e-6)
+if (!double.IsFinite(maxError) || maxError > 1e-6)
+{
     throw new InvalidOperationException($"Curve failed quality gate: {maxError:E2}");
+}
 
 var market = OptionMarketData.FromCurveGroup(
-    snapshot.CurveGroup, new CurrencyCode("USD"), spot: 100m, flatVolatility: 0.20);
+    snapshot.CurveGroup, Currency.USD, spot: 100m, flatVolatility: 0.20, new BenchmarkName("SOFR"));
 ```
 
 ### Price with Real Market Data
 
-For live data from public sources, replace `FixtureData.CreatePipeline()` with the real `Boutquin.MarketData` pipeline. Source adapters from `Boutquin.MarketData.Adapter` fetch EOD data from free public APIs:
+For live data from public sources, replace `FixtureData.CreatePipeline()` with the real `Boutquin.MarketData` pipeline. Source adapters from [`Boutquin.MarketData.Adapter`](https://github.com/boutquin/Boutquin.MarketData.Adapter) fetch EOD data from free public APIs:
 
 | Source | Data | Adapter Package |
 |--------|------|-----------------|
@@ -192,9 +235,10 @@ For live data from public sources, replace `FixtureData.CreatePipeline()` with t
 | CME | SOFR futures settlements | `MarketData.Adapter.Cme` |
 
 ```csharp
-using Boutquin.Analytics.Abstractions.Curves;
-using Boutquin.Analytics.Abstractions.Identifiers;
-using Boutquin.Analytics.Recipes;
+using Boutquin.Domain.Enumerations;
+using Boutquin.MarketData.Abstractions.ReferenceData;
+using Boutquin.OptionPricing.Domain.Market;
+using Boutquin.Curves.Recipes;
 using Boutquin.MarketData.Abstractions.Calendars;
 using Boutquin.MarketData.Adapter.NewYorkFed;
 using Boutquin.MarketData.Adapter.UsTreasury;
@@ -209,48 +253,56 @@ services.AddMarketDataNewYorkFed();     // SOFR overnight fixings from NY Fed Ma
 services.AddMarketDataUsTreasury();     // Treasury par yields (2Y-30Y)
 services.AddLogging(b => b.AddConsole().SetMinimumLevel(LogLevel.Warning));
 
-var sp = services.BuildServiceProvider();
+using var sp = services.BuildServiceProvider();
 var builder = sp.GetRequiredService<CurveBuilder>();
 var calendar = sp.GetRequiredService<IBusinessCalendar>();
 
 // EOD data is published after market close — use previous business day
 DateOnly valuationDate = calendar.Advance(DateOnly.FromDateTime(DateTime.Today), -1);
-var snapshot = await builder.BuildAsync(StandardCurveRecipes.UsdSofrDiscount(), valuationDate);
+var snapshot = await builder.BuildAsync(StandardCurveRecipes.UsdSofrDiscount(), valuationDate).ConfigureAwait(false);
 
 // Verify bootstrap quality before pricing
 double maxError = snapshot.Diagnostics.Repricing.Max(r => r.AbsoluteError);
-if (maxError > 1e-4)
+if (!double.IsFinite(maxError) || maxError > 1e-6)
+{
     throw new InvalidOperationException($"Curve failed quality gate: {maxError:E2}");
+}
 
 var market = OptionMarketData.FromCurveGroup(
-    snapshot.CurveGroup, new CurrencyCode("USD"), 100m, 0.20d, new BenchmarkName("SOFR"));
+    snapshot.CurveGroup, Currency.USD, 100m, 0.20d, new BenchmarkName("SOFR"));
 // Now price with the latest available real discount curve
 
 // Provenance shows data source and actual business date
 foreach (var prov in snapshot.Provenance.DistinctBy(p => p.Dataset))
+{
     Console.WriteLine($"{prov.Dataset}: {prov.RetrievalMode} via {prov.Provider} [{prov.Freshness} {prov.DataDate}]");
+}
 
 // DATE_ROLLBACK warnings surface when data date != valuation date
-foreach (var issue in snapshot.DataIssues.Where(i => i.Code == "DATE_ROLLBACK"))
+foreach (var issue in snapshot.DataIssues.Where(i => i.Code.Value == "DATE_ROLLBACK"))
+{
     Console.WriteLine($"[{issue.Severity}] {issue.Message}");
+}
 ```
 
-This is Example 15 in the Examples project. The data flow is: `StandardCurveRecipes` defines which data to fetch → `CurveBuilder` calls `IDataPipeline` → adapters fetch from NY Fed and Treasury APIs → rates are extracted and passed to the bootstrap calibrator → calibrated curves are returned in a `CurveSnapshot` with full provenance and data-quality issues.
+This is Example 06 in the Examples project. The data flow is: `StandardCurveRecipes` defines which data to fetch → `CurveBuilder` calls `IDataPipeline` → adapters fetch from NY Fed and Treasury APIs → rates are extracted and passed to the bootstrap calibrator → calibrated curves are returned in a `CurveSnapshot` with full provenance and data-quality issues.
 
-Each `DataProvenance` record indicates whether data was retrieved via `"api"` (live fetch), `"snapshot"` (L2 disk cache), or `"cache"` (L1 memory), along with the actual `DataDate` of the underlying data. When the data date differs from the requested valuation date (e.g., requesting Monday's data before EOD publication), adapter and node layers emit `DATE_ROLLBACK` warnings. Issues are persisted through the L2 cache so they are visible on cached replays. Consecutive runs hit the L2 disk cache and skip HTTP calls.
+Each `DataProvenance` record indicates whether data was retrieved via `RetrievalMode.Api` (live fetch), `RetrievalMode.Snapshot` (L2 disk cache), or `RetrievalMode.Cache` (L1 memory), along with the actual `DataDate` of the underlying data. When the data date differs from the requested valuation date (e.g., requesting Monday's data before EOD publication), adapter and node layers emit `DATE_ROLLBACK` warnings. Issues are persisted through the L2 cache so they are visible on cached replays. Consecutive runs hit the L2 disk cache and skip HTTP calls.
 
 ## Architecture
 
 `Boutquin.OptionPricing` is organized in four dependency tiers:
 
-- **Contracts** — `Abstractions`, `Domain`: stable contracts, option types, and result objects. The only tier downstream pricing consumers need to reference directly. Numerical primitives (root-finding, interpolation, distributions) are provided by `Boutquin.Numerics`.
+- **Contracts** — `Abstractions`, `Domain`: stable contracts, option types, and result objects. The only tier downstream pricing consumers need to reference directly. Numerical primitives (root-finding, interpolation, distributions) are provided by [`Boutquin.Numerics`](https://github.com/boutquin/Boutquin.Numerics).
 - **Vanilla Pricing Models** — `Analytics`, `Trees`: closed-form Black-Scholes, full Greeks, put-call parity, CRR/JR/flexible binomial trees, American exercise.
 - **Smile, Calibration, And Exotics** — `Calibration`, `Exotics`: implied volatility inversion, smile surface construction, Rubinstein and Derman-Kani implied tree calibration, barrier pricing with flat-vol and smile-aware pricers.
-- **Examples And Delivery** — `BlackScholesAndBeyond`, `Examples`, `Examples.Shared`, `Benchmarks`: book-aligned chapter walkthroughs, infrastructure-focused examples, shared helpers, and performance benchmarks.
+- **Examples And Delivery**
 
-Dependencies flow in one direction: Exotics and Calibration depend on Trees and Analytics; all depend on Contracts and Numerics. `Boutquin.OptionPricing` depends on `Boutquin.Analytics` for curve abstractions — the dependency never flows in reverse.
+The two executable examples and benchmark harness are verification applications. The seven reusable libraries, including `Examples.Shared`, are packed. — `BlackScholesAndBeyond`, `Examples`, `Examples.Shared`, `Benchmarks`: book-aligned chapter walkthroughs, infrastructure-focused examples, shared helpers, and performance benchmarks.
 
-See [docs/curve-layer.md](docs/curve-layer.md) for the Analytics dependency design and [docs/repository-map.md](docs/repository-map.md) for per-package navigation guidance.
+Dependencies flow in one direction: Exotics and Calibration depend on Trees and Analytics; all depend on Contracts and Numerics. `Boutquin.OptionPricing` depends on [`Boutquin.Curves`](https://github.com/boutquin/Boutquin.Curves) for curve abstractions — the dependency never flows in reverse.
+
+See [docs/curve-layer.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/curve-layer.md) for the Curves dependency design and [docs/repository-map.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/repository-map.md) for per-package navigation guidance.
 
 ## Directory Structure
 
@@ -286,8 +338,8 @@ Boutquin.OptionPricing/
 
 | Document | Description |
 |----------|-------------|
-| [docs/repository-map.md](docs/repository-map.md) | Per-package descriptions with external dependency and test structure |
-| [docs/curve-layer.md](docs/curve-layer.md) | Market curve integration design: why `OptionMarketData` uses curve objects |
+| [docs/repository-map.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/repository-map.md) | Per-package descriptions with external dependency and test structure |
+| [docs/curve-layer.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/curve-layer.md) | Market curve integration design: why `OptionMarketData` uses curve objects |
 
 ## Contributing
 
@@ -318,7 +370,7 @@ Boutquin.OptionPricing is open-source software provided under the Apache 2.0 Lic
 
 ## License
 
-This project is licensed under the Apache 2.0 License -- see the [LICENSE](LICENSE.txt) file for details.
+This project is licensed under the Apache 2.0 License -- see the [LICENSE](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/LICENSE.txt) file for details.
 
 ## Contact
 

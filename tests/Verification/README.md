@@ -16,7 +16,7 @@ cross-language agreement within tiered tolerances.
 | `generate_smile_vectors.py` | VolatilitySurfaceBuilder structural ordering, GetVol grid reads, two-node linear reductions, QuoteArbitrageValidator | Structural + grid expectations |
 | `generate_barrier_vectors.py` | BarrierParity identity, BGK monitoring correction, BarrierTreePricer | Python replica of BarrierTreePricer algorithm + BGK formula |
 | `generate_impliedtree_vectors.py` | ImpliedBinomialTreeCalibrator (Rubinstein) + ImpliedVolatilityTreeCalibrator (Derman-Kani) | Python replica of the CRR-backed lattice the current C# impls actually build |
-| `generate_hedging_vectors.py` | DeltaHedgeSimulator along pre-specified spot paths | Python replica of the C# rebalance loop, including FlatDiscountCurve's time-stretched-rate quirk |
+| `generate_hedging_vectors.py` | DeltaHedgeSimulator along pre-specified spot paths | Python rebalance loop with rolled flat curves and reinvested continuous model yield |
 
 ## Regenerating
 
@@ -47,16 +47,24 @@ Defined in `conftest.py` and mirrored in `CrossLanguageVerificationBase.cs`.
 - **Borrow handling** (Hull §19.12): single effective carry `q_eff = q + b`
   used symmetrically in `d1`, `d2`, every `e^{-qT}` factor, and the
   `q S N(d1)` drift term in theta.
-- **Tree carry**: the C# tree builders use `q = DividendYield() - BorrowRate()`.
+- **Tree carry**: the C# tree builders use `q = DividendYield() + BorrowRate()`.
   The Python reference matches.
-- **Hedging simulator** inherits a time-stretched effective rate at each
-  rebalance step because the `FlatDiscountCurve` inside the cloned market
-  keeps its original `ValuationDate` — see the `r_eff = r * T_total / T_remaining`
-  block in `generate_hedging_vectors.py:_simulate`. Python replicates the
-  stretch to stay bit-aligned with the C# output.
-- **Implied trees**: both C# calibrators currently build a CRR-backed lattice
-  with clamped CRR probabilities; the verifier pins down that actual behavior
-  rather than the abstract Rubinstein / Derman-Kani paper algorithms.
+- **Hedging simulator** rolls all curves to each rebalance date and reinvests
+  continuous model-equivalent yield `q+b` in held shares between rebalances.
+  The simulator holds tenor-implied funding and carry rates constant over each
+  equally spaced simulation period. Borrow yield expresses the pricing model's
+  carry convention; actual stock-loan cash flows, fees and collateral are outside
+  this model. The Python fixtures use zero borrow; separate call-replication
+  controls exercise dividend-only, borrow-only and combined carry.
+- **Implied trees**: forward induction consumes surface quotes and effective
+  carry `q+b`, storing actual node probabilities and the build risk-free rate.
+  Failed wing candidates revert to local constant-volatility spacing constrained
+  by the neighbouring forward bracket. Reversions remain diagnostic; more than
+  16 produces a usable result with warnings. Tests check forward/state-price
+  invariants and near-money finite-tree repricing. They do not establish exact
+  global-wing repricing or a full no-arbitrage surface guarantee. The historical
+  Python replica fixtures record their original algorithm and do not independently
+  qualify that calibration model.
 - **IV solver scenarios** filter out deep-ITM/OTM cases whose time value is
   below 1 cent — in those regimes vega is near zero and the C# `BrentSolver`
   legitimately returns the bracket lower bound rather than converging on a
@@ -64,11 +72,9 @@ Defined in `conftest.py` and mirrored in `CrossLanguageVerificationBase.cs`.
 
 ## What the verifier does NOT cover
 
-- `SmileAwareBarrierPricer` — same backward-induction logic as `BarrierTreePricer`
-  applied to a calibrated `ImpliedTreeResult`'s tree. Because both implied-tree
-  calibrators produce a CRR-structured lattice, the behavior is covered
-  transitively by `BarrierTreePricer` on a CRR tree + the implied-tree
-  verifier's lattice-structure assertions.
+- `SmileAwareBarrierPricer` — the historical replica fixtures alone do not
+  independently qualify smile calibration or all smile-aware barrier scenarios.
+  Its production node-probability, carry and barrier handling require direct tests.
 - Full bivariate interpolation of `VolatilitySurface.GetVol` off-grid —
   uses Boutquin.Numerics-specific schemes (arXiv:2402.01324 monotone-cubic
   Hermite + arXiv:2507.05083 modified-not-a-knot cubic spline) that have no

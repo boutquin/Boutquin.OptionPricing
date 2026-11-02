@@ -14,6 +14,8 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Domain.Results;
 using FluentAssertions;
@@ -25,8 +27,34 @@ public sealed class PriceResultTests
     [Fact]
     public void IsSuccess_ShouldBeTrue_ForSuccessStatus()
     {
-        var result = new PriceResult(1.23m, Status: CalculationStatus.Success);
+        var result = new PriceResult(Currency.USD.Amount(1.23m), Status: CalculationStatus.Success);
 
         result.IsSuccess.Should().BeTrue();
+    }
+
+    // IRODICT-INDEXER-004 — the empty-diagnostics indexer must honour the
+    // IReadOnlyDictionary<TKey,TValue> contract: a missing key throws KeyNotFoundException
+    // (it must NOT silently return null).
+    [Fact]
+    public void GetDiagnostics_EmptyIndexer_MissingKey_ThrowsKeyNotFound()
+    {
+        var result = new PriceResult(Currency.USD.Amount(1.23m), Diagnostics: null);
+        IReadOnlyDictionary<string, object?> diagnostics = result.GetDiagnostics();
+
+        Action act = () => _ = diagnostics["missing"];
+
+        act.Should().Throw<KeyNotFoundException>();
+    }
+
+    // IRODICT-INDEXER-004 — TryGetValue / ContainsKey keep returning false for the empty map.
+    [Fact]
+    public void GetDiagnostics_Empty_TryGetValueAndContainsKey_ReturnFalse()
+    {
+        var result = new PriceResult(Currency.USD.Amount(1.23m), Diagnostics: null);
+        IReadOnlyDictionary<string, object?> diagnostics = result.GetDiagnostics();
+
+        diagnostics.ContainsKey("missing").Should().BeFalse();
+        diagnostics.TryGetValue("missing", out object? value).Should().BeFalse();
+        value.Should().BeNull();
     }
 }

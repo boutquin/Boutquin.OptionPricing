@@ -16,8 +16,9 @@
 
 using BenchmarkDotNet.Attributes;
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Calibration.ImpliedTrees;
 using Boutquin.OptionPricing.Calibration.Smile;
 using Boutquin.OptionPricing.Domain.Contracts;
@@ -50,14 +51,14 @@ public class ExoticsBenchmarks
     {
         DateOnly expiry = _valuationDate.AddMonths(6);
         _market = new OptionMarketData(
-            _valuationDate, 100m, 0.20d,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, CurrencyCode.USD, 0.03d),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, CurrencyCode.USD, 0.01d));
+            _valuationDate, Currency.USD.Amount(100m), 0.20d,
+            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, Currency.USD, 0.03d),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, Currency.USD, 0.01d));
 
-        _barrierOption = new BarrierOption(CallPut.Call, 100m, 80m, BarrierDirection.Down, BarrierKnockType.Out, expiry);
+        _barrierOption = new BarrierOption(CallPut.Call, 100m, Currency.USD, 80m, BarrierDirection.Down, BarrierKnockType.Out, expiry);
 
         // Flat-vol tree
-        var input = new TreeModelInput(_market.Spot, 100m, _valuationDate, expiry,
+        var input = new TreeModelInput(_market.Spot.Amount, 100m, _valuationDate, expiry,
             _market.DiscountCurve, _market.FlatVolatility, 200, _market.DividendCurve, _market.BorrowCurve);
         _flatTree = new CoxRossRubinsteinTreeBuilder().Build(input);
         _flatPricer = new BarrierTreePricer();
@@ -78,13 +79,13 @@ public class ExoticsBenchmarks
     [Benchmark]
     public decimal BarrierFlatVol()
     {
-        return _flatPricer.Price(_barrierOption, _market, _flatTree).Price;
+        return _flatPricer.Price(_barrierOption, _market, _flatTree).Price.Amount;
     }
 
     /// <summary>Prices a down-and-out call on a smile-aware implied tree.</summary>
     [Benchmark]
     public decimal BarrierSmileAware()
     {
-        return _smilePricer.Price(_barrierOption, _market, _calibResult).Price;
+        return _smilePricer.Price(_barrierOption, _market, _calibResult).Price.Amount;
     }
 }

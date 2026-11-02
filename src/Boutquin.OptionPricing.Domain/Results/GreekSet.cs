@@ -41,17 +41,12 @@ namespace Boutquin.OptionPricing.Domain.Results;
 /// Sensitivity of option price to a one-percentage-point change in the risk-free
 /// interest rate (∂V/∂r).
 /// </param>
-/// <param name="Lambda">
-/// Option elasticity: the percentage change in option price for a 1% change in
-/// the underlying price (Delta × S / V). Also known as leverage or omega.
-/// </param>
 public sealed record GreekSet(
     double? Delta = null,
     double? Gamma = null,
     double? Vega = null,
     double? Theta = null,
-    double? Rho = null,
-    double? Lambda = null)
+    double? Rho = null)
 {
     /// <summary>
     /// A shared empty instance where all Greeks are <see langword="null"/>,

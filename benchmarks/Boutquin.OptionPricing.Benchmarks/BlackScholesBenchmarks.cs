@@ -16,8 +16,9 @@
 
 using BenchmarkDotNet.Attributes;
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
@@ -41,13 +42,13 @@ public class BlackScholesBenchmarks
     /// </summary>
     public BlackScholesBenchmarks()
     {
-        _option = new EuropeanOption(CallPut.Call, 100m, _valuationDate.AddMonths(6));
+        _option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, _valuationDate.AddMonths(6));
         _market = new OptionMarketData(
             _valuationDate,
-            100m,
+            Currency.USD.Amount(100m),
             0.20d,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, CurrencyCode.USD, 0.03d),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, CurrencyCode.USD, 0.01d));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, Currency.USD, 0.03d),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, Currency.USD, 0.01d));
     }
 
     /// <summary>
@@ -57,6 +58,6 @@ public class BlackScholesBenchmarks
     [Benchmark]
     public decimal PriceEuropeanCall()
     {
-        return _pricer.Price(_option, _market).Price;
+        return _pricer.Price(_option, _market).Price.Amount;
     }
 }

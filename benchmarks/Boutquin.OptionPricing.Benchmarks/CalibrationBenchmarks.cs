@@ -16,8 +16,9 @@
 
 using BenchmarkDotNet.Attributes;
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Calibration.ImpliedTrees;
 using Boutquin.OptionPricing.Calibration.ImpliedVolatility;
 using Boutquin.OptionPricing.Calibration.Smile;
@@ -47,15 +48,15 @@ public class CalibrationBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        var option = new EuropeanOption(CallPut.Call, 100m, _valuationDate.AddMonths(6));
+        var option = new EuropeanOption(CallPut.Call, 100m, Currency.USD, _valuationDate.AddMonths(6));
         var market = new OptionMarketData(
-            _valuationDate, 100m, 0.20d,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, CurrencyCode.USD, 0.03d),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, CurrencyCode.USD, 0.01d));
+            _valuationDate, Currency.USD.Amount(100m), 0.20d,
+            new FlatDiscountCurve(new CurveName("USD-OIS"), _valuationDate, Currency.USD, 0.03d),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), _valuationDate, Currency.USD, 0.01d));
 
         // IV solver setup
         _ivSolver = new ImpliedVolatilitySolver();
-        decimal observedPrice = new Analytics.BlackScholes.BlackScholesPricer().Price(option, market).Price;
+        decimal observedPrice = new Analytics.BlackScholes.BlackScholesPricer().Price(option, market).Price.Amount;
         _ivRequest = new ImpliedVolatilityRequest(
             option, market.WithFlatVolatility(0.10d), observedPrice, 0.15d);
 

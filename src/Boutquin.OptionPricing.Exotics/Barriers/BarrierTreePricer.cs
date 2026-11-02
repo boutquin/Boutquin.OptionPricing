@@ -14,6 +14,8 @@
 //   limitations under the License.
 //
 
+using Boutquin.Domain.Exceptions;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Abstractions;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
@@ -51,139 +53,98 @@ public sealed class BarrierTreePricer : IContextualOptionPricer<BarrierOption, O
     /// </summary>
     /// <param name="option">The barrier option contract specifying strike, barrier level, direction, and knock type.</param>
     /// <param name="market">The market data snapshot providing spot, volatility, and curves.</param>
-    /// <param name="context">The pre-built binomial tree to traverse.</param>
+    /// <param name="tree">The pre-built binomial tree to traverse.</param>
     /// <returns>
     /// A <see cref="PriceResult"/> with the barrier option price. For knock-out options the
     /// price is computed directly; for knock-in options it is derived via barrier parity.
     /// </returns>
-    public PriceResult Price(BarrierOption option, OptionMarketData market, BinomialTree context)
+    /// <exception cref="ArgumentNullException">Thrown when any argument is null.</exception>
+    /// <exception cref="CurrencyMismatchException">
+    /// Thrown when <paramref name="market"/>'s spot currency differs from
+    /// <paramref name="option"/>'s contract currency.
+    /// </exception>
+    public PriceResult Price(BarrierOption option, OptionMarketData market, BinomialTree tree)
     {
+        ArgumentNullException.ThrowIfNull(option);
+        ArgumentNullException.ThrowIfNull(market);
+        ArgumentNullException.ThrowIfNull(tree);
+
+        if (market.Spot.Currency != option.Currency)
+        {
+            throw new CurrencyMismatchException(option.Currency, market.Spot.Currency);
+        }
+
         // Check if barrier is already breached at spot (root node)
-        double spot0 = context.SpotLattice[0][0];
-        if (IsBarrierBreached(spot0, option))
+        double spot0 = tree.SpotLattice[0][0];
+        if (BarrierBackwardInduction.IsBarrierBreached(spot0, option))
         {
             if (option.KnockType == BarrierKnockType.Out)
             {
-                return new PriceResult(0m, null, CalculationStatus.Success,
+                return new PriceResult(option.Currency.Amount(0m), null, CalculationStatus.Success,
                     new Dictionary<string, object?> { ["barrierBreachedAtSpot"] = true },
                     nameof(BarrierTreePricer));
             }
 
             // Knock-in already activated at spot → option is vanilla from here
-            decimal vanillaPrice = PriceVanilla(option, market, context);
-            return new PriceResult(vanillaPrice, null, CalculationStatus.Success,
+            decimal vanillaPrice = BarrierBackwardInduction.PriceVanilla(option, market, tree);
+            return new PriceResult(option.Currency.Amount(vanillaPrice), null, CalculationStatus.Success,
                 new Dictionary<string, object?> { ["barrierBreachedAtSpot"] = true, ["knockInActivated"] = true },
                 nameof(BarrierTreePricer));
         }
 
         if (option.KnockType == BarrierKnockType.Out)
         {
-            decimal knockOutPrice = PriceKnockOut(option, market, context);
-            return new PriceResult(knockOutPrice, null, CalculationStatus.Success,
-                new Dictionary<string, object?> { ["steps"] = context.Steps },
+            decimal knockOutPrice = BarrierBackwardInduction.PriceKnockOut(option, market, tree);
+            return new PriceResult(option.Currency.Amount(knockOutPrice), null, CalculationStatus.Success,
+                new Dictionary<string, object?> { ["steps"] = tree.Steps },
                 nameof(BarrierTreePricer));
         }
 
         // Knock-in via parity: V_in = V_vanilla - V_out
-        decimal vanilla = PriceVanilla(option, market, context);
-        decimal knockOut = PriceKnockOut(option, market, context);
+        decimal vanilla = BarrierBackwardInduction.PriceVanilla(option, market, tree);
+        decimal knockOut = BarrierBackwardInduction.PriceKnockOut(option, market, tree);
         decimal knockIn = vanilla - knockOut;
-        return new PriceResult(Math.Max(knockIn, 0m), null, CalculationStatus.Success,
+        return new PriceResult(option.Currency.Amount(Math.Max(knockIn, 0m)), null, CalculationStatus.Success,
             new Dictionary<string, object?>
             {
-                ["steps"] = context.Steps,
+                ["steps"] = tree.Steps,
                 ["vanillaPrice"] = vanilla,
                 ["knockOutPrice"] = knockOut
             },
             nameof(BarrierTreePricer));
     }
 
-    private static decimal PriceKnockOut(BarrierOption option, OptionMarketData market, BinomialTree tree)
+    /// <summary>
+    /// Prices a discretely-monitored barrier option by first applying the
+    /// Broadie-Glasserman-Kou continuity correction to the barrier level (via
+    /// <see cref="BarrierMonitoringAdjustments.AdjustedBarrierLevel"/>) and then pricing the
+    /// shifted barrier on the node-monitored tree. This composes the discrete-monitoring
+    /// adjustment with the tree pricer, which otherwise monitors at every node (continuous-like).
+    /// </summary>
+    /// <param name="option">The barrier option contract whose barrier is continuously specified.</param>
+    /// <param name="market">The market data snapshot providing spot, volatility, and curves.</param>
+    /// <param name="tree">The pre-built binomial tree to traverse.</param>
+    /// <param name="monitoringDates">Number of discrete monitoring dates. Must be at least 1.</param>
+    /// <returns>A <see cref="PriceResult"/> for the discretely-monitored barrier option.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when any argument is null.</exception>
+    /// <exception cref="CurrencyMismatchException">
+    /// Thrown when <paramref name="market"/>'s spot currency differs from <paramref name="option"/>'s
+    /// contract currency.
+    /// </exception>
+    public PriceResult PriceDiscretelyMonitored(BarrierOption option, OptionMarketData market, BinomialTree tree, int monitoringDates)
     {
-        double discount = Math.Exp(-market.RiskFreeRate(option.ExpiryDate) * tree.DeltaTime);
-        double p = tree.RiskNeutralProbability;
+        ArgumentNullException.ThrowIfNull(option);
+        ArgumentNullException.ThrowIfNull(market);
+        ArgumentNullException.ThrowIfNull(tree);
 
-        // Terminal payoffs with barrier check
-        List<double> values = new(tree.TerminalSpots.Count);
-        foreach (double spot in tree.TerminalSpots)
-        {
-            if (IsBarrierBreached(spot, option))
-            {
-                values.Add(0d);
-            }
-            else
-            {
-                values.Add(Payoff(option, spot));
-            }
-        }
+        decimal adjustedBarrier = BarrierMonitoringAdjustments.AdjustedBarrierLevel(
+            option.BarrierLevel,
+            option.Direction,
+            market.FlatVolatility,
+            market.TimeToExpiryInYears(option.ExpiryDate),
+            monitoringDates);
 
-        // Backward induction with barrier monitoring at each node
-        for (int step = tree.Steps - 1; step >= 0; step--)
-        {
-            List<double> next = new(step + 1);
-            for (int j = 0; j <= step; j++)
-            {
-                double nodeSpot = tree.SpotLattice[step][j];
-                if (IsBarrierBreached(nodeSpot, option))
-                {
-                    next.Add(0d);
-                }
-                else
-                {
-                    double continuation = discount * ((p * values[j]) + ((1d - p) * values[j + 1]));
-                    next.Add(continuation);
-                }
-            }
-
-            values = next;
-        }
-
-        return Convert.ToDecimal(Math.Max(values[0], 0d));
-    }
-
-    private static decimal PriceVanilla(BarrierOption option, OptionMarketData market, BinomialTree tree)
-    {
-        double discount = Math.Exp(-market.RiskFreeRate(option.ExpiryDate) * tree.DeltaTime);
-        double p = tree.RiskNeutralProbability;
-
-        List<double> values = new(tree.TerminalSpots.Count);
-        foreach (double spot in tree.TerminalSpots)
-        {
-            values.Add(Payoff(option, spot));
-        }
-
-        for (int step = tree.Steps - 1; step >= 0; step--)
-        {
-            List<double> next = new(step + 1);
-            for (int j = 0; j <= step; j++)
-            {
-                double continuation = discount * ((p * values[j]) + ((1d - p) * values[j + 1]));
-                next.Add(continuation);
-            }
-
-            values = next;
-        }
-
-        return Convert.ToDecimal(values[0]);
-    }
-
-    private static bool IsBarrierBreached(double spot, BarrierOption option)
-    {
-        return option.Direction switch
-        {
-            BarrierDirection.Up => spot >= (double)option.BarrierLevel,
-            BarrierDirection.Down => spot <= (double)option.BarrierLevel,
-            _ => false
-        };
-    }
-
-    private static double Payoff(BarrierOption option, double spot)
-    {
-        return option.CallPut switch
-        {
-            CallPut.Call => Math.Max(spot - (double)option.Strike, 0d),
-            CallPut.Put => Math.Max((double)option.Strike - spot, 0d),
-            _ => 0d
-        };
+        BarrierOption adjusted = option with { BarrierLevel = adjustedBarrier };
+        return Price(adjusted, market, tree);
     }
 }

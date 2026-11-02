@@ -15,6 +15,7 @@
 //
 
 using System.Text.Json;
+using Boutquin.Domain.Enumerations;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Exotics.Barriers;
@@ -98,7 +99,7 @@ public sealed class BarrierVerificationTests : CrossLanguageVerificationBase
         var (market, option, tree) = BuildBarrierContext(s);
         var expected = s.GetProperty("price").GetDouble();
 
-        var actual = (double)new BarrierTreePricer().Price(option, market, tree).Price;
+        var actual = (double)new BarrierTreePricer().Price(option, market, tree).Price.Amount;
 
         AssertWithin(actual, expected, PrecisionNumeric,
             $"barrier[{index}] {option.Direction}{option.KnockType} ({option.CallPut} K={option.Strike} B={option.BarrierLevel})");
@@ -112,7 +113,7 @@ public sealed class BarrierVerificationTests : CrossLanguageVerificationBase
         var (market, option, tree) = BuildBarrierContext(s);
         var expected = s.GetProperty("expected_price").GetDouble();
 
-        var actual = (double)new BarrierTreePricer().Price(option, market, tree).Price;
+        var actual = (double)new BarrierTreePricer().Price(option, market, tree).Price.Amount;
 
         AssertWithin(actual, expected, PrecisionNumeric,
             $"breached[{index}] {s.GetProperty("case").GetString()}");
@@ -149,7 +150,7 @@ public sealed class BarrierVerificationTests : CrossLanguageVerificationBase
         var callPut = ParseCallPut(s.GetProperty("call_put").GetString()!);
 
         var market = BuildMarket(valuationDate, spot, sigma, r, q);
-        var option = new BarrierOption(callPut, strike, barrier, direction, knock, expiry);
+        var option = new BarrierOption(callPut, strike, Currency.USD, barrier, direction, knock, expiry);
         var input = TreeModelInput.FromMarketData(market, strike, expiry, steps);
         var tree = new CoxRossRubinsteinTreeBuilder().Build(input);
         return (market, option, tree);

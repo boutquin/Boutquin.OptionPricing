@@ -17,12 +17,17 @@
 namespace Boutquin.OptionPricing.Trees.Binomial;
 
 /// <summary>
-/// Builds a recombining binomial tree using the Jarrow-Rudd (equal probability) parameterization.
+/// Builds a recombining binomial tree using the Jarrow-Rudd (equal probability)
+/// parameterization — specifically the <b>risk-neutral</b> variant, which embeds the
+/// risk-neutral drift <c>(r − q − σ²/2)Δt</c> in the up/down factors so that <c>p = 0.5</c>
+/// is the correct risk-neutral probability (no re-weighting required). This differs from
+/// the classical Jarrow-Rudd form, which uses the physical drift and is not risk-neutral.
 /// </summary>
 /// <remarks>
 /// <para>
 /// The Jarrow-Rudd model sets the risk-neutral probability to exactly 0.5 and adjusts
-/// the up and down factors to match the drift and volatility:
+/// the up and down factors to match the drift and volatility (note <c>d ≠ 1/u</c> here,
+/// unlike CRR):
 /// <c>u = exp((r − q − σ²/2)Δt + σ√Δt)</c>,
 /// <c>d = exp((r − q − σ²/2)Δt − σ√Δt)</c>,
 /// <c>p = 0.5</c>.
@@ -40,45 +45,56 @@ public sealed class JarrowRuddTreeBuilder : ITreeBuilder
     /// </summary>
     /// <param name="input">
     /// Market and contract parameters. Spot and volatility must be strictly positive,
-    /// time to expiry must be positive, and step count must be at least one.
+    /// time to expiry must be positive, and step count must be between one and
+    /// <see cref="TreeBuilderLimits.MaxSteps"/> inclusive.
     /// </param>
     /// <returns>A fully populated <see cref="BinomialTree"/> with Jarrow-Rudd lattice dynamics.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="input"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="input"/> has non-positive spot, non-positive volatility,
-    /// non-positive time to expiry, or non-positive step count.
+    /// non-positive time to expiry, or a step count outside the range
+    /// [1, <see cref="TreeBuilderLimits.MaxSteps"/>].
     /// </exception>
     public BinomialTree Build(TreeModelInput input)
     {
+        ArgumentNullException.ThrowIfNull(input);
+
         if (input.Spot <= 0m)
         {
             throw new ArgumentOutOfRangeException(nameof(input));
         }
 
-        if (input.Volatility <= 0d)
+        if (!double.IsFinite(input.Volatility) || input.Volatility <= 0d)
         {
             throw new ArgumentOutOfRangeException(nameof(input));
         }
 
         double timeToExpiry = input.TimeToExpiryInYears();
-        if (timeToExpiry <= 0d)
+        if (!double.IsFinite(timeToExpiry) || timeToExpiry <= 0d)
         {
             throw new ArgumentOutOfRangeException(nameof(input));
         }
 
-        if (input.Steps <= 0)
+        if (input.Steps <= 0 || input.Steps > TreeBuilderLimits.MaxSteps)
         {
             throw new ArgumentOutOfRangeException(nameof(input));
         }
 
         double dt = timeToExpiry / input.Steps;
         double r = input.RiskFreeRate();
-        double q = input.DividendYield() - input.BorrowRate();
+        double q = input.DividendYield() + input.BorrowRate();
         double drift = (r - q - (0.5d * input.Volatility * input.Volatility)) * dt;
         double volSqrtDt = input.Volatility * Math.Sqrt(dt);
 
         double u = Math.Exp(drift + volSqrtDt);
         double d = Math.Exp(drift - volSqrtDt);
         const double p = 0.5d;
+        if (!double.IsFinite(u) || !double.IsFinite(d) || d <= 0d || u <= d)
+        {
+            throw new InvalidOperationException("The Jarrow-Rudd factors cannot be represented as finite distinct positive values.");
+        }
 
         List<IReadOnlyList<double>> lattice = new(input.Steps + 1);
         double s0 = (double)input.Spot;
@@ -95,6 +111,6 @@ public sealed class JarrowRuddTreeBuilder : ITreeBuilder
             lattice.Add(layer);
         }
 
-        return new BinomialTree(input.Steps, dt, u, d, p, lattice);
+        return new BinomialTree(input.Steps, dt, u, d, p, lattice) { RiskFreeRate = r };
     }
 }

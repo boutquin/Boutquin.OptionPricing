@@ -15,8 +15,10 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Exceptions;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Domain.Contracts;
 using Boutquin.OptionPricing.Domain.Enums;
 using Boutquin.OptionPricing.Domain.Market;
@@ -44,15 +46,15 @@ public sealed class BarrierTreePricerTests
         var market = CreateMarket(100m, 0.20, 0.05);
         var tree = BuildTree(market, 100m, 200);
 
-        var vanillaPut = new EuropeanOption(CallPut.Put, 100m, s_expiryDate);
-        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaPut, market, tree).Price;
+        var vanillaPut = new EuropeanOption(CallPut.Put, 100m, Currency.USD, s_expiryDate);
+        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaPut, market, tree).Price.Amount;
 
-        var barrierPut = new BarrierOption(CallPut.Put, 100m, 80m, BarrierDirection.Down, BarrierKnockType.Out, s_expiryDate);
+        var barrierPut = new BarrierOption(CallPut.Put, 100m, Currency.USD, 80m, BarrierDirection.Down, BarrierKnockType.Out, s_expiryDate);
         PriceResult barrierResult = new BarrierTreePricer().Price(barrierPut, market, tree);
 
         barrierResult.IsSuccess.Should().BeTrue();
-        barrierResult.Price.Should().BeLessThan(vanillaPrice);
-        barrierResult.Price.Should().BeGreaterThanOrEqualTo(0m);
+        barrierResult.Price.Amount.Should().BeLessThan(vanillaPrice);
+        barrierResult.Price.Amount.Should().BeGreaterThanOrEqualTo(0m);
     }
 
     [Fact]
@@ -62,15 +64,15 @@ public sealed class BarrierTreePricerTests
         var market = CreateMarket(100m, 0.20, 0.05);
         var tree = BuildTree(market, 100m, 200);
 
-        var vanillaCall = new EuropeanOption(CallPut.Call, 100m, s_expiryDate);
-        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaCall, market, tree).Price;
+        var vanillaCall = new EuropeanOption(CallPut.Call, 100m, Currency.USD, s_expiryDate);
+        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaCall, market, tree).Price.Amount;
 
-        var barrierCall = new BarrierOption(CallPut.Call, 100m, 130m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
+        var barrierCall = new BarrierOption(CallPut.Call, 100m, Currency.USD, 130m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
         PriceResult barrierResult = new BarrierTreePricer().Price(barrierCall, market, tree);
 
         barrierResult.IsSuccess.Should().BeTrue();
-        barrierResult.Price.Should().BeLessThan(vanillaPrice);
-        barrierResult.Price.Should().BeGreaterThanOrEqualTo(0m);
+        barrierResult.Price.Amount.Should().BeLessThan(vanillaPrice);
+        barrierResult.Price.Amount.Should().BeGreaterThanOrEqualTo(0m);
     }
 
     [Fact]
@@ -80,14 +82,14 @@ public sealed class BarrierTreePricerTests
         var market = CreateMarket(100m, 0.20, 0.05);
         var tree = BuildTree(market, 100m, 200);
 
-        var vanillaCall = new EuropeanOption(CallPut.Call, 100m, s_expiryDate);
-        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaCall, market, tree).Price;
+        var vanillaCall = new EuropeanOption(CallPut.Call, 100m, Currency.USD, s_expiryDate);
+        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaCall, market, tree).Price.Amount;
 
-        var knockOutCall = new BarrierOption(CallPut.Call, 100m, 130m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
-        var knockInCall = new BarrierOption(CallPut.Call, 100m, 130m, BarrierDirection.Up, BarrierKnockType.In, s_expiryDate);
+        var knockOutCall = new BarrierOption(CallPut.Call, 100m, Currency.USD, 130m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
+        var knockInCall = new BarrierOption(CallPut.Call, 100m, Currency.USD, 130m, BarrierDirection.Up, BarrierKnockType.In, s_expiryDate);
 
-        decimal knockOutPrice = new BarrierTreePricer().Price(knockOutCall, market, tree).Price;
-        decimal knockInPrice = new BarrierTreePricer().Price(knockInCall, market, tree).Price;
+        decimal knockOutPrice = new BarrierTreePricer().Price(knockOutCall, market, tree).Price.Amount;
+        decimal knockInPrice = new BarrierTreePricer().Price(knockInCall, market, tree).Price.Amount;
 
         (knockInPrice + knockOutPrice).Should().BeApproximately(vanillaPrice, 0.01m);
     }
@@ -99,13 +101,13 @@ public sealed class BarrierTreePricerTests
         var market = CreateMarket(100m, 0.20, 0.05);
         var tree = BuildTree(market, 100m, 200);
 
-        var vanillaCall = new EuropeanOption(CallPut.Call, 100m, s_expiryDate);
-        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaCall, market, tree).Price;
+        var vanillaCall = new EuropeanOption(CallPut.Call, 100m, Currency.USD, s_expiryDate);
+        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaCall, market, tree).Price.Amount;
 
-        var farBarrierCall = new BarrierOption(CallPut.Call, 100m, 500m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
+        var farBarrierCall = new BarrierOption(CallPut.Call, 100m, Currency.USD, 500m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
         PriceResult barrierResult = new BarrierTreePricer().Price(farBarrierCall, market, tree);
 
-        barrierResult.Price.Should().BeApproximately(vanillaPrice, 0.01m);
+        barrierResult.Price.Amount.Should().BeApproximately(vanillaPrice, 0.01m);
     }
 
     [Fact]
@@ -116,10 +118,10 @@ public sealed class BarrierTreePricerTests
         var tree = BuildTree(market, 100m, 200);
 
         // Up barrier at 90 < spot 100 → already breached
-        var barrierCall = new BarrierOption(CallPut.Call, 100m, 90m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
+        var barrierCall = new BarrierOption(CallPut.Call, 100m, Currency.USD, 90m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
         PriceResult result = new BarrierTreePricer().Price(barrierCall, market, tree);
 
-        result.Price.Should().Be(0m);
+        result.Price.Amount.Should().Be(0m);
     }
 
     [Fact]
@@ -129,25 +131,73 @@ public sealed class BarrierTreePricerTests
         var market = CreateMarket(100m, 0.25, 0.05);
         var tree = BuildTree(market, 100m, 200);
 
-        var vanillaPut = new EuropeanOption(CallPut.Put, 100m, s_expiryDate);
-        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaPut, market, tree).Price;
+        var vanillaPut = new EuropeanOption(CallPut.Put, 100m, Currency.USD, s_expiryDate);
+        decimal vanillaPrice = new EuropeanTreePricer().Price(vanillaPut, market, tree).Price.Amount;
 
-        var knockOutPut = new BarrierOption(CallPut.Put, 100m, 80m, BarrierDirection.Down, BarrierKnockType.Out, s_expiryDate);
-        var knockInPut = new BarrierOption(CallPut.Put, 100m, 80m, BarrierDirection.Down, BarrierKnockType.In, s_expiryDate);
+        var knockOutPut = new BarrierOption(CallPut.Put, 100m, Currency.USD, 80m, BarrierDirection.Down, BarrierKnockType.Out, s_expiryDate);
+        var knockInPut = new BarrierOption(CallPut.Put, 100m, Currency.USD, 80m, BarrierDirection.Down, BarrierKnockType.In, s_expiryDate);
 
-        decimal knockOutPrice = new BarrierTreePricer().Price(knockOutPut, market, tree).Price;
-        decimal knockInPrice = new BarrierTreePricer().Price(knockInPut, market, tree).Price;
+        decimal knockOutPrice = new BarrierTreePricer().Price(knockOutPut, market, tree).Price.Amount;
+        decimal knockInPrice = new BarrierTreePricer().Price(knockInPut, market, tree).Price.Amount;
 
         (knockInPrice + knockOutPrice).Should().BeApproximately(vanillaPrice, 0.01m);
+    }
+
+    [Fact]
+    public void Price_ShouldDiscountWithTreeRateNotMarketRate_WhenTreeBuiltAtDifferentRate()
+    {
+        // Fix 007 single-sourced discounting through tree.RiskFreeRate ?? market for the
+        // vanilla tree pricers. The barrier kernel must match: a barrier priced on a tree
+        // built at rate A but with a market carrying rate B must discount at A (the rate
+        // embedded in the tree's probabilities), exactly like EuropeanTreePricer on the
+        // same tree — not at the at-pricing-time market rate B.
+        var buildMarket = CreateMarket(100m, 0.20, 0.05);   // rate A = 0.05 → baked into tree
+        var pricingMarket = CreateMarket(100m, 0.20, 0.15);  // rate B = 0.15 → must be ignored
+        var tree = BuildTree(buildMarket, 100m, 200);
+
+        // European price on this tree uses tree.RiskFreeRate (A), regardless of market B.
+        var vanillaCall = new EuropeanOption(CallPut.Call, 100m, Currency.USD, s_expiryDate);
+        decimal europeanPrice = new EuropeanTreePricer().Price(vanillaCall, pricingMarket, tree).Price.Amount;
+
+        // A never-breached knock-out call (barrier far above any reachable spot) reduces to
+        // the vanilla payoff, so its tree price must equal the European tree price when both
+        // discount at the same (tree) rate.
+        var farBarrierCall = new BarrierOption(CallPut.Call, 100m, Currency.USD, 100_000m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
+        decimal barrierPrice = new BarrierTreePricer().Price(farBarrierCall, pricingMarket, tree).Price.Amount;
+
+        barrierPrice.Should().BeApproximately(europeanPrice, 0.0001m,
+            "the barrier kernel must discount with tree.RiskFreeRate (A), matching the European pricer, not market rate B");
+    }
+
+    // AC-5b — characterization test: BarrierTreePricer.PriceDiscretelyMonitored throws
+    // CurrencyMismatchException when option currency (USD) differs from market spot currency (EUR).
+    // PriceDiscretelyMonitored delegates to Price() which carries the currency boundary guard.
+    // This pins that the secondary entry point propagates the exception, warranting the
+    // <exception cref="CurrencyMismatchException"/> doc tag (DOC-CCYMISMATCH-DISCMON-007).
+    [Fact]
+    public void PriceDiscretelyMonitored_CrossCurrencySpotVsOption_ThrowsCurrencyMismatchException()
+    {
+        var usdOption = new BarrierOption(CallPut.Call, 100m, Currency.USD, 130m, BarrierDirection.Up, BarrierKnockType.Out, s_expiryDate);
+        var eurMarket = new OptionMarketData(
+            s_valuationDate,
+            Currency.EUR.Amount(100m),
+            0.20d,
+            new FlatDiscountCurve(new CurveName("EUR-OIS"), s_valuationDate, Currency.EUR, 0.05d));
+        var eurTree = new CoxRossRubinsteinTreeBuilder().Build(
+            TreeModelInput.FromMarketData(eurMarket, usdOption.Strike.Amount, s_expiryDate, 50));
+
+        Action act = () => new BarrierTreePricer().PriceDiscretelyMonitored(usdOption, eurMarket, eurTree, 12);
+
+        act.Should().Throw<CurrencyMismatchException>();
     }
 
     private static OptionMarketData CreateMarket(decimal spot, double vol, double rate)
     {
         return new OptionMarketData(
             s_valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             vol,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, CurrencyCode.USD, rate));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), s_valuationDate, Currency.USD, rate));
     }
 
     private static BinomialTree BuildTree(OptionMarketData market, decimal strike, int steps)

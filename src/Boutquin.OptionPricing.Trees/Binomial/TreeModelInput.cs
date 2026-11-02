@@ -60,8 +60,9 @@ public sealed record TreeModelInput(
         DateOnly expiryDate,
         int steps)
     {
+        ArgumentNullException.ThrowIfNull(market);
         return new TreeModelInput(
-            market.Spot,
+            market.Spot.Amount,
             strike,
             market.ValuationDate,
             expiryDate,
@@ -79,6 +80,7 @@ public sealed record TreeModelInput(
     /// <returns>Time to expiry expressed in years.</returns>
     public double TimeToExpiryInYears()
     {
+        ArgumentNullException.ThrowIfNull(DiscountCurve);
         return DiscountCurve.DayCount.YearFraction(ValuationDate, ExpiryDate);
     }
 
@@ -128,6 +130,11 @@ public sealed record TreeModelInput(
 
     private static double ImpliedContinuousRate(double discountFactor, double timeInYears)
     {
+        if (!double.IsFinite(discountFactor) || discountFactor <= 0d || !double.IsFinite(timeInYears))
+        {
+            throw new ArgumentException("Curve discount factors must be finite and positive, and year fractions finite.");
+        }
+
         if (timeInYears <= 0d)
         {
             return 0d;

@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Boutquin.OptionPricing.Domain</RootNamespace>
     <AssemblyName>Boutquin.OptionPricing.Domain</AssemblyName>
@@ -7,7 +8,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Boutquin.OptionPricing.Abstractions/Boutquin.OptionPricing.Abstractions.csproj" />
+    <PackageReference Include="Boutquin.Domain" />
     <PackageReference Include="Boutquin.Curves.Abstractions" />
     <PackageReference Include="Boutquin.MarketData.Abstractions" />
+    <PackageReference Include="Boutquin.MarketData.Storage" />
   </ItemGroup>
 </Project>

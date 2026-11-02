@@ -10,15 +10,15 @@ identical algorithm.
 
 Each scenario stores:
   * The valuation date, option (European call/put, strike, expiry in days).
-  * The initial market parameters (spot, sigma, r, q). Borrow is zero because
-    the Hedging module currently uses the vanilla Greeks path.
+  * The initial market parameters (spot, sigma, r, q). The fixtures use zero
+    borrow; separate executable controls exercise model-equivalent borrow yield.
   * The GBM-generated path (fixed seed, fixed dt = T/N, N steps).
   * The expected start price, delta sequence, final portfolio value,
     option payoff, and hedging error.
 
 Rolling forward: the C# simulator rebuilds its FlatDiscountCurve instances
 at each stepDate so that the implied continuous rate stays invariant under
-time advancement (see DeltaHedgeSimulator.RollMarket). The Python reference
+time advancement (see OptionMarketData.RolledTo). The Python reference
 uses the same constant r and q across all rebalances, matching that semantics.
 """
 
@@ -77,6 +77,8 @@ def _simulate(spots: list[float], k: float, r: float, q: float, sigma: float,
 
     for i in range(1, n):
         cash *= growth_per_step
+        # Continuous model yield is reinvested in held shares before rebalancing.
+        current_delta *= float(np.exp(q * dt))
         # Emulate InvertYearFraction + the C# clamp "if stepDate >= expiryDate,
         # stepDate = expiryDate.AddDays(-1)".
         step_days = round(i * dt * 365)
@@ -84,7 +86,7 @@ def _simulate(spots: list[float], k: float, r: float, q: float, sigma: float,
             step_days = total_days - 1
         remaining_t = (total_days - step_days) / 365.0
         # C# rolls the FlatDiscountCurve forward to stepDate (see
-        # DeltaHedgeSimulator.RollMarket), so the implied continuous rate is
+        # OptionMarketData.RolledTo), so the implied continuous rate is
         # invariant in time — we use the same r and q at every rebalance.
         new_delta = _bsm_delta(spots[i], k, r, q, sigma, remaining_t, is_call)
         cash -= (new_delta - current_delta) * spots[i]
@@ -92,6 +94,7 @@ def _simulate(spots: list[float], k: float, r: float, q: float, sigma: float,
         deltas.append(current_delta)
 
     cash *= growth_per_step
+    current_delta *= float(np.exp(q * dt))
     terminal_spot = spots[-1]
     final_portfolio = current_delta * terminal_spot + cash
     payoff = max(terminal_spot - k, 0.0) if is_call else max(k - terminal_spot, 0.0)

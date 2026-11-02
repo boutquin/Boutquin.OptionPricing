@@ -40,47 +40,105 @@ public sealed class ArrowDebreuStatePriceCalculator
     /// Computes the Arrow-Debreu state price for each terminal node of the binomial tree.
     /// </summary>
     /// <param name="tree">A fully constructed recombining binomial tree.</param>
-    /// <param name="rate">Continuously compounded risk-free rate used for discounting.</param>
+    /// <param name="rate">
+    /// Continuously compounded risk-free rate used for discounting. This must be the same
+    /// rate used to build the tree so that state prices use the same discounting convention.
+    /// State prices sum to <c>exp(-rate * DeltaTime * Steps)</c> for any valid probability lattice.
+    /// </param>
     /// <returns>
     /// A list of Arrow-Debreu state prices, one per terminal node, indexed consistently
     /// with <see cref="BinomialTree.TerminalSpots"/> (state 0 = most up moves).
     /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="tree"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the tree's risk-neutral probability is not strictly within (0, 1), which
+    /// would make the state-price weighting ill-defined.
+    /// </exception>
     public IReadOnlyList<double> CalculateTerminalStatePrices(BinomialTree tree, double rate)
     {
-        List<double> prices = new(tree.Steps + 1);
-        double discount = Math.Exp(-rate * tree.DeltaTime * tree.Steps);
-        double p = tree.RiskNeutralProbability;
-
-        for (int j = 0; j <= tree.Steps; j++)
+        ArgumentNullException.ThrowIfNull(tree);
+        if (!double.IsFinite(rate))
         {
-            double combination = BinomialCoefficient(tree.Steps, j);
-            double statePrice = discount * combination * Math.Pow(p, tree.Steps - j) * Math.Pow(1d - p, j);
-            prices.Add(statePrice);
+            throw new ArgumentOutOfRangeException(nameof(rate), "The discount rate must be finite.");
+        }
+
+        double p = tree.RiskNeutralProbability;
+        if (p <= 0d || p >= 1d)
+        {
+            throw new InvalidOperationException(
+                $"Risk-neutral probability must lie strictly within (0, 1); was {p}.");
+        }
+
+        TreeValidation.Validate(tree);
+
+        if (tree.ProbabilityLattice is not null)
+        {
+            // Forward induction sums all paths entering each state. A single binomial
+            // coefficient is valid only for a constant transition probability.
+            var weights = new double[tree.Steps + 1];
+            var next = new double[tree.Steps + 1];
+            weights[0] = 1d;
+            for (int step = 0; step < tree.Steps; step++)
+            {
+                Array.Clear(next);
+                for (int node = 0; node <= step; node++)
+                {
+                    double probability = tree.ProbabilityLattice[step][node];
+                    next[node] += weights[node] * probability;
+                    next[node + 1] += weights[node] * (1d - probability);
+                }
+
+                (weights, next) = (next, weights);
+            }
+
+            double discount = Math.Exp(-rate * tree.DeltaTime * tree.Steps);
+            if (!double.IsFinite(discount) || discount <= 0d)
+            {
+                throw new ArithmeticException("The tree discount factor is outside the finite positive numeric range.");
+            }
+
+            for (int node = 0; node < weights.Length; node++)
+            {
+                weights[node] *= discount;
+            }
+
+            return Array.AsReadOnly(weights);
+        }
+
+        int n = tree.Steps;
+        List<double> prices = new(n + 1);
+
+        // Work in log-space to stay numerically stable for large N: the binomial
+        // coefficient C(N, j) overflows double well before N = 1030, and p^(N-j)
+        // underflows to 0, so the naive product is NaN/Inf. The log form is exact
+        // for small N and finite for large N.
+        double logDiscount = -rate * tree.DeltaTime * n;
+        double logP = Math.Log(p);
+        double logQ = Math.Log(1d - p);
+
+        for (int j = 0; j <= n; j++)
+        {
+            double logStatePrice = logDiscount + LogBinomialCoefficient(n, j) + ((n - j) * logP) + (j * logQ);
+            prices.Add(Math.Exp(logStatePrice));
         }
 
         return prices;
     }
 
-    private static double BinomialCoefficient(int n, int k)
+    private static double LogBinomialCoefficient(int n, int k)
     {
-        if (k < 0 || k > n)
+        if (k < 0 || k > n || n == 0)
         {
             return 0d;
         }
 
-        if (k == 0 || k == n)
-        {
-            return 1d;
-        }
-
         k = Math.Min(k, n - k);
-        double c = 1d;
+        double logC = 0d;
         for (int i = 0; i < k; i++)
         {
-            c *= (n - i);
-            c /= (i + 1);
+            logC += Math.Log(n - i) - Math.Log(i + 1);
         }
 
-        return c;
+        return logC;
     }
 }

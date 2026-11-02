@@ -15,9 +15,11 @@ monitoring at each node. Knock-out nodes receive zero continuation value. Knock-
 options are derived via barrier parity: V_in = V_vanilla − V_out.
 
 ```csharp
-var option = new BarrierOption(CallPut.Call, strike: 100m, barrierLevel: 80m,
+// The contract currency follows the strike; the barrier level stays a decimal.
+var option = new BarrierOption(CallPut.Call, strike: 100m, Currency.USD, barrierLevel: 80m,
     BarrierDirection.Down, BarrierKnockType.Out, expiryDate);
 var result = new BarrierTreePricer().Price(option, market, tree);
+// result.Price is a Money premium in the contract currency.
 ```
 
 ## Smile-Aware Pricing

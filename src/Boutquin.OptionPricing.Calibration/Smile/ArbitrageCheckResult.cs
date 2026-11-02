@@ -30,6 +30,14 @@ public sealed record ArbitrageCheckResult(
     bool IsValid,
     IReadOnlyList<string> Findings) : ICalculationResult
 {
-    /// <inheritdoc />
+    private readonly IReadOnlyList<string> _findings = Array.AsReadOnly(Findings.ToArray());
+    /// <summary>A read-only snapshot of the detected heuristic violations.</summary>
+    public IReadOnlyList<string> Findings
+    {
+        get => _findings;
+        init => _findings = Array.AsReadOnly((value ?? throw new ArgumentNullException(nameof(value))).ToArray());
+    }
+
+    /// <summary>Whether all requested quote heuristics passed.</summary>
     public bool IsSuccess => IsValid;
 }

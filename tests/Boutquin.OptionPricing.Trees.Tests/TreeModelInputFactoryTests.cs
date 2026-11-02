@@ -15,8 +15,9 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Domain.Market;
 using Boutquin.OptionPricing.Trees.Binomial;
 using FluentAssertions;
@@ -27,17 +28,17 @@ public sealed class TreeModelInputFactoryTests
 {
     private static readonly DateOnly s_valuationDate = new(2025, 6, 15);
     private static readonly DateOnly s_expiryDate = new(2025, 12, 15);
-    private const CurrencyCode s_usd = CurrencyCode.USD;
+    private const Currency Usd = Currency.USD;
 
     private static OptionMarketData CreateMarket(
         double riskFreeRate = 0.05,
         double dividendYield = 0.02,
         double borrowRate = 0.01)
     {
-        var discountCurve = new FlatDiscountCurve(new CurveName("USD-DISC"), s_valuationDate, s_usd, riskFreeRate);
-        var dividendCurve = new FlatDiscountCurve(new CurveName("DIVIDEND"), s_valuationDate, s_usd, dividendYield);
-        var borrowCurve = new FlatDiscountCurve(new CurveName("BORROW"), s_valuationDate, s_usd, borrowRate);
-        return new OptionMarketData(s_valuationDate, 100m, 0.20, discountCurve, dividendCurve, borrowCurve);
+        var discountCurve = new FlatDiscountCurve(new CurveName("USD-DISC"), s_valuationDate, Usd, riskFreeRate);
+        var dividendCurve = new FlatDiscountCurve(new CurveName("DIVIDEND"), s_valuationDate, Usd, dividendYield);
+        var borrowCurve = new FlatDiscountCurve(new CurveName("BORROW"), s_valuationDate, Usd, borrowRate);
+        return new OptionMarketData(s_valuationDate, Currency.USD.Amount(100m), 0.20, discountCurve, dividendCurve, borrowCurve);
     }
 
     [Fact]
@@ -50,7 +51,7 @@ public sealed class TreeModelInputFactoryTests
         input.DiscountCurve.Should().BeSameAs(market.DiscountCurve);
         input.DividendCurve.Should().BeSameAs(market.DividendCurve);
         input.BorrowCurve.Should().BeSameAs(market.BorrowCurve);
-        input.Spot.Should().Be(market.Spot);
+        input.Spot.Should().Be(market.Spot.Amount);
         input.Volatility.Should().Be(market.FlatVolatility);
         input.ValuationDate.Should().Be(market.ValuationDate);
         input.ExpiryDate.Should().Be(s_expiryDate);
@@ -63,7 +64,7 @@ public sealed class TreeModelInputFactoryTests
     {
         var market = CreateMarket();
         var fromFactory = TreeModelInput.FromMarketData(market, 100m, s_expiryDate, 200);
-        var manual = new TreeModelInput(market.Spot, 100m, s_valuationDate, s_expiryDate,
+        var manual = new TreeModelInput(market.Spot.Amount, 100m, s_valuationDate, s_expiryDate,
             market.DiscountCurve, market.FlatVolatility, 200, market.DividendCurve, market.BorrowCurve);
 
         fromFactory.RiskFreeRate().Should().BeApproximately(manual.RiskFreeRate(), 1e-12);
@@ -86,8 +87,8 @@ public sealed class TreeModelInputFactoryTests
     [Fact]
     public void FromMarketData_ShouldHandleNullOptionalCurves()
     {
-        var discountCurve = new FlatDiscountCurve(new CurveName("USD-DISC"), s_valuationDate, s_usd, 0.05);
-        var market = new OptionMarketData(s_valuationDate, 100m, 0.20, discountCurve);
+        var discountCurve = new FlatDiscountCurve(new CurveName("USD-DISC"), s_valuationDate, Usd, 0.05);
+        var market = new OptionMarketData(s_valuationDate, Currency.USD.Amount(100m), 0.20, discountCurve);
 
         var input = TreeModelInput.FromMarketData(market, 100m, s_expiryDate, 200);
 

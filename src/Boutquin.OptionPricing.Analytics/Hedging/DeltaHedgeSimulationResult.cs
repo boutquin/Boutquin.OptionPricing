@@ -55,6 +55,29 @@ public sealed record DeltaHedgeSimulationResult(
     decimal FinalPortfolioValue,
     decimal HedgingError) : ICalculationResult
 {
-    /// <inheritdoc />
-    public bool IsSuccess => true;
+    /// <summary>Owned read-only delta sequence, with one value per rebalance.</summary>
+    public IReadOnlyList<double> Deltas { get; init => field = Copy(value); } = Copy(Deltas);
+
+    /// <summary>Owned read-only snapshot of the realized spot path.</summary>
+    public IReadOnlyList<decimal> Spots { get; init => field = Copy(value); } = Copy(Spots);
+
+    /// <summary>
+    /// <see langword="true"/> when the simulation actually ran — i.e. the path had at
+    /// least one rebalance step and therefore recorded at least one delta.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="DeltaHedgeSimulator.Simulate"/> short-circuits a degenerate path
+    /// (fewer than two spots, so no step to hedge) by returning an all-zero sentinel
+    /// with an empty <see cref="Deltas"/> list. That sentinel reports
+    /// <see langword="false"/> so a caller cannot mistake it for a genuine zero-payoff
+    /// hedge: a successful run always records one delta per rebalance, so a non-empty
+    /// <see cref="Deltas"/> is the exact, derivable witness of success.
+    /// </remarks>
+    public bool IsSuccess => Deltas.Count > 0;
+
+    private static IReadOnlyList<T> Copy<T>(IReadOnlyList<T> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        return Array.AsReadOnly(values.ToArray());
+    }
 }

@@ -15,8 +15,9 @@
 //
 
 using Boutquin.Curves.Abstractions.Identifiers;
-using Boutquin.MarketData.Abstractions.ReferenceData;
 using Boutquin.Curves.Core.Discounting;
+using Boutquin.Domain.Enumerations;
+using Boutquin.Domain.Extensions;
 using Boutquin.OptionPricing.Analytics.BlackScholes;
 using Boutquin.OptionPricing.Analytics.Parity;
 using Boutquin.OptionPricing.Domain.Contracts;
@@ -29,32 +30,41 @@ namespace Boutquin.OptionPricing.PropertyTests;
 
 public sealed class PutCallParityProperties
 {
-    [Property(MaxTest = 20)]
-    public void Parity_ShouldHold_ForReasonableInputs(decimal rawSpot, decimal rawStrike)
+    [Property(MaxTest = 200)]
+    public void Parity_ShouldHold_ForReasonableInputs(decimal rawSpot, decimal rawStrike, byte rawVol, byte rawRate, byte rawDiv, byte rawBorrow)
     {
         decimal spot = Math.Abs(rawSpot % 200m) + 20m;
         decimal strike = Math.Abs(rawStrike % 200m) + 20m;
-        DateOnly valuationDate = DateOnly.FromDateTime(DateTime.Today);
+        // Randomize volatility, rate, and dividend yield across reasonable ranges
+        // (put-call parity is independent of all three, so it must hold throughout).
+        double vol = 0.05d + ((rawVol % 60) / 100d);   // 0.05 .. 0.64
+        double rate = ((rawRate % 10) - 5) / 100d;    // -0.05 .. 0.04
+        double dividend = (rawDiv % 5) / 100d;         // 0.00 .. 0.04
+        double borrow = (rawBorrow % 5) / 100d;        // 0.00 .. 0.04
+        DateOnly valuationDate = new(2026, 6, 15);
 
-        var market = CreateMarket(valuationDate, spot, 0.20d, 0.03d, 0.01d);
-        var call = new EuropeanOption(CallPut.Call, strike, valuationDate.AddMonths(6));
-        var put = new EuropeanOption(CallPut.Put, strike, call.ExpiryDate);
+        var market = CreateMarket(valuationDate, spot, vol, rate, dividend, borrow);
+        var call = new EuropeanOption(CallPut.Call, strike, Currency.USD, valuationDate.AddMonths(6));
+        var put = new EuropeanOption(CallPut.Put, strike, Currency.USD, call.ExpiryDate);
         var pricer = new BlackScholesPricer();
 
-        decimal callPrice = pricer.Price(call, market).Price;
-        decimal putPrice = pricer.Price(put, market).Price;
+        decimal callPrice = pricer.Price(call, market).Price.Amount;
+        decimal putPrice = pricer.Price(put, market).Price.Amount;
         decimal impliedCall = PutCallParity.ImpliedCallPrice(putPrice, spot, strike, market, call.ExpiryDate);
 
-        impliedCall.Should().BeApproximately(callPrice, 0.02m);
+        decimal impliedPut = PutCallParity.ImpliedPutPrice(callPrice, spot, strike, market, call.ExpiryDate);
+        impliedCall.Should().BeApproximately(callPrice, 1e-8m);
+        impliedPut.Should().BeApproximately(putPrice, 1e-8m);
     }
 
-    private static OptionMarketData CreateMarket(DateOnly valuationDate, decimal spot, double flatVolatility, double riskFreeRate, double dividendYield)
+    private static OptionMarketData CreateMarket(DateOnly valuationDate, decimal spot, double flatVolatility, double riskFreeRate, double dividendYield, double borrowRate)
     {
         return new OptionMarketData(
             valuationDate,
-            spot,
+            Currency.USD.Amount(spot),
             flatVolatility,
-            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, CurrencyCode.USD, riskFreeRate),
-            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, CurrencyCode.USD, dividendYield));
+            new FlatDiscountCurve(new CurveName("USD-OIS"), valuationDate, Currency.USD, riskFreeRate),
+            new FlatDiscountCurve(new CurveName("DIVIDEND"), valuationDate, Currency.USD, dividendYield),
+            new FlatDiscountCurve(new CurveName("BORROW"), valuationDate, Currency.USD, borrowRate));
     }
 }

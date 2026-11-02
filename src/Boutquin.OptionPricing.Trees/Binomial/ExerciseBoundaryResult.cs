@@ -32,6 +32,15 @@ namespace Boutquin.OptionPricing.Trees.Binomial;
 public sealed record ExerciseBoundaryResult(
     IReadOnlyList<(int Step, int LowestExerciseIndex)> Boundaries) : ICalculationResult
 {
-    /// <inheritdoc />
+    /// <summary>Owned, read-only time-step and exercise-index pairs.</summary>
+    public IReadOnlyList<(int Step, int LowestExerciseIndex)> Boundaries { get; init => field = Copy(value); } = Copy(Boundaries);
+
+    /// <summary>True when the calculated boundary contains at least one early-exercise node.</summary>
     public bool IsSuccess => Boundaries.Count > 0;
+
+    private static IReadOnlyList<(int Step, int LowestExerciseIndex)> Copy(IReadOnlyList<(int Step, int LowestExerciseIndex)> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        return Array.AsReadOnly(values.ToArray());
+    }
 }

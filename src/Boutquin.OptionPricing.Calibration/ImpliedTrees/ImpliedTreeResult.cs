@@ -23,7 +23,11 @@ namespace Boutquin.OptionPricing.Calibration.ImpliedTrees;
 /// The output of an implied tree calibration, containing the calibrated binomial tree,
 /// local volatilities at each node, Arrow-Debreu state prices, and a summary report.
 /// </summary>
-/// <param name="Tree">The calibrated binomial tree with smile-consistent spot lattice.</param>
+/// <param name="Tree">
+/// The calibrated binomial tree with smile-consistent spot lattice. Valid only when
+/// <see cref="IsSuccess"/> is <see langword="true"/>; consumers must check
+/// <see cref="IsSuccess"/> before relying on the tree (see <see cref="ImpliedTreeResult"/> remarks).
+/// </param>
 /// <param name="LocalVolatilities">
 /// Local volatility at each (step, state) node. Indexed as
 /// <c>LocalVolatilities[step][state]</c>.
@@ -39,8 +43,30 @@ public sealed record ImpliedTreeResult(
     IReadOnlyList<IReadOnlyList<double>> ArrowDebreuPrices,
     CalibrationReport Report) : ICalculationResult
 {
+    private readonly IReadOnlyList<IReadOnlyList<double>> _arrowDebreuPrices = CopyLattice(ArrowDebreuPrices);
+    /// <summary>A read-only snapshot of the ArrowDebreuPrices lattice, including its inner rows.</summary>
+    public IReadOnlyList<IReadOnlyList<double>> ArrowDebreuPrices
+    {
+        get => _arrowDebreuPrices;
+        init => _arrowDebreuPrices = CopyLattice(value);
+    }
+
+    private readonly IReadOnlyList<IReadOnlyList<double>> _localVolatilities = CopyLattice(LocalVolatilities);
+    /// <summary>A read-only snapshot of the LocalVolatilities lattice, including its inner rows.</summary>
+    public IReadOnlyList<IReadOnlyList<double>> LocalVolatilities
+    {
+        get => _localVolatilities;
+        init => _localVolatilities = CopyLattice(value);
+    }
+
     /// <summary>
     /// Returns <see langword="true"/> when the calibration converged successfully.
     /// </summary>
     public bool IsSuccess => Report.IsSuccess;
+
+    private static IReadOnlyList<IReadOnlyList<double>> CopyLattice(IReadOnlyList<IReadOnlyList<double>> value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return Array.AsReadOnly(value.Select(row => (IReadOnlyList<double>)Array.AsReadOnly(row.ToArray())).ToArray());
+    }
 }
