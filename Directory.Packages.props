@@ -15,7 +15,7 @@
     <PackageVersion Include="Boutquin.Curves.Conventions" Version="[2.0.0]" />
     <PackageVersion Include="Boutquin.Curves.Interpolation" Version="[2.0.0]" />
     <PackageVersion Include="Boutquin.Curves.Recipes" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.MarketData.Abstractions" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Abstractions" Version="[3.0.0]" />
     <PackageVersion Include="Boutquin.MarketData.Calendars" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Storage" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Conventions" Version="[2.0.1]" />
