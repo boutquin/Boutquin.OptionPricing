@@ -20,7 +20,7 @@
     <PackageVersion Include="Boutquin.MarketData.Storage" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Conventions" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="[3.0.0]" />
     <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="[2.0.1]" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.14" />

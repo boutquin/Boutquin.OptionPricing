@@ -4,14 +4,14 @@
     "net10.0": {
       "Boutquin.MarketData.Adapter.NewYorkFed": {
         "type": "Direct",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "k92XiP+/4P8mrEy3iFKVCizOlR8FEriPCk6laSqnzyaantnkBu9rNXYlZEUEpLSdoZMxa/dzqFHPkz8LtwFMLg==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "BdLHf53TEhjj/2MuchU2wqdihhF1d0wmYIjQR6ZN63Pj+vzDY2CEL37hJmDidvbgeyoYfR3mr51dgaxFgTeZiQ==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
-          "Boutquin.MarketData.Adapter.Shared": "2.0.1",
-          "Boutquin.MarketData.Storage": "2.0.1",
-          "Boutquin.MarketData.Transport": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
+          "Boutquin.MarketData.Adapter.Shared": "3.0.0",
+          "Boutquin.MarketData.Storage": "3.0.0",
+          "Boutquin.MarketData.Transport": "3.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
           "Microsoft.Extensions.Options": "10.0.14"
@@ -101,12 +101,12 @@
       },
       "Boutquin.MarketData.Adapter.Shared": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "aIIhhqULjfuWwYqGdHVEmxtHbRDt8dnXX/fZ3YTPGZSQu87jDrU72dU+hme/EBiCWwFdMOCG1sXsluPjEJpGUw==",
+        "resolved": "3.0.0",
+        "contentHash": "FwB1adi073pFkMhivCoMNo4J5gaaYewd9AcuRIfqnfPulxS1HIj5fVtISYFXhTLiO0nKSnBH3R1WkgvrockZwQ==",
         "dependencies": {
           "Boutquin.Domain": "1.0.1",
-          "Boutquin.MarketData.Abstractions": "2.0.1",
-          "Boutquin.MarketData.Calendars": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0",
+          "Boutquin.MarketData.Calendars": "3.0.0"
         }
       },
       "Boutquin.MarketData.Cache": {
@@ -165,10 +165,10 @@
       },
       "Boutquin.MarketData.Transport": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "6lXhH4+hoIOr7/I++d4BSejFI9DbuGw9WlZt3KUw+UxKieLpJLfYPQz9IgNNtrzDX9QXTzvGkTD8ts0i7i7BKg==",
+        "resolved": "3.0.0",
+        "contentHash": "56I7WXXeGKwhbspXVRDmhuWWQPndY7cF8X0bOQhotF2vqhQsSTyRBpFGity80oW9XIncqv/CL5/Pey2LxKUGAw==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
           "Polly.Core": "8.9.0",
           "Polly.RateLimiting": "8.9.0",
