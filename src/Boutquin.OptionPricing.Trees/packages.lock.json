@@ -123,15 +123,6 @@
           "Boutquin.Storage.Domain": "2.0.1"
         }
       },
-      "Boutquin.MarketData.Conventions": {
-        "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "e4elMuQ9rtDRgGUlSoetFLbg5ayTf+5pWV0nVFDWjQYszbhse/zYv4CbKgM5X0AMCdbHrQr0wpXkq6mad8w/9A==",
-        "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
-        }
-      },
       "Boutquin.MarketData.Storage": {
         "type": "CentralTransitive",
         "requested": "[2.0.1, 2.0.1]",

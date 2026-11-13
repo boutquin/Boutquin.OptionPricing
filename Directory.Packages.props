@@ -18,7 +18,7 @@
     <PackageVersion Include="Boutquin.MarketData.Abstractions" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Calendars" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Storage" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.Conventions" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.MarketData.Conventions" Version="[3.0.0]" />
     <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="[2.0.1]" />
