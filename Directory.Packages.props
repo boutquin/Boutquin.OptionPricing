@@ -22,14 +22,14 @@
     <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="[2.0.1]" />
     <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="[2.0.1]" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="11.0.0" />
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="FluentAssertions" Version="8.11.0" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.6.0" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="11.0.100" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
     <PackageVersion Include="NetArchTest.eNhancedEdition" Version="1.4.5" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
@@ -50,30 +50,67 @@
     <PackageVersion Include="Pragmastat" Version="3.2.4" />
     <PackageVersion Include="System.CodeDom" Version="10.0.14" />
     <PackageVersion Include="System.Management" Version="10.0.14" />
-    <PackageVersion Include="xunit.analyzers" Version="2.2.0" />
+    <PackageVersion Include="xunit.analyzers" Version="2.3.0" />
     <PackageVersion Include="Azure.Core" Version="1.64.0" />
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.FileProviders.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.14" />
-    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.FileProviders.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.92.0" />
     <PackageVersion Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.92.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Abstractions" Version="8.23.0" />
     <PackageVersion Include="Microsoft.Security.AntiSSRF" Version="1.0.1" />
-    <PackageVersion Include="Polly.Core" Version="8.9.0" />
-    <PackageVersion Include="Polly.RateLimiting" Version="8.9.0" />
+    <PackageVersion Include="Polly.Core" Version="8.9.1" />
+    <PackageVersion Include="Polly.RateLimiting" Version="8.9.1" />
     <PackageVersion Include="System.ClientModel" Version="1.16.0" />
     <PackageVersion Include="System.Memory.Data" Version="10.0.14" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.14" />
-    <PackageVersion Include="System.Threading.RateLimiting" Version="10.0.14" />
+    <PackageVersion Include="System.Threading.RateLimiting" Version="11.0.0" />
     <PackageVersion Include="TestableIO.System.IO.Abstractions" Version="22.3.0" />
     <PackageVersion Include="Testably.Abstractions.FileSystem.Interface" Version="10.4.0" />
+  </ItemGroup>
+  <!-- Latest stable packages for the .NET 11 target, verified against NuGet.org on 2026-11-14. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <PackageVersion Update="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Logging" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Logging.Console" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.SourceLink.GitHub" Version="11.0.100" />
+    <PackageVersion Update="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <PackageVersion Update="FSharp.Core" Version="11.0.101" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.Analyzers" Version="5.12.0" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.Common" Version="5.12.0" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
+    <PackageVersion Update="Perfolizer" Version="0.7.5" />
+    <PackageVersion Update="Pragmastat" Version="14.0.1" />
+    <PackageVersion Update="System.CodeDom" Version="11.0.0" />
+    <PackageVersion Update="System.Management" Version="11.0.0" />
+    <PackageVersion Update="xunit.analyzers" Version="2.3.0" />
+    <PackageVersion Update="Azure.Core" Version="1.65.0" />
+    <PackageVersion Update="Microsoft.Bcl.AsyncInterfaces" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Caching.Abstractions" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Caching.Memory" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Configuration.Abstractions" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Diagnostics.Abstractions" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.FileProviders.Abstractions" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Hosting.Abstractions" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Options" Version="11.0.0" />
+    <PackageVersion Update="Microsoft.Extensions.Primitives" Version="11.0.0" />
+    <PackageVersion Update="Polly.Core" Version="8.9.1" />
+    <PackageVersion Update="Polly.RateLimiting" Version="8.9.1" />
+    <PackageVersion Update="System.ClientModel" Version="1.17.0" />
+    <PackageVersion Update="System.Memory.Data" Version="11.0.0" />
+    <PackageVersion Update="System.Security.Cryptography.ProtectedData" Version="11.0.0" />
+    <PackageVersion Update="System.Threading.RateLimiting" Version="11.0.0" />
+    <PackageVersion Update="TestableIO.System.IO.Abstractions" Version="23.0.0" />
+    <PackageVersion Update="Testably.Abstractions.FileSystem.Interface" Version="11.0.0" />
   </ItemGroup>
 </Project>

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- .NET 11 builds alongside .NET 10, with target-specific stable dependency versions and tests for both frameworks.
+
+
 ## [2.0.0] — 2026-11-02
 
 The first stable 2.0 release. The 2.0.0-local-20260622 entry below was an unpublished local build; its changes ship here.

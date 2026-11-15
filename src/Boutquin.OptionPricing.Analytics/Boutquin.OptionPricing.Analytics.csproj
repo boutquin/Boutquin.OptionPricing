@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
     <RootNamespace>Boutquin.OptionPricing.Analytics</RootNamespace>
     <AssemblyName>Boutquin.OptionPricing.Analytics</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
