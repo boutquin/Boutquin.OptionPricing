@@ -58,7 +58,12 @@ public sealed class MoneyGoldenVectorTests
         Money premium = new EuropeanTreePricer().Price(option, market, tree).Price;
 
         // 256-step CRR, spot=100, K=100, T=365d, r=5%, q=0%, vol=20%.
+#if NET11_0_OR_GREATER
+        // Independent 80-digit CRR backward induction; the implementation uses binary64 arithmetic.
+        premium.Amount.Should().BeApproximately(10.442775999825861102412594833m, 1e-10m);
+#else
         premium.Amount.Should().Be(10.4427759998244m);
+#endif
         premium.Currency.Should().Be(Currency.USD);
     }
 
@@ -73,7 +78,11 @@ public sealed class MoneyGoldenVectorTests
         Money premium = new AmericanTreePricer().Price(option, market, tree).Price;
 
         // 256-step CRR, spot=100, K=100, T=365d, r=5%, q=0%, vol=20%.
+#if NET11_0_OR_GREATER
+        premium.Amount.Should().BeApproximately(6.0872583277086208389392163794m, 1e-10m);
+#else
         premium.Amount.Should().Be(6.08725832770924m);
+#endif
         premium.Currency.Should().Be(Currency.USD);
     }
 

@@ -113,7 +113,12 @@ public sealed class MoneyContractCurrencyAcceptanceTests
         Money premium = new BlackScholesPricer().Price(option, market).Price;
 
         // Captured from the pre-Money GREEN code (spot=100, K=100, T=365d, r=5%, q=0%, vol=20%).
+#if NET11_0_OR_GREATER
+        // Independent 80-digit evaluation of the Black-Scholes closed form.
+        premium.Amount.Should().BeApproximately(10.45058357218556678165123121m, 1e-12m);
+#else
         premium.Amount.Should().Be(10.4505835721856m);
+#endif
         premium.Currency.Should().Be(Currency.USD);
     }
 }

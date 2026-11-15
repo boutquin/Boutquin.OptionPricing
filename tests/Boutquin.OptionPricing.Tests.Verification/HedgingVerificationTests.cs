@@ -16,6 +16,7 @@
 
 using System.Text.Json;
 using Boutquin.OptionPricing.Analytics.Hedging;
+using FluentAssertions;
 
 namespace Boutquin.OptionPricing.Tests.Verification;
 
@@ -57,8 +58,17 @@ public sealed class HedgingVerificationTests : CrossLanguageVerificationBase
         var option = BuildEuropeanOption(strike, expiry, callPut);
 
         var pathSpots = s.GetProperty("path_spots").EnumerateArray()
+#if NET11_0_OR_GREATER
+            .Select(e => e.GetDecimal())
+#else
             .Select(e => (decimal)e.GetDouble())
+#endif
             .ToList();
+
+        // The independent binary64 path can round its initial value by a few ulps.
+        // The pricing contract's separately supplied initial spot is exact.
+        pathSpots[0].Should().BeApproximately(spot0, 1e-12m);
+        pathSpots[0] = spot0;
 
         var request = new DeltaHedgeSimulationRequest(option, market, pathSpots);
         var result = new DeltaHedgeSimulator().Simulate(request);
