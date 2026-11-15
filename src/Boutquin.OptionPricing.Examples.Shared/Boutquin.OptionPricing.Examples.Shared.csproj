@@ -16,4 +16,7 @@
     <PackageReference Include="Boutquin.MarketData.Calendars" />
     <PackageReference Include="Boutquin.MarketData.Conventions" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

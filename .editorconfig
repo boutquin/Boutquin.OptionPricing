@@ -476,3 +476,8 @@ dotnet_diagnostic.IDE0005.severity = silent
 [{*.razor.cs,src/Aspire.Dashboard/Components/**.cs}]
 # CA2007: Consider calling ConfigureAwait on the awaited task
 dotnet_diagnostic.CA2007.severity = silent
+
+[*.cs]
+# Public library contracts must match the committed release baseline.
+dotnet_diagnostic.RS0016.severity = error
+dotnet_diagnostic.RS0017.severity = error

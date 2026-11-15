@@ -1,0 +1,213 @@
+#nullable enable
+abstract Boutquin.OptionPricing.Domain.Contracts.OptionContract.<Clone>$() -> Boutquin.OptionPricing.Domain.Contracts.OptionContract!
+Boutquin.OptionPricing.Domain.Contracts.AmericanOption
+Boutquin.OptionPricing.Domain.Contracts.AmericanOption.AmericanOption(Boutquin.OptionPricing.Domain.Enums.CallPut callPut, decimal strike, Boutquin.Domain.Enumerations.Currency currency, System.DateOnly expiryDate, Boutquin.MarketData.Abstractions.Calendars.IBusinessCalendar? settlementCalendar = null, Boutquin.MarketData.Abstractions.Calendars.BusinessDayAdjustment? settlementAdjustment = null, int settlementLagDays = 0) -> void
+Boutquin.OptionPricing.Domain.Contracts.AmericanOption.Equals(Boutquin.OptionPricing.Domain.Contracts.AmericanOption? other) -> bool
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.BarrierLevel.get -> decimal
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.BarrierLevel.init -> void
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.BarrierOption(Boutquin.OptionPricing.Domain.Enums.CallPut callPut, decimal strike, Boutquin.Domain.Enumerations.Currency currency, decimal barrierLevel, Boutquin.OptionPricing.Domain.Enums.BarrierDirection direction, Boutquin.OptionPricing.Domain.Enums.BarrierKnockType knockType, System.DateOnly expiryDate, Boutquin.MarketData.Abstractions.Calendars.IBusinessCalendar? settlementCalendar = null, Boutquin.MarketData.Abstractions.Calendars.BusinessDayAdjustment? settlementAdjustment = null, int settlementLagDays = 0) -> void
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.Direction.get -> Boutquin.OptionPricing.Domain.Enums.BarrierDirection
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.Direction.init -> void
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.Equals(Boutquin.OptionPricing.Domain.Contracts.BarrierOption? other) -> bool
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.KnockType.get -> Boutquin.OptionPricing.Domain.Enums.BarrierKnockType
+Boutquin.OptionPricing.Domain.Contracts.BarrierOption.KnockType.init -> void
+Boutquin.OptionPricing.Domain.Contracts.EuropeanOption
+Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.Equals(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption? other) -> bool
+Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.EuropeanOption(Boutquin.OptionPricing.Domain.Enums.CallPut callPut, decimal strike, Boutquin.Domain.Enumerations.Currency currency, System.DateOnly expiryDate, Boutquin.MarketData.Abstractions.Calendars.IBusinessCalendar? settlementCalendar = null, Boutquin.MarketData.Abstractions.Calendars.BusinessDayAdjustment? settlementAdjustment = null, int settlementLagDays = 0) -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.CallPut.get -> Boutquin.OptionPricing.Domain.Enums.CallPut
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.CallPut.init -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.Currency.get -> Boutquin.Domain.Enumerations.Currency
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.Currency.init -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.ExpiryDate.get -> System.DateOnly
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.ExpiryDate.init -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.IntrinsicValue(Boutquin.Domain.ValueObjects.Money spot) -> Boutquin.Domain.ValueObjects.Money
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.OptionContract(Boutquin.OptionPricing.Domain.Contracts.OptionContract! original) -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.OptionContract(Boutquin.OptionPricing.Domain.Enums.CallPut callPut, decimal strike, Boutquin.Domain.Enumerations.Currency currency, System.DateOnly expiryDate, Boutquin.MarketData.Abstractions.Calendars.IBusinessCalendar? settlementCalendar = null, Boutquin.MarketData.Abstractions.Calendars.BusinessDayAdjustment? settlementAdjustment = null, int settlementLagDays = 0) -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.SettlementAdjustment.get -> Boutquin.MarketData.Abstractions.Calendars.BusinessDayAdjustment?
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.SettlementAdjustment.init -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.SettlementCalendar.get -> Boutquin.MarketData.Abstractions.Calendars.IBusinessCalendar?
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.SettlementCalendar.init -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.SettlementDate.get -> System.DateOnly
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.SettlementLagDays.get -> int
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.SettlementLagDays.init -> void
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.Strike.get -> Boutquin.Domain.ValueObjects.Money
+Boutquin.OptionPricing.Domain.Contracts.OptionContract.Strike.init -> void
+Boutquin.OptionPricing.Domain.Enums.BarrierDirection
+Boutquin.OptionPricing.Domain.Enums.BarrierDirection.Down = 2 -> Boutquin.OptionPricing.Domain.Enums.BarrierDirection
+Boutquin.OptionPricing.Domain.Enums.BarrierDirection.Up = 1 -> Boutquin.OptionPricing.Domain.Enums.BarrierDirection
+Boutquin.OptionPricing.Domain.Enums.BarrierKnockType
+Boutquin.OptionPricing.Domain.Enums.BarrierKnockType.In = 1 -> Boutquin.OptionPricing.Domain.Enums.BarrierKnockType
+Boutquin.OptionPricing.Domain.Enums.BarrierKnockType.Out = 2 -> Boutquin.OptionPricing.Domain.Enums.BarrierKnockType
+Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Domain.Enums.CalculationStatus.ConvergedWithWarnings = 2 -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Domain.Enums.CalculationStatus.FailedToConverge = 3 -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Domain.Enums.CalculationStatus.InvalidInput = 4 -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Domain.Enums.CalculationStatus.Success = 1 -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Domain.Enums.CalculationStatus.UnsupportedScenario = 5 -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Domain.Enums.CallPut
+Boutquin.OptionPricing.Domain.Enums.CallPut.Call = 1 -> Boutquin.OptionPricing.Domain.Enums.CallPut
+Boutquin.OptionPricing.Domain.Enums.CallPut.Put = 2 -> Boutquin.OptionPricing.Domain.Enums.CallPut
+Boutquin.OptionPricing.Domain.Market.DividendPayment
+Boutquin.OptionPricing.Domain.Market.DividendPayment.<Clone>$() -> Boutquin.OptionPricing.Domain.Market.DividendPayment!
+Boutquin.OptionPricing.Domain.Market.DividendPayment.Amount.get -> decimal
+Boutquin.OptionPricing.Domain.Market.DividendPayment.Amount.init -> void
+Boutquin.OptionPricing.Domain.Market.DividendPayment.Deconstruct(out System.DateOnly ExDate, out decimal Amount) -> void
+Boutquin.OptionPricing.Domain.Market.DividendPayment.DividendPayment(System.DateOnly ExDate, decimal Amount) -> void
+Boutquin.OptionPricing.Domain.Market.DividendPayment.Equals(Boutquin.OptionPricing.Domain.Market.DividendPayment? other) -> bool
+Boutquin.OptionPricing.Domain.Market.DividendPayment.ExDate.get -> System.DateOnly
+Boutquin.OptionPricing.Domain.Market.DividendPayment.ExDate.init -> void
+Boutquin.OptionPricing.Domain.Market.DividendSchedule
+Boutquin.OptionPricing.Domain.Market.DividendSchedule.<Clone>$() -> Boutquin.OptionPricing.Domain.Market.DividendSchedule!
+Boutquin.OptionPricing.Domain.Market.DividendSchedule.Deconstruct(out System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Domain.Market.DividendPayment!>! Payments) -> void
+Boutquin.OptionPricing.Domain.Market.DividendSchedule.DividendSchedule(System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Domain.Market.DividendPayment!>! Payments) -> void
+Boutquin.OptionPricing.Domain.Market.DividendSchedule.Equals(Boutquin.OptionPricing.Domain.Market.DividendSchedule? other) -> bool
+Boutquin.OptionPricing.Domain.Market.DividendSchedule.Payments.get -> System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Domain.Market.DividendPayment!>!
+Boutquin.OptionPricing.Domain.Market.DividendSchedule.Payments.init -> void
+Boutquin.OptionPricing.Domain.Market.HestonParameters
+Boutquin.OptionPricing.Domain.Market.HestonParameters.<Clone>$() -> Boutquin.OptionPricing.Domain.Market.HestonParameters!
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Deconstruct(out double V0, out double Kappa, out double Theta, out double SigmaV, out double Rho) -> void
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Equals(Boutquin.OptionPricing.Domain.Market.HestonParameters? other) -> bool
+Boutquin.OptionPricing.Domain.Market.HestonParameters.HestonParameters(double V0, double Kappa, double Theta, double SigmaV, double Rho) -> void
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Kappa.get -> double
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Kappa.init -> void
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Rho.get -> double
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Rho.init -> void
+Boutquin.OptionPricing.Domain.Market.HestonParameters.SigmaV.get -> double
+Boutquin.OptionPricing.Domain.Market.HestonParameters.SigmaV.init -> void
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Theta.get -> double
+Boutquin.OptionPricing.Domain.Market.HestonParameters.Theta.init -> void
+Boutquin.OptionPricing.Domain.Market.HestonParameters.V0.get -> double
+Boutquin.OptionPricing.Domain.Market.HestonParameters.V0.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.<Clone>$() -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.BorrowCurve.get -> Boutquin.Curves.Abstractions.Curves.IDiscountCurve?
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.BorrowCurve.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.BorrowDiscountFactor(System.DateOnly date) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.BorrowRate(System.DateOnly expiryDate) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.DiscountCurve.get -> Boutquin.Curves.Abstractions.Curves.IDiscountCurve!
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.DiscountCurve.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.DiscountFactor(System.DateOnly date) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.DividendCurve.get -> Boutquin.Curves.Abstractions.Curves.IDiscountCurve?
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.DividendCurve.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.DividendDiscountFactor(System.DateOnly date) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.DividendYield(System.DateOnly expiryDate) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.Equals(Boutquin.OptionPricing.Domain.Market.OptionMarketData? other) -> bool
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.FixingsStore.get -> Boutquin.MarketData.Abstractions.IFixingsStore?
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.FixingsStore.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.FlatVolatility.get -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.FlatVolatility.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.ForwardPrice(System.DateOnly expiryDate) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.InvertYearFraction(double maturityInYears) -> System.DateOnly
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.MarketLabel.get -> string?
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.MarketLabel.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.OptionMarketData(System.DateOnly valuationDate, Boutquin.Domain.ValueObjects.Money spot, double flatVolatility, Boutquin.Curves.Abstractions.Curves.IDiscountCurve! discountCurve, Boutquin.Curves.Abstractions.Curves.IDiscountCurve? dividendCurve = null, Boutquin.Curves.Abstractions.Curves.IDiscountCurve? borrowCurve = null, Boutquin.Curves.Abstractions.Curves.IForwardCurve? projectionCurve = null, string? marketLabel = null, Boutquin.MarketData.Abstractions.IFixingsStore? fixingsStore = null) -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.ProjectionCurve.get -> Boutquin.Curves.Abstractions.Curves.IForwardCurve?
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.ProjectionCurve.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.RiskFreeRate(System.DateOnly expiryDate) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.RolledTo(System.DateOnly stepDate, Boutquin.Domain.ValueObjects.Money newSpot) -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.Spot.get -> Boutquin.Domain.ValueObjects.Money
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.Spot.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.TimeToExpiryInYears(System.DateOnly expiryDate) -> double
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.ValuationDate.get -> System.DateOnly
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.ValuationDate.init -> void
+Boutquin.OptionPricing.Domain.Market.OptionMarketData.WithFlatVolatility(double flatVolatility) -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+Boutquin.OptionPricing.Domain.Results.GreekSet
+Boutquin.OptionPricing.Domain.Results.GreekSet.<Clone>$() -> Boutquin.OptionPricing.Domain.Results.GreekSet!
+Boutquin.OptionPricing.Domain.Results.GreekSet.Deconstruct(out double? Delta, out double? Gamma, out double? Vega, out double? Theta, out double? Rho) -> void
+Boutquin.OptionPricing.Domain.Results.GreekSet.Delta.get -> double?
+Boutquin.OptionPricing.Domain.Results.GreekSet.Delta.init -> void
+Boutquin.OptionPricing.Domain.Results.GreekSet.Equals(Boutquin.OptionPricing.Domain.Results.GreekSet? other) -> bool
+Boutquin.OptionPricing.Domain.Results.GreekSet.Gamma.get -> double?
+Boutquin.OptionPricing.Domain.Results.GreekSet.Gamma.init -> void
+Boutquin.OptionPricing.Domain.Results.GreekSet.GreekSet(double? Delta = null, double? Gamma = null, double? Vega = null, double? Theta = null, double? Rho = null) -> void
+Boutquin.OptionPricing.Domain.Results.GreekSet.Rho.get -> double?
+Boutquin.OptionPricing.Domain.Results.GreekSet.Rho.init -> void
+Boutquin.OptionPricing.Domain.Results.GreekSet.Theta.get -> double?
+Boutquin.OptionPricing.Domain.Results.GreekSet.Theta.init -> void
+Boutquin.OptionPricing.Domain.Results.GreekSet.Vega.get -> double?
+Boutquin.OptionPricing.Domain.Results.GreekSet.Vega.init -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult
+Boutquin.OptionPricing.Domain.Results.PriceResult.<Clone>$() -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Domain.Results.PriceResult.AssumptionSummary.get -> string?
+Boutquin.OptionPricing.Domain.Results.PriceResult.AssumptionSummary.init -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult.Deconstruct(out Boutquin.Domain.ValueObjects.Money Price, out Boutquin.OptionPricing.Domain.Results.GreekSet? Greeks, out Boutquin.OptionPricing.Domain.Enums.CalculationStatus Status, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>? Diagnostics, out string? ModelName, out string? AssumptionSummary) -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult.Diagnostics.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+Boutquin.OptionPricing.Domain.Results.PriceResult.Diagnostics.init -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult.Equals(Boutquin.OptionPricing.Domain.Results.PriceResult? other) -> bool
+Boutquin.OptionPricing.Domain.Results.PriceResult.GetDiagnostics() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+Boutquin.OptionPricing.Domain.Results.PriceResult.Greeks.get -> Boutquin.OptionPricing.Domain.Results.GreekSet?
+Boutquin.OptionPricing.Domain.Results.PriceResult.Greeks.init -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Domain.Results.PriceResult.ModelName.get -> string?
+Boutquin.OptionPricing.Domain.Results.PriceResult.ModelName.init -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult.Price.get -> Boutquin.Domain.ValueObjects.Money
+Boutquin.OptionPricing.Domain.Results.PriceResult.Price.init -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult.PriceResult(Boutquin.Domain.ValueObjects.Money Price, Boutquin.OptionPricing.Domain.Results.GreekSet? Greeks = null, Boutquin.OptionPricing.Domain.Enums.CalculationStatus Status = Boutquin.OptionPricing.Domain.Enums.CalculationStatus.Success, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? Diagnostics = null, string? ModelName = null, string? AssumptionSummary = null) -> void
+Boutquin.OptionPricing.Domain.Results.PriceResult.Status.get -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Domain.Results.PriceResult.Status.init -> void
+override Boutquin.OptionPricing.Domain.Contracts.AmericanOption.<Clone>$() -> Boutquin.OptionPricing.Domain.Contracts.AmericanOption!
+override Boutquin.OptionPricing.Domain.Contracts.AmericanOption.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Contracts.AmericanOption.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Contracts.AmericanOption.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Contracts.BarrierOption.<Clone>$() -> Boutquin.OptionPricing.Domain.Contracts.BarrierOption!
+override Boutquin.OptionPricing.Domain.Contracts.BarrierOption.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Contracts.BarrierOption.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Contracts.BarrierOption.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.<Clone>$() -> Boutquin.OptionPricing.Domain.Contracts.EuropeanOption!
+override Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Contracts.OptionContract.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Contracts.OptionContract.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Contracts.OptionContract.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Market.DividendPayment.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Market.DividendPayment.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Market.DividendPayment.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Market.DividendSchedule.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Market.DividendSchedule.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Market.DividendSchedule.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Market.HestonParameters.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Market.HestonParameters.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Market.HestonParameters.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Market.OptionMarketData.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Market.OptionMarketData.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Market.OptionMarketData.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Results.GreekSet.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Results.GreekSet.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Results.GreekSet.ToString() -> string!
+override Boutquin.OptionPricing.Domain.Results.PriceResult.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Domain.Results.PriceResult.GetHashCode() -> int
+override Boutquin.OptionPricing.Domain.Results.PriceResult.ToString() -> string!
+override sealed Boutquin.OptionPricing.Domain.Contracts.AmericanOption.Equals(Boutquin.OptionPricing.Domain.Contracts.OptionContract? other) -> bool
+override sealed Boutquin.OptionPricing.Domain.Contracts.BarrierOption.Equals(Boutquin.OptionPricing.Domain.Contracts.OptionContract? other) -> bool
+override sealed Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.Equals(Boutquin.OptionPricing.Domain.Contracts.OptionContract? other) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.AmericanOption.operator !=(Boutquin.OptionPricing.Domain.Contracts.AmericanOption? left, Boutquin.OptionPricing.Domain.Contracts.AmericanOption? right) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.AmericanOption.operator ==(Boutquin.OptionPricing.Domain.Contracts.AmericanOption? left, Boutquin.OptionPricing.Domain.Contracts.AmericanOption? right) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.BarrierOption.operator !=(Boutquin.OptionPricing.Domain.Contracts.BarrierOption? left, Boutquin.OptionPricing.Domain.Contracts.BarrierOption? right) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.BarrierOption.operator ==(Boutquin.OptionPricing.Domain.Contracts.BarrierOption? left, Boutquin.OptionPricing.Domain.Contracts.BarrierOption? right) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.operator !=(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption? left, Boutquin.OptionPricing.Domain.Contracts.EuropeanOption? right) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.EuropeanOption.operator ==(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption? left, Boutquin.OptionPricing.Domain.Contracts.EuropeanOption? right) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.OptionContract.operator !=(Boutquin.OptionPricing.Domain.Contracts.OptionContract? left, Boutquin.OptionPricing.Domain.Contracts.OptionContract? right) -> bool
+static Boutquin.OptionPricing.Domain.Contracts.OptionContract.operator ==(Boutquin.OptionPricing.Domain.Contracts.OptionContract? left, Boutquin.OptionPricing.Domain.Contracts.OptionContract? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.DividendPayment.operator !=(Boutquin.OptionPricing.Domain.Market.DividendPayment? left, Boutquin.OptionPricing.Domain.Market.DividendPayment? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.DividendPayment.operator ==(Boutquin.OptionPricing.Domain.Market.DividendPayment? left, Boutquin.OptionPricing.Domain.Market.DividendPayment? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.DividendSchedule.Empty.get -> Boutquin.OptionPricing.Domain.Market.DividendSchedule!
+static Boutquin.OptionPricing.Domain.Market.DividendSchedule.operator !=(Boutquin.OptionPricing.Domain.Market.DividendSchedule? left, Boutquin.OptionPricing.Domain.Market.DividendSchedule? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.DividendSchedule.operator ==(Boutquin.OptionPricing.Domain.Market.DividendSchedule? left, Boutquin.OptionPricing.Domain.Market.DividendSchedule? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.HestonParameters.operator !=(Boutquin.OptionPricing.Domain.Market.HestonParameters? left, Boutquin.OptionPricing.Domain.Market.HestonParameters? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.HestonParameters.operator ==(Boutquin.OptionPricing.Domain.Market.HestonParameters? left, Boutquin.OptionPricing.Domain.Market.HestonParameters? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.OptionMarketData.FromCurveGroup(Boutquin.Curves.Abstractions.Curves.ICurveGroup! curveGroup, Boutquin.Domain.Enumerations.Currency currency, decimal spot, double flatVolatility, Boutquin.MarketData.Abstractions.ReferenceData.BenchmarkName? benchmark = null, string? marketLabel = null) -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+static Boutquin.OptionPricing.Domain.Market.OptionMarketData.FromMarketEnvironment(Boutquin.Curves.Abstractions.Environments.MarketEnvironment! env, Boutquin.Domain.Enumerations.Currency currency, decimal spot, double flatVolatility, string? marketLabel = null) -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+static Boutquin.OptionPricing.Domain.Market.OptionMarketData.operator !=(Boutquin.OptionPricing.Domain.Market.OptionMarketData? left, Boutquin.OptionPricing.Domain.Market.OptionMarketData? right) -> bool
+static Boutquin.OptionPricing.Domain.Market.OptionMarketData.operator ==(Boutquin.OptionPricing.Domain.Market.OptionMarketData? left, Boutquin.OptionPricing.Domain.Market.OptionMarketData? right) -> bool
+static Boutquin.OptionPricing.Domain.Results.GreekSet.Empty.get -> Boutquin.OptionPricing.Domain.Results.GreekSet!
+static Boutquin.OptionPricing.Domain.Results.GreekSet.operator !=(Boutquin.OptionPricing.Domain.Results.GreekSet? left, Boutquin.OptionPricing.Domain.Results.GreekSet? right) -> bool
+static Boutquin.OptionPricing.Domain.Results.GreekSet.operator ==(Boutquin.OptionPricing.Domain.Results.GreekSet? left, Boutquin.OptionPricing.Domain.Results.GreekSet? right) -> bool
+static Boutquin.OptionPricing.Domain.Results.PriceResult.operator !=(Boutquin.OptionPricing.Domain.Results.PriceResult? left, Boutquin.OptionPricing.Domain.Results.PriceResult? right) -> bool
+static Boutquin.OptionPricing.Domain.Results.PriceResult.operator ==(Boutquin.OptionPricing.Domain.Results.PriceResult? left, Boutquin.OptionPricing.Domain.Results.PriceResult? right) -> bool
+static Boutquin.OptionPricing.Domain.Results.PriceResult.Unsupported(string! modelName, string! reason, Boutquin.Domain.Enumerations.Currency contractCurrency) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+virtual Boutquin.OptionPricing.Domain.Contracts.OptionContract.EqualityContract.get -> System.Type!
+virtual Boutquin.OptionPricing.Domain.Contracts.OptionContract.Equals(Boutquin.OptionPricing.Domain.Contracts.OptionContract? other) -> bool
+virtual Boutquin.OptionPricing.Domain.Contracts.OptionContract.PrintMembers(System.Text.StringBuilder! builder) -> bool

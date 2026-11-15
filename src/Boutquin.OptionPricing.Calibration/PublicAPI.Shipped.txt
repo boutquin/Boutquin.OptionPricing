@@ -1,0 +1,185 @@
+#nullable enable
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.<Clone>$() -> Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.CalibrationReport(string! ModelName, Boutquin.OptionPricing.Domain.Enums.CalculationStatus Status, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! Diagnostics) -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.Deconstruct(out string! ModelName, out Boutquin.OptionPricing.Domain.Enums.CalculationStatus Status, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>! Diagnostics) -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.Diagnostics.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.Diagnostics.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.Equals(Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport? other) -> bool
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.GetDiagnostics() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.IsSuccess.get -> bool
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.ModelName.get -> string!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.ModelName.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.Status.get -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.Status.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedBinomialTreeCalibrator
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedBinomialTreeCalibrator.Calibrate(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput! input) -> Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedBinomialTreeCalibrator.ImpliedBinomialTreeCalibrator() -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.<Clone>$() -> Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.ArrowDebreuPrices.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.ArrowDebreuPrices.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.Deconstruct(out Boutquin.OptionPricing.Trees.Binomial.BinomialTree! Tree, out System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! LocalVolatilities, out System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! ArrowDebreuPrices, out Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport! Report) -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.Equals(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult? other) -> bool
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.ImpliedTreeResult(Boutquin.OptionPricing.Trees.Binomial.BinomialTree! Tree, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! LocalVolatilities, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! ArrowDebreuPrices, Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport! Report) -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.LocalVolatilities.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.LocalVolatilities.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.Report.get -> Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.Report.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.Tree.get -> Boutquin.OptionPricing.Trees.Binomial.BinomialTree!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.Tree.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.<Clone>$() -> Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Deconstruct(out Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface! Surface, out int Steps, out Boutquin.OptionPricing.Domain.Market.OptionMarketData! Market, out Boutquin.OptionPricing.Calibration.ImpliedTrees.IOptionPriceProvider? PriceProvider) -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Equals(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput? other) -> bool
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.ImpliedVolatilityTreeCalibrationInput(Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface! Surface, int Steps, Boutquin.OptionPricing.Domain.Market.OptionMarketData! Market, Boutquin.OptionPricing.Calibration.ImpliedTrees.IOptionPriceProvider? PriceProvider = null) -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Market.get -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Market.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.PriceProvider.get -> Boutquin.OptionPricing.Calibration.ImpliedTrees.IOptionPriceProvider?
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.PriceProvider.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Steps.get -> int
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Steps.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Surface.get -> Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Surface.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrator
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrator.Calibrate(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput! input) -> Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult!
+Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrator.ImpliedVolatilityTreeCalibrator() -> void
+Boutquin.OptionPricing.Calibration.ImpliedTrees.IOptionPriceProvider
+Boutquin.OptionPricing.Calibration.ImpliedTrees.IOptionPriceProvider.GetCallPrice(decimal strike, double maturityInYears) -> double
+Boutquin.OptionPricing.Calibration.ImpliedTrees.IOptionPriceProvider.GetPutPrice(decimal strike, double maturityInYears) -> double
+Boutquin.OptionPricing.Calibration.ImpliedTrees.SurfaceDerivedPriceProvider
+Boutquin.OptionPricing.Calibration.ImpliedTrees.SurfaceDerivedPriceProvider.GetCallPrice(decimal strike, double maturityInYears) -> double
+Boutquin.OptionPricing.Calibration.ImpliedTrees.SurfaceDerivedPriceProvider.GetCallPrice(decimal strike, System.DateOnly expiryDate) -> double
+Boutquin.OptionPricing.Calibration.ImpliedTrees.SurfaceDerivedPriceProvider.GetPutPrice(decimal strike, double maturityInYears) -> double
+Boutquin.OptionPricing.Calibration.ImpliedTrees.SurfaceDerivedPriceProvider.GetPutPrice(decimal strike, System.DateOnly expiryDate) -> double
+Boutquin.OptionPricing.Calibration.ImpliedTrees.SurfaceDerivedPriceProvider.SurfaceDerivedPriceProvider(Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface! surface, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, System.DateOnly expiryDate) -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.<Clone>$() -> Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest!
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.BracketTolerance.get -> double
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.BracketTolerance.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.Deconstruct(out Boutquin.OptionPricing.Domain.Contracts.OptionContract! Option, out Boutquin.OptionPricing.Domain.Market.OptionMarketData! Market, out decimal ObservedPrice, out double InitialGuess, out double FunctionTolerance, out double BracketTolerance) -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.Equals(Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest? other) -> bool
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.FunctionTolerance.get -> double
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.FunctionTolerance.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.ImpliedVolatilityRequest(Boutquin.OptionPricing.Domain.Contracts.OptionContract! Option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! Market, decimal ObservedPrice, double InitialGuess, double FunctionTolerance = 1E-08, double BracketTolerance = 1E-08) -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.InitialGuess.get -> double
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.InitialGuess.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.Market.get -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.Market.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.ObservedPrice.get -> decimal
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.ObservedPrice.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.Option.get -> Boutquin.OptionPricing.Domain.Contracts.OptionContract!
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.Option.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.<Clone>$() -> Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult!
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Deconstruct(out double? ImpliedVolatility, out Boutquin.OptionPricing.Domain.Enums.CalculationStatus Status, out int Iterations, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>! Diagnostics) -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Diagnostics.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Diagnostics.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Equals(Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult? other) -> bool
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.GetDiagnostics() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.ImpliedVolatility.get -> double?
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.ImpliedVolatility.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.ImpliedVolatilityResult(double? ImpliedVolatility, Boutquin.OptionPricing.Domain.Enums.CalculationStatus Status, int Iterations, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! Diagnostics) -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Iterations.get -> int
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Iterations.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Status.get -> Boutquin.OptionPricing.Domain.Enums.CalculationStatus
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Status.init -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilitySolver
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilitySolver.ImpliedVolatilitySolver() -> void
+Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilitySolver.Solve(Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest! request) -> Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult!
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.<Clone>$() -> Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult!
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.ArbitrageCheckResult(bool IsValid, System.Collections.Generic.IReadOnlyList<string!>! Findings) -> void
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.Deconstruct(out bool IsValid, out System.Collections.Generic.IReadOnlyList<string!>! Findings) -> void
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.Equals(Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult? other) -> bool
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.Findings.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.Findings.init -> void
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.IsValid.get -> bool
+Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.IsValid.init -> void
+Boutquin.OptionPricing.Calibration.Smile.QuoteArbitrageValidator
+Boutquin.OptionPricing.Calibration.Smile.QuoteArbitrageValidator.QuoteArbitrageValidator() -> void
+Boutquin.OptionPricing.Calibration.Smile.QuoteArbitrageValidator.Validate(Boutquin.OptionPricing.Calibration.Smile.SmileSlice! slice) -> Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult!
+Boutquin.OptionPricing.Calibration.Smile.QuoteArbitrageValidator.Validate(Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface! surface) -> Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult!
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.<Clone>$() -> Boutquin.OptionPricing.Calibration.Smile.SmileSlice!
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.Deconstruct(out double MaturityInYears, out System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Calibration.Smile.SurfacePoint!>! Points) -> void
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.Equals(Boutquin.OptionPricing.Calibration.Smile.SmileSlice? other) -> bool
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.MaturityInYears.get -> double
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.MaturityInYears.init -> void
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.Points.get -> System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Calibration.Smile.SurfacePoint!>!
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.Points.init -> void
+Boutquin.OptionPricing.Calibration.Smile.SmileSlice.SmileSlice(double MaturityInYears, System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Calibration.Smile.SurfacePoint!>! Points) -> void
+Boutquin.OptionPricing.Calibration.Smile.SmileSliceBuilder
+Boutquin.OptionPricing.Calibration.Smile.SmileSliceBuilder.Build(double maturityInYears, System.Collections.Generic.IEnumerable<Boutquin.OptionPricing.Calibration.Smile.SurfacePoint!>! points) -> Boutquin.OptionPricing.Calibration.Smile.SmileSlice!
+Boutquin.OptionPricing.Calibration.Smile.SmileSliceBuilder.SmileSliceBuilder() -> void
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.<Clone>$() -> Boutquin.OptionPricing.Calibration.Smile.SurfacePoint!
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.Deconstruct(out double MaturityInYears, out decimal Strike, out double ImpliedVolatility) -> void
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.Equals(Boutquin.OptionPricing.Calibration.Smile.SurfacePoint? other) -> bool
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.ImpliedVolatility.get -> double
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.ImpliedVolatility.init -> void
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.MaturityInYears.get -> double
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.MaturityInYears.init -> void
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.Strike.get -> decimal
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.Strike.init -> void
+Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.SurfacePoint(double MaturityInYears, decimal Strike, double ImpliedVolatility) -> void
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.<Clone>$() -> Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface!
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.Deconstruct(out System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Calibration.Smile.SmileSlice!>! Slices) -> void
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.Equals(Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface? other) -> bool
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.GetVol(decimal strike, double maturityInYears) -> double
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.GetVol(decimal strike, System.DateOnly valuationDate, System.DateOnly expiryDate, Boutquin.MarketData.DayCount.IYearFractionCalculator! dayCount) -> double
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.Slices.get -> System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Calibration.Smile.SmileSlice!>!
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.Slices.init -> void
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.VolatilitySurface(System.Collections.Generic.IReadOnlyList<Boutquin.OptionPricing.Calibration.Smile.SmileSlice!>! Slices) -> void
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurfaceBuilder
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurfaceBuilder.Build(System.Collections.Generic.IEnumerable<Boutquin.OptionPricing.Calibration.Smile.SurfacePoint!>! points) -> Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface!
+Boutquin.OptionPricing.Calibration.Smile.VolatilitySurfaceBuilder.VolatilitySurfaceBuilder() -> void
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.Smile.SmileSlice.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.Smile.SmileSlice.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.Smile.SmileSlice.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.ToString() -> string!
+override Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.GetHashCode() -> int
+override Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.ToString() -> string!
+static Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.operator !=(Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport? left, Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport.operator ==(Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport? left, Boutquin.OptionPricing.Calibration.ImpliedTrees.CalibrationReport? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.operator !=(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult? left, Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult.operator ==(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult? left, Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.operator !=(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput? left, Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput.operator ==(Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput? left, Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedVolatilityTreeCalibrationInput? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.operator !=(Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest? left, Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest.operator ==(Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest? left, Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityRequest? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.operator !=(Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult? left, Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult? right) -> bool
+static Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult.operator ==(Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult? left, Boutquin.OptionPricing.Calibration.ImpliedVolatility.ImpliedVolatilityResult? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.operator !=(Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult? left, Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult.operator ==(Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult? left, Boutquin.OptionPricing.Calibration.Smile.ArbitrageCheckResult? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.SmileSlice.operator !=(Boutquin.OptionPricing.Calibration.Smile.SmileSlice? left, Boutquin.OptionPricing.Calibration.Smile.SmileSlice? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.SmileSlice.operator ==(Boutquin.OptionPricing.Calibration.Smile.SmileSlice? left, Boutquin.OptionPricing.Calibration.Smile.SmileSlice? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.operator !=(Boutquin.OptionPricing.Calibration.Smile.SurfacePoint? left, Boutquin.OptionPricing.Calibration.Smile.SurfacePoint? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.SurfacePoint.operator ==(Boutquin.OptionPricing.Calibration.Smile.SurfacePoint? left, Boutquin.OptionPricing.Calibration.Smile.SurfacePoint? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.operator !=(Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface? left, Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface? right) -> bool
+static Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface.operator ==(Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface? left, Boutquin.OptionPricing.Calibration.Smile.VolatilitySurface? right) -> bool

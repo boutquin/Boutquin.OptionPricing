@@ -1,0 +1,64 @@
+#nullable enable
+Boutquin.OptionPricing.Analytics.BlackScholes.BlackScholesGreeks
+Boutquin.OptionPricing.Analytics.BlackScholes.BlackScholesGreeks.BlackScholesGreeks() -> void
+Boutquin.OptionPricing.Analytics.BlackScholes.BlackScholesGreeks.CalculateGreeks(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market) -> Boutquin.OptionPricing.Domain.Results.GreekSet!
+Boutquin.OptionPricing.Analytics.BlackScholes.BlackScholesPricer
+Boutquin.OptionPricing.Analytics.BlackScholes.BlackScholesPricer.BlackScholesPricer() -> void
+Boutquin.OptionPricing.Analytics.BlackScholes.BlackScholesPricer.Price(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Analytics.BlackScholes.MertonDiscreteDividendPricer
+Boutquin.OptionPricing.Analytics.BlackScholes.MertonDiscreteDividendPricer.MertonDiscreteDividendPricer(Boutquin.OptionPricing.Domain.Market.DividendSchedule! schedule) -> void
+Boutquin.OptionPricing.Analytics.BlackScholes.MertonDiscreteDividendPricer.Price(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.<Clone>$() -> Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.Deconstruct(out Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! Option, out Boutquin.OptionPricing.Domain.Market.OptionMarketData! InitialMarket, out System.Collections.Generic.IReadOnlyList<decimal>! PathSpots) -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.DeltaHedgeSimulationRequest(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! Option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! InitialMarket, System.Collections.Generic.IReadOnlyList<decimal>! PathSpots) -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.Equals(Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest? other) -> bool
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.InitialMarket.get -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.InitialMarket.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.Option.get -> Boutquin.OptionPricing.Domain.Contracts.EuropeanOption!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.Option.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.PathSpots.get -> System.Collections.Generic.IReadOnlyList<decimal>!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.PathSpots.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.<Clone>$() -> Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.Deconstruct(out decimal StartingOptionPrice, out System.Collections.Generic.IReadOnlyList<double>! Deltas, out System.Collections.Generic.IReadOnlyList<decimal>! Spots, out decimal OptionPayoff, out decimal FinalPortfolioValue, out decimal HedgingError) -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.DeltaHedgeSimulationResult(decimal StartingOptionPrice, System.Collections.Generic.IReadOnlyList<double>! Deltas, System.Collections.Generic.IReadOnlyList<decimal>! Spots, decimal OptionPayoff, decimal FinalPortfolioValue, decimal HedgingError) -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.Deltas.get -> System.Collections.Generic.IReadOnlyList<double>!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.Deltas.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.Equals(Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult? other) -> bool
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.FinalPortfolioValue.get -> decimal
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.FinalPortfolioValue.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.HedgingError.get -> decimal
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.HedgingError.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.OptionPayoff.get -> decimal
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.OptionPayoff.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.Spots.get -> System.Collections.Generic.IReadOnlyList<decimal>!
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.Spots.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.StartingOptionPrice.get -> decimal
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.StartingOptionPrice.init -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulator
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulator.DeltaHedgeSimulator() -> void
+Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulator.Simulate(Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest! request) -> Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult!
+Boutquin.OptionPricing.Analytics.Parity.PutCallParity
+Boutquin.OptionPricing.Analytics.Parity.RiskNeutralValuation
+Boutquin.OptionPricing.Analytics.StochasticVolatility.SimpleHestonMcPricer
+Boutquin.OptionPricing.Analytics.StochasticVolatility.SimpleHestonMcPricer.Price(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Analytics.StochasticVolatility.SimpleHestonMcPricer.SimpleHestonMcPricer(Boutquin.OptionPricing.Domain.Market.HestonParameters! parameters, int paths, int steps, Boutquin.Numerics.Random.IRandomSource! rng) -> void
+override Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.GetHashCode() -> int
+override Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.ToString() -> string!
+override Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.GetHashCode() -> int
+override Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.ToString() -> string!
+static Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.operator !=(Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest? left, Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest? right) -> bool
+static Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest.operator ==(Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest? left, Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationRequest? right) -> bool
+static Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.operator !=(Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult? left, Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult? right) -> bool
+static Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult.operator ==(Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult? left, Boutquin.OptionPricing.Analytics.Hedging.DeltaHedgeSimulationResult? right) -> bool
+static Boutquin.OptionPricing.Analytics.Parity.PutCallParity.ImpliedCallPrice(decimal putPrice, decimal spot, decimal strike, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, System.DateOnly expiryDate) -> decimal
+static Boutquin.OptionPricing.Analytics.Parity.PutCallParity.ImpliedCallPrice(decimal putPrice, decimal spot, decimal strike, double discountFactor, double dividendDiscountFactor = 1) -> decimal
+static Boutquin.OptionPricing.Analytics.Parity.PutCallParity.ImpliedPutPrice(decimal callPrice, decimal spot, decimal strike, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, System.DateOnly expiryDate) -> decimal
+static Boutquin.OptionPricing.Analytics.Parity.PutCallParity.ImpliedPutPrice(decimal callPrice, decimal spot, decimal strike, double discountFactor, double dividendDiscountFactor = 1) -> decimal
+static Boutquin.OptionPricing.Analytics.Parity.PutCallParity.IsApproximatelySatisfied(decimal callPrice, decimal putPrice, decimal spot, decimal strike, double discountFactor, decimal tolerance, double dividendDiscountFactor = 1) -> bool
+static Boutquin.OptionPricing.Analytics.Parity.RiskNeutralValuation.ForwardPrice(Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, System.DateOnly expiryDate) -> double
+static Boutquin.OptionPricing.Analytics.Parity.RiskNeutralValuation.ForwardPrice(double spot, double discountFactor, double dividendDiscountFactor = 1, double borrowDiscountFactor = 1) -> double

@@ -6,4 +6,7 @@
     <AssemblyName>Boutquin.OptionPricing.Abstractions</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

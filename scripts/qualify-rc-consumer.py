@@ -82,6 +82,11 @@ def prepare(consumer, version, commit):
     ids = set()
     for project in [*projects, *app_projects]:
         tree = ET.parse(project)
+        if project in app_projects:
+            for group in tree.findall("PropertyGroup"):
+                for item in list(group):
+                    if item.tag in ("TargetFramework", "TargetFrameworks"):
+                        group.remove(item)
         for reference in tree.findall(".//ProjectReference"):
             name = Path(reference.get("Include").replace("\\", "/")).stem
             require(name in IDS, f"Unknown production reference: {name}")
@@ -154,18 +159,21 @@ def write_identity_probe(consumer, expected):
     for name, value in (("OutputType", "Exe"), ("IsPackable", "false")):
         ET.SubElement(props, name).text = value
     group = ET.SubElement(project, "ItemGroup")
-    runtime = []
+    runtime = {framework: [] for framework in ("net10.0", "net11.0")}
     for name, package in expected.items():
         ET.SubElement(group, "PackageReference", Include=name, VersionOverride=f"[{package['version']}]")
         with zipfile.ZipFile(package["archive"]) as zipped:
-            dll = f"lib/net10.0/{name}.dll"
-            if dll not in zipped.namelist():
-                require(name == "Boutquin.Storage.SourceGenerator", f"Unexpected qualified runtime layout: {name}")
-                continue
-            core = package["version"].split("-")[0]
-            runtime.append(dict(id=name, informationalVersion=package["version"] + "+" + package["sourceCommit"],
-                assemblyVersion=core.split(".")[0] + ".0.0.0", fileVersion=core + ".0",
-                dllSha256=hashlib.sha256(zipped.read(dll)).hexdigest()))
+            for framework in runtime:
+                dll = f"lib/{framework}/{name}.dll"
+                if dll not in zipped.namelist():
+                    dll = f"lib/net10.0/{name}.dll"
+                if dll not in zipped.namelist():
+                    require(name == "Boutquin.Storage.SourceGenerator", f"Unexpected qualified runtime layout: {name}")
+                    continue
+                core = package["version"].split("-")[0]
+                runtime[framework].append(dict(id=name, informationalVersion=package["version"] + "+" + package["sourceCommit"],
+                    assemblyVersion=core.split(".")[0] + ".0.0.0", fileVersion=core + ".0",
+                    dllSha256=hashlib.sha256(zipped.read(dll)).hexdigest()))
     ET.SubElement(group, "None", Include="runtime-identities.json", CopyToOutputDirectory="PreserveNewest")
     ET.ElementTree(project).write(directory / "IdentityProbe.csproj", encoding="unicode")
     (directory / "runtime-identities.json").write_text(json.dumps(runtime, indent=2) + "\n")
@@ -175,7 +183,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "runtime-identities.json")));
 var results = new List<object>();
-foreach (var package in document.RootElement.EnumerateArray())
+foreach (var package in document.RootElement.GetProperty("net" + Environment.Version.Major + ".0").EnumerateArray())
 {
     var name = package.GetProperty("id").GetString()!;
     var assembly = Assembly.Load(name);
@@ -192,11 +200,12 @@ foreach (var package in document.RootElement.EnumerateArray())
 }
 Console.WriteLine(JsonSerializer.Serialize(results));
 ''')
-    return directory / "IdentityProbe.csproj", len(runtime)
+    return directory / "IdentityProbe.csproj", len(runtime["net10.0"])
 
 
 def write_config(consumer, feed, locked):
     config = ET.Element("configuration")
+    ET.SubElement(ET.SubElement(config, "fallbackPackageFolders"), "clear")
     sources = ET.SubElement(config, "packageSources")
     ET.SubElement(sources, "clear")
     for key, value in (("candidate", str(feed)),
@@ -257,6 +266,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("feed", "inspection", "manifest", "work", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--test-host", help="Optional dotnet host containing both target runtimes")
     args = parser.parse_args()
     feed, work, output = args.feed.resolve(), args.work.resolve(), args.output.resolve()
     inspection = json.loads(args.inspection.read_text())
@@ -291,34 +301,42 @@ def main():
     resolved = verify_restore(consumer, cache, expected)
     run(["dotnet", "restore", SOLUTION, "--configfile", "nuget.config", "--no-http-cache", "--locked-mode", "-p:_WorkloadLibraryPacksFolder=" + str(work / "absent-sdk-feed")], consumer, output / "locked-restore.log", env)
     run(["dotnet", "build", SOLUTION, "-c", "Release", "--no-restore", "--disable-build-servers", "-m:1", "-p:UseSharedCompilation=false"], consumer, output / "build.log", env)
-    run(["dotnet", "test", SOLUTION, "-c", "Release", "--no-restore", "--no-build", "--logger", "trx", "--results-directory", str(output / "trx")], consumer, output / "tests.log", env)
-    run(["dotnet", "run", "--project", str(probe), "-c", "Release", "--no-build", "--no-restore"], consumer, output / "runtime-identities.json", env)
-    run(["python3", str(ROOT / "scripts/verify-dependency-identities.py"), "--packages", str(cache), "--outputs", str(consumer), "--report", str(output / "dependency-identities.json")], ROOT, output / "dependency-identities.txt", env)
-    identities = json.loads((output / "runtime-identities.json").read_text())
-    require(len(identities) == runtime_count, "Not every runtime package loaded")
+    counters = []
+    identities = {}
     offline = []
-    for example, marker in (("01", "Bootstrapped-curve BS price:"), ("02", "Term-structure rho:"),
-                            ("03", "FromCurveGroup factory price:"), ("04", "Borrow impact:"),
-                            ("05", "Diagnostic-gated BS price:")):
-        path = output / f"example-{example}.log"
-        run_offline(["dotnet", "run", "--project", f"consumer-apps/{EXAMPLES}/{EXAMPLES}.csproj",
-                     "-c", "Release", "--no-build", "--no-restore", "--", "--example", example], consumer, path, env)
-        text = path.read_text()
-        require(marker in text and not re.search(r"BLOCKED|SKIPPED|NaN|Infinity|Error:", text), f"Offline example {example} did not price successfully")
-        offline.append(example)
-    chapter = APPS[1]
-    run_offline(["dotnet", "run", "--project", f"consumer-apps/{chapter}/{chapter}.csproj", "-c", "Release",
-                 "--no-build", "--no-restore", "--", "--chapter", "8"], consumer, output / "chapter-8.log", env)
-    chapter_text = (output / "chapter-8.log").read_text()
-    require("Implied volatility recovery" in chapter_text and "Smile slice construction" in chapter_text
-            and not re.search(r"BLOCKED|SKIPPED|NaN|Infinity|Error:", chapter_text), "Chapter 8 failed")
-    for index in (0, 1):
-        run_offline(["dotnet", "run", "--project", str(readme_projects[index]), "-c", "Release", "--no-build", "--no-restore"], consumer, output / f"readme-example-{index}.log", env)
-    require(re.search(r"Call price:\s*\S*[0-9]", (output / "readme-example-0.log").read_text()), "README flat-curve example did not price")
+    for framework in ("net10.0", "net11.0"):
+        test = ["dotnet", "test", SOLUTION, "-c", "Release", "--framework", framework, "--no-restore", "--no-build", "--logger", "trx", "--results-directory", str(output / "trx" / framework)]
+        if args.test_host:
+            test += ["--", "RunConfiguration.DotNetHostPath=" + str(Path(args.test_host).resolve())]
+        run(test, consumer, output / f"tests-{framework}.log", env)
+        counters.extend(dict(framework=framework, **item) for item in test_counters(output / "trx" / framework, projects))
+        identity_path = output / f"runtime-identities-{framework}.json"
+        run(["dotnet", "run", "--project", str(probe), "-c", "Release", "--framework", framework, "--no-build", "--no-restore"], consumer, identity_path, env)
+        identities[framework] = json.loads(identity_path.read_text())
+        require(len(identities[framework]) == runtime_count, "Not every runtime package loaded: " + framework)
+        for example, marker in (("01", "Bootstrapped-curve BS price:"), ("02", "Term-structure rho:"),
+                                ("03", "FromCurveGroup factory price:"), ("04", "Borrow impact:"),
+                                ("05", "Diagnostic-gated BS price:")):
+            path = output / f"example-{example}-{framework}.log"
+            run_offline(["dotnet", "run", "--project", f"consumer-apps/{EXAMPLES}/{EXAMPLES}.csproj",
+                         "-c", "Release", "--framework", framework, "--no-build", "--no-restore", "--", "--example", example], consumer, path, env)
+            text = path.read_text()
+            require(marker in text and not re.search(r"BLOCKED|SKIPPED|NaN|Infinity|Error:", text), f"Offline example {example} did not price successfully: {framework}")
+            offline.append(dict(example=example, framework=framework))
+        chapter = APPS[1]
+        chapter_path = output / f"chapter-8-{framework}.log"
+        run_offline(["dotnet", "run", "--project", f"consumer-apps/{chapter}/{chapter}.csproj", "-c", "Release",
+                     "--framework", framework, "--no-build", "--no-restore", "--", "--chapter", "8"], consumer, chapter_path, env)
+        chapter_text = chapter_path.read_text()
+        require("Implied volatility recovery" in chapter_text and "Smile slice construction" in chapter_text
+                and not re.search(r"BLOCKED|SKIPPED|NaN|Infinity|Error:", chapter_text), "Chapter 8 failed: " + framework)
+        for index in (0, 1):
+            run_offline(["dotnet", "run", "--project", str(readme_projects[index]), "-c", "Release", "--framework", framework, "--no-build", "--no-restore"], consumer, output / f"readme-example-{index}-{framework}.log", env)
+        require(re.search(r"Call price:\s*\S*[0-9]", (output / f"readme-example-0-{framework}.log").read_text()), "README flat-curve example did not price: " + framework)
+    run(["python3", str(ROOT / "scripts/verify-dependency-identities.py"), "--packages", str(cache), "--outputs", str(consumer), "--report", str(output / "dependency-identities.json")], ROOT, output / "dependency-identities.txt", env)
     verify_restore(consumer, cache, expected)
     verify_hashes(feed, manifest["sha256"])
     require(json.loads(args.manifest.read_text()) == manifest, "Manifest changed during qualification")
-    counters = test_counters(output / "trx", projects)
     for lock in consumer.rglob("packages.lock.json"):
         target = output / "locks" / lock.relative_to(consumer)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -329,8 +347,8 @@ def main():
         publicDomain={"version": expected["Boutquin.Domain"]["version"], "source": expected["Boutquin.Domain"]["packageSource"],
             "contentHash": expected["Boutquin.Domain"]["contentHash"],
             "sha256": hashlib.sha256(expected["Boutquin.Domain"]["archive"].read_bytes()).hexdigest(),
-            "policy": "Published foundational 1.0 package; outside the 2.0 runtime assembly inventory"},
-        copiedExampleProjectReferences=0, offlineExamples=offline, offlineChapters=[8],
+            "policy": "Published foundational package; identity verified for both framework consumers"},
+        copiedExampleProjectReferences=0, offlineExamples=offline, offlineChapters=[8], frameworks=["net10.0", "net11.0"],
         offlineNetworkPolicy="sandbox-exec deny network",
         readmeExamples={"fixture": "executed", "flatCurve": "executed", "network": "compiled"})
     with (output / "report.json").open("x") as stream:

@@ -1,0 +1,13 @@
+#nullable enable
+Boutquin.OptionPricing.Abstractions.ICalculationResult
+Boutquin.OptionPricing.Abstractions.ICalculationResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Abstractions.ICalibrator<TInput, TResult>
+Boutquin.OptionPricing.Abstractions.ICalibrator<TInput, TResult>.Calibrate(TInput input) -> TResult
+Boutquin.OptionPricing.Abstractions.IContextualOptionPricer<TOption, TMarket, TContext, TResult>
+Boutquin.OptionPricing.Abstractions.IContextualOptionPricer<TOption, TMarket, TContext, TResult>.Price(TOption option, TMarket market, TContext context) -> TResult
+Boutquin.OptionPricing.Abstractions.IDiagnosticSource
+Boutquin.OptionPricing.Abstractions.IDiagnosticSource.GetDiagnostics() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+Boutquin.OptionPricing.Abstractions.IGreekProvider<TOption, TMarket, TResult>
+Boutquin.OptionPricing.Abstractions.IGreekProvider<TOption, TMarket, TResult>.CalculateGreeks(TOption option, TMarket market) -> TResult
+Boutquin.OptionPricing.Abstractions.IOptionPricer<TOption, TMarket, TResult>
+Boutquin.OptionPricing.Abstractions.IOptionPricer<TOption, TMarket, TResult>.Price(TOption option, TMarket market) -> TResult

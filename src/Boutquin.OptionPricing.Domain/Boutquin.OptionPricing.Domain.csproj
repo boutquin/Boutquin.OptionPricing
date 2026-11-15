@@ -13,4 +13,7 @@
     <PackageReference Include="Boutquin.MarketData.Abstractions" />
     <PackageReference Include="Boutquin.MarketData.Storage" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

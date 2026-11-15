@@ -1,0 +1,121 @@
+#nullable enable
+Boutquin.OptionPricing.Trees.Binomial.ArrowDebreuStatePriceCalculator
+Boutquin.OptionPricing.Trees.Binomial.ArrowDebreuStatePriceCalculator.ArrowDebreuStatePriceCalculator() -> void
+Boutquin.OptionPricing.Trees.Binomial.ArrowDebreuStatePriceCalculator.CalculateTerminalStatePrices(Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree, double rate) -> System.Collections.Generic.IReadOnlyList<double>!
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.<Clone>$() -> Boutquin.OptionPricing.Trees.Binomial.BinomialTree!
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.BinomialTree(int Steps, double DeltaTime, double UpFactor, double DownFactor, double RiskNeutralProbability, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! SpotLattice) -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.Deconstruct(out int Steps, out double DeltaTime, out double UpFactor, out double DownFactor, out double RiskNeutralProbability, out System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! SpotLattice) -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.DeltaTime.get -> double
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.DeltaTime.init -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.DownFactor.get -> double
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.DownFactor.init -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.Equals(Boutquin.OptionPricing.Trees.Binomial.BinomialTree? other) -> bool
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.ProbabilityLattice.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>?
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.ProbabilityLattice.init -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.RiskFreeRate.get -> double?
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.RiskFreeRate.init -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.RiskNeutralProbability.get -> double
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.RiskNeutralProbability.init -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.SpotLattice.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>!
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.SpotLattice.init -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.Steps.get -> int
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.Steps.init -> void
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.TerminalSpots.get -> System.Collections.Generic.IReadOnlyList<double>!
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.UpFactor.get -> double
+Boutquin.OptionPricing.Trees.Binomial.BinomialTree.UpFactor.init -> void
+Boutquin.OptionPricing.Trees.Binomial.CoxRossRubinsteinTreeBuilder
+Boutquin.OptionPricing.Trees.Binomial.CoxRossRubinsteinTreeBuilder.Build(Boutquin.OptionPricing.Trees.Binomial.TreeModelInput! input) -> Boutquin.OptionPricing.Trees.Binomial.BinomialTree!
+Boutquin.OptionPricing.Trees.Binomial.CoxRossRubinsteinTreeBuilder.CoxRossRubinsteinTreeBuilder() -> void
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.<Clone>$() -> Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult!
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.Boundaries.get -> System.Collections.Generic.IReadOnlyList<(int Step, int LowestExerciseIndex)>!
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.Boundaries.init -> void
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.Deconstruct(out System.Collections.Generic.IReadOnlyList<(int Step, int LowestExerciseIndex)>! Boundaries) -> void
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.Equals(Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult? other) -> bool
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.ExerciseBoundaryResult(System.Collections.Generic.IReadOnlyList<(int Step, int LowestExerciseIndex)>! Boundaries) -> void
+Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Trees.Binomial.FlexibleBinomialTreeBuilder
+Boutquin.OptionPricing.Trees.Binomial.FlexibleBinomialTreeBuilder.Build(Boutquin.OptionPricing.Trees.Binomial.TreeModelInput! input) -> Boutquin.OptionPricing.Trees.Binomial.BinomialTree!
+Boutquin.OptionPricing.Trees.Binomial.FlexibleBinomialTreeBuilder.FlexibleBinomialTreeBuilder(Boutquin.OptionPricing.Trees.Binomial.TreeParameterization parameterization = Boutquin.OptionPricing.Trees.Binomial.TreeParameterization.CoxRossRubinstein) -> void
+Boutquin.OptionPricing.Trees.Binomial.ITreeBuilder
+Boutquin.OptionPricing.Trees.Binomial.ITreeBuilder.Build(Boutquin.OptionPricing.Trees.Binomial.TreeModelInput! input) -> Boutquin.OptionPricing.Trees.Binomial.BinomialTree!
+Boutquin.OptionPricing.Trees.Binomial.JarrowRuddTreeBuilder
+Boutquin.OptionPricing.Trees.Binomial.JarrowRuddTreeBuilder.Build(Boutquin.OptionPricing.Trees.Binomial.TreeModelInput! input) -> Boutquin.OptionPricing.Trees.Binomial.BinomialTree!
+Boutquin.OptionPricing.Trees.Binomial.JarrowRuddTreeBuilder.JarrowRuddTreeBuilder() -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeBuilderLimits
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.<Clone>$() -> Boutquin.OptionPricing.Trees.Binomial.TreeModelInput!
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.BorrowCurve.get -> Boutquin.Curves.Abstractions.Curves.IDiscountCurve?
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.BorrowCurve.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.BorrowRate() -> double
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Deconstruct(out decimal Spot, out decimal Strike, out System.DateOnly ValuationDate, out System.DateOnly ExpiryDate, out Boutquin.Curves.Abstractions.Curves.IDiscountCurve! DiscountCurve, out double Volatility, out int Steps, out Boutquin.Curves.Abstractions.Curves.IDiscountCurve? DividendCurve, out Boutquin.Curves.Abstractions.Curves.IDiscountCurve? BorrowCurve) -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.DiscountCurve.get -> Boutquin.Curves.Abstractions.Curves.IDiscountCurve!
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.DiscountCurve.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.DividendCurve.get -> Boutquin.Curves.Abstractions.Curves.IDiscountCurve?
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.DividendCurve.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.DividendYield() -> double
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Equals(Boutquin.OptionPricing.Trees.Binomial.TreeModelInput? other) -> bool
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.ExpiryDate.get -> System.DateOnly
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.ExpiryDate.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.RiskFreeRate() -> double
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Spot.get -> decimal
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Spot.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Steps.get -> int
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Steps.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Strike.get -> decimal
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Strike.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.TimeToExpiryInYears() -> double
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.TreeModelInput(decimal Spot, decimal Strike, System.DateOnly ValuationDate, System.DateOnly ExpiryDate, Boutquin.Curves.Abstractions.Curves.IDiscountCurve! DiscountCurve, double Volatility, int Steps, Boutquin.Curves.Abstractions.Curves.IDiscountCurve? DividendCurve = null, Boutquin.Curves.Abstractions.Curves.IDiscountCurve? BorrowCurve = null) -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.ValuationDate.get -> System.DateOnly
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.ValuationDate.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Volatility.get -> double
+Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Volatility.init -> void
+Boutquin.OptionPricing.Trees.Binomial.TreeParameterization
+Boutquin.OptionPricing.Trees.Binomial.TreeParameterization.CoxRossRubinstein = 1 -> Boutquin.OptionPricing.Trees.Binomial.TreeParameterization
+Boutquin.OptionPricing.Trees.Binomial.TreeParameterization.JarrowRudd = 2 -> Boutquin.OptionPricing.Trees.Binomial.TreeParameterization
+Boutquin.OptionPricing.Trees.Pricing.AmericanTreePricer
+Boutquin.OptionPricing.Trees.Pricing.AmericanTreePricer.AmericanTreePricer() -> void
+Boutquin.OptionPricing.Trees.Pricing.AmericanTreePricer.ComputeExerciseBoundary(Boutquin.OptionPricing.Domain.Contracts.AmericanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree) -> Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult!
+Boutquin.OptionPricing.Trees.Pricing.AmericanTreePricer.Price(Boutquin.OptionPricing.Domain.Contracts.AmericanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Trees.Pricing.AmericanTreePricer.PriceWithLattice(Boutquin.OptionPricing.Domain.Contracts.AmericanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree) -> Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult!
+Boutquin.OptionPricing.Trees.Pricing.EuropeanTreePricer
+Boutquin.OptionPricing.Trees.Pricing.EuropeanTreePricer.EuropeanTreePricer() -> void
+Boutquin.OptionPricing.Trees.Pricing.EuropeanTreePricer.Price(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Trees.Pricing.EuropeanTreePricer.PriceWithLattice(Boutquin.OptionPricing.Domain.Contracts.EuropeanOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree) -> Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult!
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.<Clone>$() -> Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult!
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.Deconstruct(out Boutquin.OptionPricing.Trees.Binomial.BinomialTree! Tree, out System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! ValueLattice) -> void
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.Equals(Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult? other) -> bool
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.IsSuccess.get -> bool
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.LatticeValuationResult(Boutquin.OptionPricing.Trees.Binomial.BinomialTree! Tree, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>! ValueLattice) -> void
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.RootValue.get -> double
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.Tree.get -> Boutquin.OptionPricing.Trees.Binomial.BinomialTree!
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.Tree.init -> void
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.ValueLattice.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<double>!>!
+Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.ValueLattice.init -> void
+Boutquin.OptionPricing.Trees.Pricing.TreeGreeksCalculator
+Boutquin.OptionPricing.Trees.Pricing.TreeGreeksCalculator.Compute(Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult! valuedLattice) -> Boutquin.OptionPricing.Domain.Results.GreekSet!
+Boutquin.OptionPricing.Trees.Pricing.TreeGreeksCalculator.TreeGreeksCalculator() -> void
+const Boutquin.OptionPricing.Trees.Binomial.TreeBuilderLimits.MaxSteps = 10000 -> int
+override Boutquin.OptionPricing.Trees.Binomial.BinomialTree.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Trees.Binomial.BinomialTree.GetHashCode() -> int
+override Boutquin.OptionPricing.Trees.Binomial.BinomialTree.ToString() -> string!
+override Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.GetHashCode() -> int
+override Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.ToString() -> string!
+override Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.GetHashCode() -> int
+override Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.ToString() -> string!
+override Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.Equals(object? obj) -> bool
+override Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.GetHashCode() -> int
+override Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.ToString() -> string!
+static Boutquin.OptionPricing.Trees.Binomial.BinomialTree.operator !=(Boutquin.OptionPricing.Trees.Binomial.BinomialTree? left, Boutquin.OptionPricing.Trees.Binomial.BinomialTree? right) -> bool
+static Boutquin.OptionPricing.Trees.Binomial.BinomialTree.operator ==(Boutquin.OptionPricing.Trees.Binomial.BinomialTree? left, Boutquin.OptionPricing.Trees.Binomial.BinomialTree? right) -> bool
+static Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.operator !=(Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult? left, Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult? right) -> bool
+static Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult.operator ==(Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult? left, Boutquin.OptionPricing.Trees.Binomial.ExerciseBoundaryResult? right) -> bool
+static Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.FromMarketData(Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, decimal strike, System.DateOnly expiryDate, int steps) -> Boutquin.OptionPricing.Trees.Binomial.TreeModelInput!
+static Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.operator !=(Boutquin.OptionPricing.Trees.Binomial.TreeModelInput? left, Boutquin.OptionPricing.Trees.Binomial.TreeModelInput? right) -> bool
+static Boutquin.OptionPricing.Trees.Binomial.TreeModelInput.operator ==(Boutquin.OptionPricing.Trees.Binomial.TreeModelInput? left, Boutquin.OptionPricing.Trees.Binomial.TreeModelInput? right) -> bool
+static Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.operator !=(Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult? left, Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult? right) -> bool
+static Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult.operator ==(Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult? left, Boutquin.OptionPricing.Trees.Pricing.LatticeValuationResult? right) -> bool

@@ -15,4 +15,7 @@
   <ItemGroup>
     <PackageReference Include="Boutquin.Numerics" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       qualification_version:
-        description: Exact 2.0.0 stable or numeric RC version to verify without publication
+        description: Exact stable or numeric RC version to verify without publication
         required: false
         type: string
       source_ref:
@@ -35,7 +35,7 @@ jobs:
       - name: Validate qualification version
         run: |
           if [[ -n "$MinVerVersionOverride" ]]; then
-            [[ "$MinVerVersionOverride" =~ ^2\.0\.0(-rc\.[0-9]+(\.[0-9]+)*)?$ ]]
+            [[ "$MinVerVersionOverride" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[0-9]+(\.[0-9]+)*)?$ ]]
           fi
 
       - name: Enable long paths for preserved private evidence on Windows

@@ -18,8 +18,9 @@ def main():
     parser.add_argument('--source', required=True)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--version', required=True, help='Never previously accepted stable or numeric RC version')
+    parser.add_argument('--test-host', help='Optional dotnet host containing both target runtimes')
     args = parser.parse_args()
-    if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:-rc\.[0-9]+(?:\.[0-9]+)*)?', args.version):
+    if not re.fullmatch(r'(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-rc\.[0-9]+(?:\.[0-9]+)*)?', args.version):
         parser.error('Expected an exact stable or numeric RC version')
     if not re.fullmatch('[0-9a-f]{40}', args.source):
         parser.error('source must be a full committed SHA')
@@ -51,9 +52,14 @@ def main():
     run(['dotnet', 'restore', solution, '--configfile', 'nuget.ci.config', '--no-http-cache', '--locked-mode', '-p:_WorkloadLibraryPacksFolder=' + str(output / 'absent-sdk-feed')], source)
     run(['python3', 'scripts/check-runner-dependencies.py', '--packages', str(cache)], source)
     run(['dotnet', 'build', solution, '-c', 'Release', '--no-restore', '--no-incremental', '--disable-build-servers', '-m:1', '-p:UseSharedCompilation=false', '-p:GeneratePackageOnBuild=false', '-p:MinVerVersionOverride=' + version], source)
-    run(['dotnet', 'test', solution, '-c', 'Release', '--no-build', '--no-restore', '--logger', 'trx', '--results-directory', str(output / 'source-trx')], source)
     tests = runpy.run_path(str(source / 'scripts/qualify-rc-consumer.py'))
-    tests['test_counters'](output / 'source-trx', list((source / 'tests').rglob('*.csproj')))
+    for framework in ('net10.0', 'net11.0'):
+        results = output / 'source-trx' / framework
+        test = ['dotnet', 'test', solution, '-c', 'Release', '--framework', framework, '--no-build', '--no-restore', '--logger', 'trx', '--results-directory', str(results)]
+        if args.test_host:
+            test += ['--', 'RunConfiguration.DotNetHostPath=' + str(Path(args.test_host).resolve())]
+        run(test, source)
+        tests['test_counters'](results, list((source / 'tests').rglob('*.csproj')))
     run(['dotnet', 'format', solution, '--no-restore', '--verify-no-changes'], source)
     run(['python3', 'scripts/verify-dependency-identities.py', '--packages', str(cache), '--outputs', str(source), '--report', str(output / 'dependency-identities.json')], source)
     for name in IDS:
