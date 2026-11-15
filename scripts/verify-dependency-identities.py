@@ -13,8 +13,8 @@ INSPECTOR = ROOT / 'scripts/package-inspector/bin/Release/net10.0/PackageInspect
 
 
 def packaged_dlls(archive, item):
-    """Runtime assemblies the package ships for the net10.0 target."""
-    return [n for n in archive.namelist() if n.startswith('lib/net10.0/') and n.endswith('.dll')]
+    """Runtime assemblies the package ships for either supported target."""
+    return [n for n in archive.namelist() if n.startswith(('lib/net10.0/', 'lib/net11.0/')) and n.endswith('.dll')]
 
 
 def verify(cache, outputs):
@@ -36,17 +36,22 @@ def verify(cache, outputs):
                         ['dotnet', str(INSPECTOR), '--assembly-only', str(extracted), item['version'], item['sourceCommit']],
                         text=True))
                     digest = hashlib.sha256(content).hexdigest()
-                    hashes[extracted.name] = digest
+                    framework = name.split('/')[1]
+                    hashes[(extracted.name, framework)] = digest
                     identities.append({**identity, 'package': item['id'], 'version': item['version'],
-                                       'sha256': digest, 'archiveEntry': name})
+                                       'sha256': digest, 'archiveEntry': name, 'framework': framework})
     copies = []
     for path in outputs.rglob('Boutquin.*.dll'):
         relative = path.relative_to(outputs)
         if 'bin' not in relative.parts or 'Release' not in relative.parts or 'artifacts' in relative.parts or 'obj' in relative.parts:
             continue
-        if path.name not in hashes:
+        if not any(name == path.name for name, _ in hashes):
             continue  # This repository's own assemblies.
-        if hashlib.sha256(path.read_bytes()).hexdigest() != hashes[path.name]:
+        framework = next((part for part in relative.parts if part in ('net10.0', 'net11.0')), None)
+        if framework is None:
+            raise ValueError('Unknown runtime target: ' + str(relative))
+        expected = hashes.get((path.name, framework), hashes.get((path.name, 'net10.0')))
+        if expected is None or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             raise ValueError('Runtime copy differs from the packaged DLL: ' + str(relative))
         copies.append(str(relative))
     if not identities or not copies:

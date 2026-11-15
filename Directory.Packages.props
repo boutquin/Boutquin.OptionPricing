@@ -9,19 +9,19 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="Boutquin.Domain" Version="[1.0.1]" />
     <PackageVersion Include="Boutquin.Numerics" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.Curves.Abstractions" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.Curves.Core" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.Curves.Bootstrap" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.Curves.Conventions" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.Curves.Interpolation" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.Curves.Recipes" Version="[2.0.0]" />
-    <PackageVersion Include="Boutquin.MarketData.Abstractions" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.Calendars" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.Storage" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.Conventions" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="[2.0.1]" />
-    <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="[2.0.1]" />
+    <PackageVersion Include="Boutquin.Curves.Abstractions" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Core" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Bootstrap" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Conventions" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Interpolation" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.Curves.Recipes" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.Abstractions" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.Calendars" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.Storage" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.Conventions" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.DependencyInjection" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.Adapter.NewYorkFed" Version="[3.0.0]" />
+    <PackageVersion Include="Boutquin.MarketData.Adapter.UsTreasury" Version="[3.0.0]" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="11.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="11.0.0" />

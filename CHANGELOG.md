@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Migrated the complete Curves, MarketData and adapter graph to signed 3.0.0 packages from nuget.org, retaining .NET 10 and .NET 11. Pricing algorithms and public pricing signatures are unchanged. See [migration guidance](docs/migration-3.0.md).
+
 ### Added
 
 - .NET 11 builds alongside .NET 10, with target-specific stable dependency versions and tests for both frameworks.
