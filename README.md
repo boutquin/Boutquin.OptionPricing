@@ -1,5 +1,8 @@
 # Boutquin.OptionPricing
 
+
+Current source targets .NET 10 and .NET 11 and uses the coherent Curves/MarketData/adapter 3.0.0 graph. See [migration guidance](https://github.com/boutquin/Boutquin.OptionPricing/blob/main/docs/migration-3.0.md). The published 2.0.0 installation example below describes the existing release.
+
 ## Supported target frameworks
 
 Runtime libraries target both .NET 10 and .NET 11. Build with the .NET 11 SDK selected by `global.json`; install both runtimes to run the full test suite. Compiler tooling retains its .NET Standard target. The .NET 11 target uses the latest stable third-party dependencies verified on NuGet.org on November 14, 2026; target-specific pins preserve the .NET 10 dependency contract.

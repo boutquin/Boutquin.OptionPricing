@@ -4,14 +4,14 @@
     "net10.0": {
       "Boutquin.MarketData.Adapter.NewYorkFed": {
         "type": "Direct",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "k92XiP+/4P8mrEy3iFKVCizOlR8FEriPCk6laSqnzyaantnkBu9rNXYlZEUEpLSdoZMxa/dzqFHPkz8LtwFMLg==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "BdLHf53TEhjj/2MuchU2wqdihhF1d0wmYIjQR6ZN63Pj+vzDY2CEL37hJmDidvbgeyoYfR3mr51dgaxFgTeZiQ==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
-          "Boutquin.MarketData.Adapter.Shared": "2.0.1",
-          "Boutquin.MarketData.Storage": "2.0.1",
-          "Boutquin.MarketData.Transport": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
+          "Boutquin.MarketData.Adapter.Shared": "3.0.0",
+          "Boutquin.MarketData.Storage": "3.0.0",
+          "Boutquin.MarketData.Transport": "3.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
           "Microsoft.Extensions.Options": "10.0.14"
@@ -19,14 +19,14 @@
       },
       "Boutquin.MarketData.Adapter.UsTreasury": {
         "type": "Direct",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "mNQMC8wQg6gqEJ6i9BDQ4AXa5vvXVttNbdfCdpQH2RdXXU62it8nBRnTKrUQmDq/8Q2LOWMRGpXootuLnQauhA==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "BbVIrrgLDgdpuMAVbSYtHNXIRtGJKvwttnY4K9fWFMhN2Df55NasPXR21JwqIZjQD2LssR+XehC5d9vTSo8pug==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
-          "Boutquin.MarketData.Adapter.Shared": "2.0.1",
-          "Boutquin.MarketData.Storage": "2.0.1",
-          "Boutquin.MarketData.Transport": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
+          "Boutquin.MarketData.Adapter.Shared": "3.0.0",
+          "Boutquin.MarketData.Storage": "3.0.0",
+          "Boutquin.MarketData.Transport": "3.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
           "Microsoft.Extensions.Options": "10.0.14"
@@ -34,15 +34,15 @@
       },
       "Boutquin.MarketData.DependencyInjection": {
         "type": "Direct",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "BCbTsX/4nAio7qChTe4mNHQRD3KXsgb77H+vuBtjxOGLDt9kIqI8LYozZd9t9dgSwJVqhD4byyJH5NrtTZqKnw==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "TDciiFkQ1HQXQXsVBWJlrlrWrRhKD2vuj64eQ87nYHcfvqe2A2L3AafgYAAcvV5dLjSjArcdp/dcsUNdYRlw9Q==",
         "dependencies": {
-          "Boutquin.MarketData.Cache": "2.0.1",
-          "Boutquin.MarketData.Normalization": "2.0.1",
-          "Boutquin.MarketData.Orchestration": "2.0.1",
-          "Boutquin.MarketData.Storage": "2.0.1",
-          "Boutquin.MarketData.Transport": "2.0.1",
+          "Boutquin.MarketData.Cache": "3.0.0",
+          "Boutquin.MarketData.Normalization": "3.0.0",
+          "Boutquin.MarketData.Orchestration": "3.0.0",
+          "Boutquin.MarketData.Storage": "3.0.0",
+          "Boutquin.MarketData.Transport": "3.0.0",
           "Boutquin.Storage.Infrastructure": "2.0.1",
           "Microsoft.Extensions.DependencyInjection": "10.0.14",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
@@ -102,20 +102,20 @@
       },
       "Boutquin.MarketData.Adapter.Shared": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "aIIhhqULjfuWwYqGdHVEmxtHbRDt8dnXX/fZ3YTPGZSQu87jDrU72dU+hme/EBiCWwFdMOCG1sXsluPjEJpGUw==",
+        "resolved": "3.0.0",
+        "contentHash": "FwB1adi073pFkMhivCoMNo4J5gaaYewd9AcuRIfqnfPulxS1HIj5fVtISYFXhTLiO0nKSnBH3R1WkgvrockZwQ==",
         "dependencies": {
           "Boutquin.Domain": "1.0.1",
-          "Boutquin.MarketData.Abstractions": "2.0.1",
-          "Boutquin.MarketData.Calendars": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0",
+          "Boutquin.MarketData.Calendars": "3.0.0"
         }
       },
       "Boutquin.MarketData.Cache": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "MudugLcC3IQlj5nJPbVztVb4aLiVkn/Vy9FfuWj8+0Y1u0UChBek6g+NAgyn9cYg+KokFnUppovkE7Ts+NzqKw==",
+        "resolved": "3.0.0",
+        "contentHash": "gxgVKBjUQK9FfCIM+B9NRgcAUApVfLOINxLMkAYef/3iSPhXvXnGeD6hou7AjVPisU1ns/18BEctEjx4TK9fqw==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
           "Boutquin.Storage.Infrastructure": "2.0.1",
           "Microsoft.Extensions.Caching.Memory": "10.0.14",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
@@ -124,41 +124,41 @@
       },
       "Boutquin.MarketData.Catalog": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "dFAFKGwBz1ESB7aymp6ROSqZNCcQz2Luki0T61GmiW3gqRvrLXULmiAzM3HQll/QbdkONMi1zON2ir9pBEotdw==",
+        "resolved": "3.0.0",
+        "contentHash": "ZFbI6yjfO716fZ3VTnZttuFG9qoz5ihHZyuigZv3fGJo8SyJ5elG+ar1tu6eu6Z1F4Arlx48zTJj+TMOfNlQPA==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0"
         }
       },
       "Boutquin.MarketData.DayCount": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "8dYQjF89VxfkNZ/VousFvNBDRhIPYUnxtPe33vHJpsFUKQmAjc1EGhzRPontOJJXp1Rc32izwKaIJ85SnntTcg==",
+        "resolved": "3.0.0",
+        "contentHash": "Vz/7l1X0yUU17zmDhOETftLiQrbMG3Io0dRZqj8ZPsTGkr/mifV1DrhliY1/J0F+xt+YUR2U3CPJB+1Wdatjhw==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0"
         }
       },
       "Boutquin.MarketData.Normalization": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "uxLUwuzKTe16ACoUCRxh2SXCTmYwYSyjz0APz8XPqTe6rXbhFZyjY5m9N4QaRucjfPGdAJ4TCgUp6HmQYd9DDQ==",
+        "resolved": "3.0.0",
+        "contentHash": "EkdB3AGzGliI2bIvf8XLD90piqL01NzGVf7xMyzNRMqyv6jOPLPvktcQWVjyxl0PTvlBLg2AsBHxUHqtuuxWCQ==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
-          "Boutquin.MarketData.Catalog": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0",
+          "Boutquin.MarketData.Catalog": "3.0.0"
         }
       },
       "Boutquin.MarketData.Orchestration": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "TAks0tR9Uwz+70N93Lpduf0lNEGzQN0dm7XotMkjB44WKBqCLHiWjgM7oofXXf46DpM9VT4vVeMgJAbtFAq/4g==",
+        "resolved": "3.0.0",
+        "contentHash": "R408XHfr+kbGjIfFI4NguiTScqRlujKhTR+O/4l1ev8YwKrtF9OlXUujOQlqG8q+Y1XOuT5dUMkI4PFQqGgUig==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
-          "Boutquin.MarketData.Cache": "2.0.1",
-          "Boutquin.MarketData.Calendars": "2.0.1",
-          "Boutquin.MarketData.Catalog": "2.0.1",
-          "Boutquin.MarketData.Normalization": "2.0.1",
-          "Boutquin.MarketData.Storage": "2.0.1",
-          "Boutquin.MarketData.Transport": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
+          "Boutquin.MarketData.Cache": "3.0.0",
+          "Boutquin.MarketData.Calendars": "3.0.0",
+          "Boutquin.MarketData.Catalog": "3.0.0",
+          "Boutquin.MarketData.Normalization": "3.0.0",
+          "Boutquin.MarketData.Storage": "3.0.0",
+          "Boutquin.MarketData.Transport": "3.0.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
           "Microsoft.Extensions.Options": "10.0.14"
@@ -166,10 +166,10 @@
       },
       "Boutquin.MarketData.Transport": {
         "type": "Transitive",
-        "resolved": "2.0.1",
-        "contentHash": "6lXhH4+hoIOr7/I++d4BSejFI9DbuGw9WlZt3KUw+UxKieLpJLfYPQz9IgNNtrzDX9QXTzvGkTD8ts0i7i7BKg==",
+        "resolved": "3.0.0",
+        "contentHash": "56I7WXXeGKwhbspXVRDmhuWWQPndY7cF8X0bOQhotF2vqhQsSTyRBpFGity80oW9XIncqv/CL5/Pey2LxKUGAw==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
           "Polly.Core": "8.9.0",
           "Polly.RateLimiting": "8.9.0",
@@ -307,28 +307,28 @@
       "boutquin.optionpricing.domain": {
         "type": "Project",
         "dependencies": {
-          "Boutquin.Curves.Abstractions": "[2.0.0, 2.0.0]",
+          "Boutquin.Curves.Abstractions": "[3.0.0, 3.0.0]",
           "Boutquin.Domain": "[1.0.1, 1.0.1]",
-          "Boutquin.MarketData.Abstractions": "[2.0.1, 2.0.1]",
-          "Boutquin.MarketData.Storage": "[2.0.1, 2.0.1]",
+          "Boutquin.MarketData.Abstractions": "[3.0.0, 3.0.0]",
+          "Boutquin.MarketData.Storage": "[3.0.0, 3.0.0]",
           "Boutquin.OptionPricing.Abstractions": "[1.0.0, )"
         }
       },
       "boutquin.optionpricing.examples.shared": {
         "type": "Project",
         "dependencies": {
-          "Boutquin.Curves.Bootstrap": "[2.0.0, 2.0.0]",
-          "Boutquin.Curves.Core": "[2.0.0, 2.0.0]",
-          "Boutquin.Curves.Recipes": "[2.0.0, 2.0.0]",
-          "Boutquin.MarketData.Calendars": "[2.0.1, 2.0.1]",
-          "Boutquin.MarketData.Conventions": "[2.0.1, 2.0.1]",
+          "Boutquin.Curves.Bootstrap": "[3.0.0, 3.0.0]",
+          "Boutquin.Curves.Core": "[3.0.0, 3.0.0]",
+          "Boutquin.Curves.Recipes": "[3.0.0, 3.0.0]",
+          "Boutquin.MarketData.Calendars": "[3.0.0, 3.0.0]",
+          "Boutquin.MarketData.Conventions": "[3.0.0, 3.0.0]",
           "Boutquin.OptionPricing.Domain": "[1.0.0, )"
         }
       },
       "boutquin.optionpricing.trees": {
         "type": "Project",
         "dependencies": {
-          "Boutquin.Curves.Abstractions": "[2.0.0, 2.0.0]",
+          "Boutquin.Curves.Abstractions": "[3.0.0, 3.0.0]",
           "Boutquin.Numerics": "[2.0.0, 2.0.0]",
           "Boutquin.OptionPricing.Abstractions": "[1.0.0, )",
           "Boutquin.OptionPricing.Domain": "[1.0.0, )"
@@ -336,112 +336,112 @@
       },
       "Boutquin.Curves.Abstractions": {
         "type": "CentralTransitive",
-        "requested": "[2.0.0, 2.0.0]",
-        "resolved": "2.0.0",
-        "contentHash": "7JXDqxFLwAh8+iKbKz45/AoPXfsX92x4ZXbhuW2Hn4c983FgylFo7miT0lunGkc8pgqFKyQtWxRCjBFl8tn2qg==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "HhCNhSQzEuhZSWPVJmwyNZ2dEkrT3XICxyJzf9VFDy/y5ivX7PBtGs/yUIhfKVXh3p+iK03azU7AFBtEi/nECw==",
         "dependencies": {
           "Boutquin.Domain": "[1.0.1]",
-          "Boutquin.MarketData.Abstractions": "[2.0.1]",
-          "Boutquin.MarketData.Conventions": "[2.0.1]",
-          "Boutquin.MarketData.DayCount": "[2.0.1]",
+          "Boutquin.MarketData.Abstractions": "[3.0.0]",
+          "Boutquin.MarketData.Conventions": "[3.0.0]",
+          "Boutquin.MarketData.DayCount": "[3.0.0]",
           "Boutquin.Storage.Domain": "[2.0.1]"
         }
       },
       "Boutquin.Curves.Bootstrap": {
         "type": "CentralTransitive",
-        "requested": "[2.0.0, 2.0.0]",
-        "resolved": "2.0.0",
-        "contentHash": "xDNr4UkERxEmVtcMPziNPdzvCl6a3gYpn9xmU/pWQjcSnTyzAc26cJs5n3yOkTCtZb6U4sbb9Wpupmgvg3kUow==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "ZbM8H+PZK04mApOY6qYBDgDA3KemjMKeRwwM7BKoCUzjZVWEaENXfUfwvrEZMTBdWReOY5wMHOeBCAHQbi2/mA==",
         "dependencies": {
-          "Boutquin.Curves.Abstractions": "[2.0.0]",
-          "Boutquin.Curves.Conventions": "[2.0.0]",
-          "Boutquin.Curves.Core": "[2.0.0]",
-          "Boutquin.Curves.Interpolation": "[2.0.0]",
+          "Boutquin.Curves.Abstractions": "[3.0.0]",
+          "Boutquin.Curves.Conventions": "[3.0.0]",
+          "Boutquin.Curves.Core": "[3.0.0]",
+          "Boutquin.Curves.Interpolation": "[3.0.0]",
           "Boutquin.Domain": "[1.0.1]",
-          "Boutquin.MarketData.Abstractions": "[2.0.1]",
-          "Boutquin.MarketData.Calendars": "[2.0.1]",
-          "Boutquin.MarketData.Conventions": "[2.0.1]",
-          "Boutquin.MarketData.DayCount": "[2.0.1]",
+          "Boutquin.MarketData.Abstractions": "[3.0.0]",
+          "Boutquin.MarketData.Calendars": "[3.0.0]",
+          "Boutquin.MarketData.Conventions": "[3.0.0]",
+          "Boutquin.MarketData.DayCount": "[3.0.0]",
           "Boutquin.Numerics": "[2.0.0]",
           "Boutquin.Storage.Domain": "[2.0.1]"
         }
       },
       "Boutquin.Curves.Conventions": {
         "type": "CentralTransitive",
-        "requested": "[2.0.0, 2.0.0]",
-        "resolved": "2.0.0",
-        "contentHash": "aoM6aX7uegkb0z/5DIOmzBbYl58XiD1Al30cQNcgJ8qYKonueH6RULFswy8zsSJUZyMlN819g0kgcomxePY8FQ==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "/B0qF60+5eq3S9gfwNKdk6/A6I7zgzf4iIQZMA5dBHGPnnPimDqO14GbUO7FrdPp/pcDuWddzxV6ZcI5YncYsQ==",
         "dependencies": {
-          "Boutquin.Curves.Abstractions": "[2.0.0]",
+          "Boutquin.Curves.Abstractions": "[3.0.0]",
           "Boutquin.Domain": "[1.0.1]",
-          "Boutquin.MarketData.Abstractions": "[2.0.1]",
-          "Boutquin.MarketData.Calendars": "[2.0.1]",
-          "Boutquin.MarketData.Conventions": "[2.0.1]",
-          "Boutquin.MarketData.DayCount": "[2.0.1]",
+          "Boutquin.MarketData.Abstractions": "[3.0.0]",
+          "Boutquin.MarketData.Calendars": "[3.0.0]",
+          "Boutquin.MarketData.Conventions": "[3.0.0]",
+          "Boutquin.MarketData.DayCount": "[3.0.0]",
           "Boutquin.Storage.Domain": "[2.0.1]"
         }
       },
       "Boutquin.Curves.Core": {
         "type": "CentralTransitive",
-        "requested": "[2.0.0, 2.0.0]",
-        "resolved": "2.0.0",
-        "contentHash": "KL61kEejTFMhlaJfJxT/qGR7vU/v7gr9Gu/L3TeNFqiozV2lplIXHQ6wrv695yRKsPaMvF+Pc2fkYc+ZKpHieQ==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "30eNWny0n8WEo2kNQG4UIOEoeJEfv9SxBVF6n5vOubykjKvl7DHEY/HS39eVIY+SPCvMEACypJIZQTvyEn5O8w==",
         "dependencies": {
-          "Boutquin.Curves.Abstractions": "[2.0.0]",
-          "Boutquin.Curves.Conventions": "[2.0.0]",
-          "Boutquin.Curves.Interpolation": "[2.0.0]",
+          "Boutquin.Curves.Abstractions": "[3.0.0]",
+          "Boutquin.Curves.Conventions": "[3.0.0]",
+          "Boutquin.Curves.Interpolation": "[3.0.0]",
           "Boutquin.Domain": "[1.0.1]",
-          "Boutquin.MarketData.Abstractions": "[2.0.1]",
-          "Boutquin.MarketData.Calendars": "[2.0.1]",
-          "Boutquin.MarketData.Conventions": "[2.0.1]",
-          "Boutquin.MarketData.DayCount": "[2.0.1]",
+          "Boutquin.MarketData.Abstractions": "[3.0.0]",
+          "Boutquin.MarketData.Calendars": "[3.0.0]",
+          "Boutquin.MarketData.Conventions": "[3.0.0]",
+          "Boutquin.MarketData.DayCount": "[3.0.0]",
           "Boutquin.Numerics": "[2.0.0]",
           "Boutquin.Storage.Domain": "[2.0.1]"
         }
       },
       "Boutquin.Curves.Interpolation": {
         "type": "CentralTransitive",
-        "requested": "[2.0.0, 2.0.0]",
-        "resolved": "2.0.0",
-        "contentHash": "t8lkitHxCaowk3I1xEYQ0kLVnkvJFUCitlVIWMCqmy2+KpYSlr59ZvjduM6iOH+vm2y1d/TmGSO7ckmyrqVjhA==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "5GCaYddPpPsIP+mwKxPG4CqvJtO2N3OcWHG6oCfm7G9YuhUjYdsQXRagFZqpFGee3B1WyKTcgsfC6mmxpZXCSA==",
         "dependencies": {
-          "Boutquin.Curves.Abstractions": "[2.0.0]",
+          "Boutquin.Curves.Abstractions": "[3.0.0]",
           "Boutquin.Domain": "[1.0.1]",
-          "Boutquin.MarketData.Abstractions": "[2.0.1]",
-          "Boutquin.MarketData.Conventions": "[2.0.1]",
-          "Boutquin.MarketData.DayCount": "[2.0.1]",
+          "Boutquin.MarketData.Abstractions": "[3.0.0]",
+          "Boutquin.MarketData.Conventions": "[3.0.0]",
+          "Boutquin.MarketData.DayCount": "[3.0.0]",
           "Boutquin.Numerics": "[2.0.0]",
           "Boutquin.Storage.Domain": "[2.0.1]"
         }
       },
       "Boutquin.Curves.Recipes": {
         "type": "CentralTransitive",
-        "requested": "[2.0.0, 2.0.0]",
-        "resolved": "2.0.0",
-        "contentHash": "lvqGG+UR9YqsA7TtKiwUqVOyxCLx0C3LHyKGn6oH6elwEGgXE4X7vq7Hn6C6PkGwCMxx5+FmZnmUcoFm89je+A==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "NU1NN3jnOXweh4x2YF0rnvDtd3uSpqk0FBxAVaBKKaYlIeOdvy5ybgOGOmTAXIIVvQNknBw8Mp4UUTpivWjfGw==",
         "dependencies": {
-          "Boutquin.Curves.Abstractions": "[2.0.0]",
-          "Boutquin.Curves.Bootstrap": "[2.0.0]",
-          "Boutquin.Curves.Conventions": "[2.0.0]",
+          "Boutquin.Curves.Abstractions": "[3.0.0]",
+          "Boutquin.Curves.Bootstrap": "[3.0.0]",
+          "Boutquin.Curves.Conventions": "[3.0.0]",
           "Boutquin.Domain": "[1.0.1]",
-          "Boutquin.MarketData.Abstractions": "[2.0.1]",
-          "Boutquin.MarketData.Calendars": "[2.0.1]",
-          "Boutquin.MarketData.Conventions": "[2.0.1]",
-          "Boutquin.MarketData.DayCount": "[2.0.1]",
-          "Boutquin.MarketData.Orchestration": "[2.0.1]",
-          "Boutquin.MarketData.Storage": "[2.0.1]",
+          "Boutquin.MarketData.Abstractions": "[3.0.0]",
+          "Boutquin.MarketData.Calendars": "[3.0.0]",
+          "Boutquin.MarketData.Conventions": "[3.0.0]",
+          "Boutquin.MarketData.DayCount": "[3.0.0]",
+          "Boutquin.MarketData.Orchestration": "[3.0.0]",
+          "Boutquin.MarketData.Storage": "[3.0.0]",
           "Boutquin.Numerics": "[2.0.0]",
           "Boutquin.Storage.Domain": "[2.0.1]",
           "Boutquin.Storage.Infrastructure": "[2.0.1]",
-          "Microsoft.Extensions.Caching.Abstractions": "10.0.14",
-          "Microsoft.Extensions.Caching.Memory": "10.0.14",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
-          "Microsoft.Extensions.Logging.Abstractions": "10.0.14",
-          "Microsoft.Extensions.Options": "10.0.14",
-          "Microsoft.Extensions.Primitives": "10.0.14",
-          "Polly.Core": "8.9.0",
-          "Polly.RateLimiting": "8.9.0",
-          "System.Threading.RateLimiting": "10.0.14",
+          "Microsoft.Extensions.Caching.Abstractions": "11.0.0",
+          "Microsoft.Extensions.Caching.Memory": "11.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "11.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "11.0.0",
+          "Microsoft.Extensions.Options": "11.0.0",
+          "Microsoft.Extensions.Primitives": "11.0.0",
+          "Polly.Core": "8.9.1",
+          "Polly.RateLimiting": "8.9.1",
+          "System.Threading.RateLimiting": "11.0.0",
           "TestableIO.System.IO.Abstractions": "22.3.0",
           "Testably.Abstractions.FileSystem.Interface": "10.4.0"
         }
@@ -454,9 +454,9 @@
       },
       "Boutquin.MarketData.Abstractions": {
         "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "R2piTf5wYylrMtjmK4z+eMqaGi/hd9lrIZPDkn36N4WfW7PFetqvc6qW7A7YawoAODjwm2qTrXv74SHEJPDhAA==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "eAkotKSpmLLycKC+i18WElkVPNMpMnWCeyxN+WjcbJVWtIc3gEIY7xuAb3mk081htVP8hFj2tobMIZUHfrsRBA==",
         "dependencies": {
           "Boutquin.Domain": "1.0.1",
           "Boutquin.Storage.Domain": "2.0.1"
@@ -464,29 +464,29 @@
       },
       "Boutquin.MarketData.Calendars": {
         "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "Xd2e6/9r1EI3rZwKyF5fwwI5wQVF6pvCWDtZRCnAc7hkjX9Memjd13GdxHRO3eM3qEyLnPqH4UCctl198MR6lg==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "/Dt+gdNQxdVFPBS+TVi09TzHlWrkD4S1Bve7cGdbVaGp+4gvDXGHXMnrf7ixN7HWXtXH7mB/vP4mRaIg59K9FQ==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0"
         }
       },
       "Boutquin.MarketData.Conventions": {
         "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "e4elMuQ9rtDRgGUlSoetFLbg5ayTf+5pWV0nVFDWjQYszbhse/zYv4CbKgM5X0AMCdbHrQr0wpXkq6mad8w/9A==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "7uLEKos9jj0J8lJHJP8ZdC/uZWyNGe4yGWchTsG+JE5xyz8NLc4UWeT8NwuAF32oc0fTM28aEOepdzKxM6ufyw==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0"
         }
       },
       "Boutquin.MarketData.Storage": {
         "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "LLyZc+T4BNNrQqtTr+l/KL/8ayGMZ69xv3ugrjO6Xc8LDYWJ/14pMZWjxQZ6PRbNMIMbeh6gD0vCyQNfo/7T8A==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "SUTbVaOIgL8Uwqq7MVr+s5qgVbSkjn9EzWISXJmsSLYUlxBr/7tmsjai6usR9NkjSBeClb/4FWIAjvQA+X10hw==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1",
+          "Boutquin.MarketData.Abstractions": "3.0.0",
           "Boutquin.Storage.Infrastructure": "2.0.1"
         }
       },
