@@ -1,9 +1,25 @@
+// Copyright (c) 2026 Pierre G. Boutquin. All rights reserved.
+//
+//   Licensed under the Apache License, Version 2.0 (the "License").
+//   You may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+//
+
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Security.Cryptography;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
@@ -27,8 +43,10 @@ if (args[0] == "--assembly-only")
 
     Console.WriteLine(JsonSerializer.Serialize(new
     {
-        name = identityAssembly.Name, assemblyVersion = identityAssembly.Version.ToString(),
-        fileVersion = identityFile.FileVersion, informationalVersion = identityFile.ProductVersion,
+        name = identityAssembly.Name,
+        assemblyVersion = identityAssembly.Version.ToString(),
+        fileVersion = identityFile.FileVersion,
+        informationalVersion = identityFile.ProductVersion,
     }));
     return;
 }
@@ -51,6 +69,8 @@ var exportedTypes = metadata.TypeDefinitions.Select(metadata.GetTypeDefinition)
     .Count(type => (type.Attributes & TypeAttributes.VisibilityMask) is TypeAttributes.Public or TypeAttributes.NestedPublic);
 var entry = pe.ReadDebugDirectory().Single(item => item.Type == DebugDirectoryEntryType.CodeView);
 var codeView = pe.ReadCodeViewDebugDirectoryData(entry);
+var checksumEntry = pe.ReadDebugDirectory().Single(item => item.Type == DebugDirectoryEntryType.PdbChecksum);
+var checksum = pe.ReadPdbChecksumDebugDirectoryData(checksumEntry);
 using var pdbStream = File.OpenRead(args[1]);
 using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
 var reader = provider.GetMetadataReader();
@@ -147,7 +167,15 @@ static bool MatchesDocument(string pattern, string path)
 
 Console.WriteLine(JsonSerializer.Serialize(new
 {
-    name = assembly.Name, assemblyVersion = assembly.Version.ToString(),
-    fileVersion = file.FileVersion, informationalVersion = file.ProductVersion,
-    pdbId = Convert.ToHexString(id.AsSpan()), sourceLink, exportedTypes, embeddedSourceCount,
+    name = assembly.Name,
+    assemblyVersion = assembly.Version.ToString(),
+    fileVersion = file.FileVersion,
+    informationalVersion = file.ProductVersion,
+    pdbId = Convert.ToHexString(id.AsSpan()),
+    sourceLink,
+    exportedTypes,
+    embeddedSourceCount,
+    pdbGuid = codeView.Guid.ToString("N"),
+    pdbChecksumAlgorithm = checksum.AlgorithmName,
+    pdbChecksum = Convert.ToHexString(checksum.Checksum.AsSpan()).ToLowerInvariant(),
 }));

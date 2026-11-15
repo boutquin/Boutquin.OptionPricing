@@ -31,7 +31,7 @@ class ReleaseAssetTests(unittest.TestCase):
                 check.validate(feed, tag, digest, "a" * 40)
 
     def test_stable_and_rc_identity_cross_product(self):
-        for version in ('2.0.0', '2.0.0-rc.20261027.4'):
+        for version in ('3.0.0', '3.0.0-rc.20261115.1'):
             with self.subTest(version=version), tempfile.TemporaryDirectory() as d:
                 feed = Path(d)
                 package = feed / 'example.nupkg'

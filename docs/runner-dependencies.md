@@ -21,7 +21,7 @@ CI repeats these checks on Linux, macOS and Windows, plus format, packaged-XML-d
 
 ## Releasing
 
-Release archives are built once from the exact public source commit, qualified, and frozen in a SHA-256 manifest by `scripts/build-rc-candidate.py`. The publication workflow accepts an explicit `v2.0.0` or matching numeric RC tag and the independently recorded manifest hash, downloads that release's original assets, verifies source and package identities, and uploads those same bytes to nuget.org. It never repacks a qualified identity.
+Release archives are built once from the exact public source commit, qualified, and frozen in a SHA-256 manifest by `scripts/build-rc-candidate.py`. The publication workflow accepts an exact stable or numeric RC tag and the independently recorded manifest hash, downloads that release's original assets, verifies source and package identities, and uploads those same bytes to nuget.org. It never repacks a qualified identity.
 
 The publisher authenticates with trusted publishing: the job's GitHub OIDC token, issued for the `release` environment, is exchanged for a one-hour API key, so no long-lived key is stored. Date the `CHANGELOG.md` section and align the README version and tag links before the source push; `python3 scripts/check-release-docs.py <version>` enforces this, and the publication workflow runs it against the tagged source for stable tags. Run the verification workflow on the public source, create the tag and release assets, then dispatch the publisher.
 

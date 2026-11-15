@@ -17,6 +17,18 @@ ROOT = Path(__file__).resolve().parents[1]
 IDS = tuple("Boutquin.OptionPricing." + name for name in (
     "Abstractions", "Domain", "Analytics", "Trees", "Calibration", "Exotics", "Examples.Shared"))
 
+# .NET 11 supplies these exact 11.0.0 contracts in Microsoft.NETCore.App.
+# NuGet privatizes direct prunable references, excluding them from the nuspec:
+# https://learn.microsoft.com/dotnet/core/compatibility/sdk/10.0/nu1510-pruned-references
+# Keep this narrow: a newer package version or a first-party dependency must
+# still be present and checked normally.
+FRAMEWORK_PROVIDED = {
+    "net11.0": {
+        "Microsoft.Extensions.DependencyInjection.Abstractions": "11.0.0",
+        "Microsoft.Extensions.Logging.Abstractions": "11.0.0",
+    },
+}
+
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -54,7 +66,7 @@ def expected_dependencies(commit: str, name: str, version: str, central: dict, l
 
 def verify(feed: Path, version: str, commit: str, manifest: Path, inspector: Path) -> dict:
     require(re.fullmatch(r"[0-9a-f]{40}", commit) is not None, "Expected a full source commit")
-    require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-rc\.[0-9]+(?:\.[0-9]+)*)?", version) is not None,
+    require(re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-rc\.[0-9]+(?:\.[0-9]+)*)?", version) is not None,
             "Expected an exact stable or numeric RC identity without build metadata")
     expected = {f"{name}.{version}.{extension}" for name in IDS for extension in ("nupkg", "snupkg")}
     paths = sorted([*feed.glob("*.nupkg"), *feed.glob("*.snupkg")])
@@ -72,7 +84,20 @@ def verify(feed: Path, version: str, commit: str, manifest: Path, inspector: Pat
     dependency_versions = {item["id"]: item["version"] for item in dependency_lock.get("publishedPackages", [])}
     central_xml = ET.fromstring(source_bytes(commit, "Directory.Packages.props"))
     properties = {item.tag: item.text for group in central_xml.findall("PropertyGroup") for item in group}
-    central = {item.get("Include"): re.sub(r"\$\(([^)]+)\)", lambda m: properties[m.group(1)], item.get("Version")) for item in central_xml.findall(".//PackageVersion")}
+    def central_versions(framework):
+        versions = {}
+        for group in central_xml.findall("ItemGroup"):
+            condition = group.get("Condition", "")
+            if condition:
+                match = re.fullmatch(r"'\$\(TargetFramework\)'\s*==\s*'(net10\.0|net11\.0)'", condition)
+                require(match is not None, "Unsupported central package condition: " + condition)
+                if match.group(1) != framework:
+                    continue
+            for item in group.findall("PackageVersion"):
+                dependency = item.get("Include") or item.get("Update")
+                versions[dependency] = re.sub(r"\$\(([^)]+)\)", lambda m: properties[m.group(1)], item.get("Version"))
+        return versions
+
     xml_check = runpy.run_path(str(ROOT / "scripts/check-package-docs.py"))["package_violations"]
     results = []
     with tempfile.TemporaryDirectory(prefix="optionpricing-package-inspect-") as temporary:
@@ -84,11 +109,12 @@ def verify(feed: Path, version: str, commit: str, manifest: Path, inspector: Pat
             with zipfile.ZipFile(package) as archive, zipfile.ZipFile(symbols) as symbol_archive:
                 require(len(archive.namelist()) == len(set(archive.namelist())), f"Duplicate archive entry: {name}")
                 require(len(symbol_archive.namelist()) == len(set(symbol_archive.namelist())), f"Duplicate symbol entry: {name}")
-                expected_dll = f"lib/net10.0/{name}.dll"
-                expected_pdb = f"lib/net10.0/{name}.pdb"
-                require([entry for entry in archive.namelist() if entry.endswith('.dll')] == [expected_dll],
+                frameworks = ("net10.0", "net11.0")
+                expected_dlls = {f"lib/{framework}/{name}.dll" for framework in frameworks}
+                expected_pdbs = {f"lib/{framework}/{name}.pdb" for framework in frameworks}
+                require({entry for entry in archive.namelist() if entry.endswith('.dll')} == expected_dlls,
                         f"Unexpected runtime DLL inventory: {name}")
-                require([entry for entry in symbol_archive.namelist() if entry.endswith('.pdb')] == [expected_pdb],
+                require({entry for entry in symbol_archive.namelist() if entry.endswith('.pdb')} == expected_pdbs,
                         f"Unexpected symbol inventory: {name}")
                 nuspecs = [entry for entry in archive.namelist() if entry.endswith(".nuspec")]
                 require(len(nuspecs) == 1, f"Expected one nuspec: {name}")
@@ -116,38 +142,43 @@ def verify(feed: Path, version: str, commit: str, manifest: Path, inspector: Pat
                         and license_element.text == "Apache-2.0", f"Wrong license: {name}")
                 require(archive.read(metadata.findtext("{*}readme")) == readme, f"README differs from source: {name}")
                 groups = metadata.findall("./{*}dependencies/{*}group")
-                require(len(groups) == 1 and groups[0].get("targetFramework") == "net10.0",
+                require(len(groups) == 2 and {group.get("targetFramework") for group in groups} == set(frameworks),
                         f"Wrong dependency framework groups: {name}")
-                entries = metadata.findall(".//{*}dependency")
-                require(len(entries) == len(groups[0].findall("{*}dependency")),
+                require(len(metadata.findall(".//{*}dependency")) == sum(len(group.findall("{*}dependency")) for group in groups),
                         f"Unexpected dependency placement: {name}")
-                dependencies = {item.get("id"): item.get("version") for item in entries}
-                require(len(dependencies) == len(entries), f"Duplicate dependency: {name}")
-                expected_dependencies_for_package = expected_dependencies(commit, name, version, central, dependency_versions)
-                # Central transitive pinning writes the repository's own pins of upstream closure members into the
-                # nuspec at their pinned versions; any other extra dependency, or a missing one, is an error.
-                extras = dependencies.keys() - expected_dependencies_for_package.keys()
-                require(expected_dependencies_for_package.keys() <= dependencies.keys() and extras <= central.keys(),
-                        f"Missing or unexpected dependencies: {name}: expected {sorted(expected_dependencies_for_package)}, got {sorted(dependencies)}")
-                for dep in extras:
-                    pinned = central[dep].strip("[]")
-                    allowed = (f"[{pinned}]",) if dep.startswith("Boutquin.") else (pinned, f"[{pinned}]", f"[{pinned}, )")
-                    require(dependencies[dep] in allowed, f"Wrong transitive pin {name} -> {dep}: {dependencies[dep]}")
-                for dep, required in expected_dependencies_for_package.items():
-                    resolved = dependencies[dep]
-                    allowed = (f"[{required.strip('[]')}]",) if dep.startswith('Boutquin.') else (required, f"[{required}]", f"[{required}, )")
-                    require(resolved in allowed,
-                            f"Wrong dependency {name} -> {dep}: {resolved}")
-                dll = scratch / f"{name}.dll"
-                pdb = scratch / f"{name}.pdb"
-                dll.write_bytes(archive.read(f"lib/net10.0/{name}.dll"))
-                pdb.write_bytes(symbol_archive.read(f"lib/net10.0/{name}.pdb"))
-                inspected = subprocess.check_output(["dotnet", str(inspector), str(dll), str(pdb), version, commit], text=True, timeout=120)
-                assembly_identity = json.loads(inspected)
-                require(assembly_identity.get("name") == name, f"Wrong packaged assembly identity: {name}")
-                results.append({"id": name, "dependencies": dependencies, "identity": assembly_identity,
-                                "dllSha256": hashlib.sha256(dll.read_bytes()).hexdigest(),
-                                "pdbSha256": hashlib.sha256(pdb.read_bytes()).hexdigest()})
+                for group in groups:
+                    framework = group.get("targetFramework")
+                    central = central_versions(framework)
+                    entries = group.findall("{*}dependency")
+                    dependencies = {item.get("id"): item.get("version") for item in entries}
+                    require(len(dependencies) == len(entries), f"Duplicate dependency: {name} {framework}")
+                    expected_dependencies_for_package = expected_dependencies(commit, name, version, central, dependency_versions)
+                    extras = dependencies.keys() - expected_dependencies_for_package.keys()
+                    pruned = {dep for dep, required in expected_dependencies_for_package.items()
+                              if FRAMEWORK_PROVIDED.get(framework, {}).get(dep) == required.strip("[]")}
+                    require(expected_dependencies_for_package.keys() - pruned <= dependencies.keys() and extras <= central.keys(),
+                            f"Missing or unexpected dependencies: {name} {framework}")
+                    for dep in extras:
+                        pinned = central[dep].strip("[]")
+                        allowed = (f"[{pinned}]",) if dep.startswith("Boutquin.") else (pinned, f"[{pinned}]", f"[{pinned}, )")
+                        require(dependencies[dep] in allowed, f"Wrong transitive pin {name} {framework} -> {dep}: {dependencies[dep]}")
+                    for dep, required in expected_dependencies_for_package.items():
+                        if dep in pruned and dep not in dependencies:
+                            continue
+                        resolved = dependencies[dep]
+                        allowed = (f"[{required.strip('[]')}]",) if dep.startswith('Boutquin.') else (required, f"[{required}]", f"[{required}, )")
+                        require(resolved in allowed, f"Wrong dependency {name} {framework} -> {dep}: {resolved}")
+                    target = scratch / framework
+                    target.mkdir(exist_ok=True)
+                    dll, pdb = target / f"{name}.dll", target / f"{name}.pdb"
+                    dll.write_bytes(archive.read(f"lib/{framework}/{name}.dll"))
+                    pdb.write_bytes(symbol_archive.read(f"lib/{framework}/{name}.pdb"))
+                    inspected = subprocess.check_output(["dotnet", str(inspector), str(dll), str(pdb), version, commit], text=True, timeout=120)
+                    assembly_identity = json.loads(inspected)
+                    require(assembly_identity.get("name") == name, f"Wrong packaged assembly identity: {name} {framework}")
+                    results.append({"id": name, "framework": framework, "dependencies": dependencies, "identity": assembly_identity,
+                                    "dllSha256": hashlib.sha256(dll.read_bytes()).hexdigest(),
+                                    "pdbSha256": hashlib.sha256(pdb.read_bytes()).hexdigest()})
     final_paths = [*feed.glob("*.nupkg"), *feed.glob("*.snupkg")]
     require(hashes == {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in final_paths},
             "Candidate bytes changed during inspection")
@@ -168,7 +199,7 @@ def main() -> None:
     with args.report.open("x", encoding="utf-8") as stream:
         json.dump(report, stream, indent=2)
         stream.write("\n")
-    print("PASS: 7 immutable package identities, exact candidate dependency versions, DLL/PDB identity and SourceLink")
+    print("PASS: 10 immutable package identities, exact candidate dependency versions, DLL/PDB identity and SourceLink")
 
 
 if __name__ == "__main__":

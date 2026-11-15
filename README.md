@@ -1,17 +1,17 @@
 # Boutquin.OptionPricing
 
 
-Current source targets .NET 10 and .NET 11 and uses the coherent Curves/MarketData/adapter 3.0.0 graph. See [migration guidance](https://github.com/boutquin/Boutquin.OptionPricing/blob/main/docs/migration-3.0.md). The published 2.0.0 installation example below describes the existing release.
+OptionPricing 3.0.0 targets .NET 10 and .NET 11 and uses the coherent signed Curves/MarketData/adapter 3.0.0 graph. See [migration guidance](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/docs/migration-3.0.md).
 
 ## Supported target frameworks
 
 Runtime libraries target both .NET 10 and .NET 11. Build with the .NET 11 SDK selected by `global.json`; install both runtimes to run the full test suite. Compiler tooling retains its .NET Standard target. The .NET 11 target uses the latest stable third-party dependencies verified on NuGet.org on November 14, 2026; target-specific pins preserve the .NET 10 dependency contract.
 
 [![NuGet](https://img.shields.io/nuget/v/Boutquin.OptionPricing.Domain.svg)](https://www.nuget.org/packages/Boutquin.OptionPricing.Domain)
-[![License](https://img.shields.io/github/license/boutquin/Boutquin.OptionPricing)](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/LICENSE.txt)
+[![License](https://img.shields.io/github/license/boutquin/Boutquin.OptionPricing)](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/LICENSE.txt)
 [![Build](https://github.com/boutquin/Boutquin.OptionPricing/actions/workflows/pr-verify.yml/badge.svg)](https://github.com/boutquin/Boutquin.OptionPricing/actions/workflows/pr-verify.yml)
 
-> **2.0.0:** targets .NET 10, `Boutquin.Curves` 2.0.0, `Boutquin.MarketData` 2.0.1 and `Boutquin.Numerics` 2.0.0 from NuGet.org. See the [changelog](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/CHANGELOG.md).
+> **2.0.0:** targets .NET 10, `Boutquin.Curves` 2.0.0, `Boutquin.MarketData` 2.0.1 and `Boutquin.Numerics` 2.0.0 from NuGet.org. See the [changelog](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/CHANGELOG.md).
 
 `Boutquin.OptionPricing` is a concept-first, model-oriented C# library that maps the full conceptual arc of *Black-Scholes and Beyond: Option Pricing Models* into a clean, testable, modular codebase. It is designed as a companion to your reading of the book — every package corresponds to a chapter group, every model carries the assumptions stated in the text, and every example traces the progression from closed-form pricing through tree methods to calibrated implied surfaces.
 
@@ -159,12 +159,12 @@ Tests enforce the following relationships across model families:
 
 ### Installation
 
-Install the explicit version to keep the package family aligned; every dependency is a signed package on nuget.org (see [build verification](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/runner-dependencies.md)).
+Install the explicit version to keep the package family aligned; every dependency is a signed package on nuget.org (see [build verification](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/docs/runner-dependencies.md)).
 
 ```sh
-dotnet add package Boutquin.OptionPricing.Domain --version 2.0.0
-dotnet add package Boutquin.OptionPricing.Analytics --version 2.0.0
-dotnet add package Boutquin.OptionPricing.Trees --version 2.0.0
+dotnet add package Boutquin.OptionPricing.Domain --version 3.0.0
+dotnet add package Boutquin.OptionPricing.Analytics --version 3.0.0
+dotnet add package Boutquin.OptionPricing.Trees --version 3.0.0
 ```
 
 ### Price a European Call (flat-curve market)
@@ -309,7 +309,7 @@ The two executable examples and benchmark harness are verification applications.
 
 Dependencies flow in one direction: Exotics and Calibration depend on Trees and Analytics; all depend on Contracts and Numerics. `Boutquin.OptionPricing` depends on [`Boutquin.Curves`](https://github.com/boutquin/Boutquin.Curves) for curve abstractions — the dependency never flows in reverse.
 
-See [docs/curve-layer.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/curve-layer.md) for the Curves dependency design and [docs/repository-map.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/repository-map.md) for per-package navigation guidance.
+See [docs/curve-layer.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/docs/curve-layer.md) for the Curves dependency design and [docs/repository-map.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/docs/repository-map.md) for per-package navigation guidance.
 
 ## Directory Structure
 
@@ -345,8 +345,8 @@ Boutquin.OptionPricing/
 
 | Document | Description |
 |----------|-------------|
-| [docs/repository-map.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/repository-map.md) | Per-package descriptions with external dependency and test structure |
-| [docs/curve-layer.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/docs/curve-layer.md) | Market curve integration design: why `OptionMarketData` uses curve objects |
+| [docs/repository-map.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/docs/repository-map.md) | Per-package descriptions with external dependency and test structure |
+| [docs/curve-layer.md](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/docs/curve-layer.md) | Market curve integration design: why `OptionMarketData` uses curve objects |
 
 ## Contributing
 
@@ -377,7 +377,7 @@ Boutquin.OptionPricing is open-source software provided under the Apache 2.0 Lic
 
 ## License
 
-This project is licensed under the Apache 2.0 License -- see the [LICENSE](https://github.com/boutquin/Boutquin.OptionPricing/blob/v2.0.0/LICENSE.txt) file for details.
+This project is licensed under the Apache 2.0 License -- see the [LICENSE](https://github.com/boutquin/Boutquin.OptionPricing/blob/v3.0.0/LICENSE.txt) file for details.
 
 ## Contact
 

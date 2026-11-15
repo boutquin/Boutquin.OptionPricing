@@ -14,4 +14,7 @@
     <ProjectReference Include="../Boutquin.OptionPricing.Domain/Boutquin.OptionPricing.Domain.csproj" />
     <PackageReference Include="Boutquin.Numerics" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

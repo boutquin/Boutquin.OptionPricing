@@ -1,0 +1,13 @@
+#nullable enable
+Boutquin.OptionPricing.Exotics.Barriers.BarrierMonitoringAdjustments
+Boutquin.OptionPricing.Exotics.Barriers.BarrierParity
+Boutquin.OptionPricing.Exotics.Barriers.BarrierTreePricer
+Boutquin.OptionPricing.Exotics.Barriers.BarrierTreePricer.BarrierTreePricer() -> void
+Boutquin.OptionPricing.Exotics.Barriers.BarrierTreePricer.Price(Boutquin.OptionPricing.Domain.Contracts.BarrierOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Exotics.Barriers.BarrierTreePricer.PriceDiscretelyMonitored(Boutquin.OptionPricing.Domain.Contracts.BarrierOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Trees.Binomial.BinomialTree! tree, int monitoringDates) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Exotics.Barriers.SmileAwareBarrierPricer
+Boutquin.OptionPricing.Exotics.Barriers.SmileAwareBarrierPricer.Price(Boutquin.OptionPricing.Domain.Contracts.BarrierOption! option, Boutquin.OptionPricing.Domain.Market.OptionMarketData! market, Boutquin.OptionPricing.Calibration.ImpliedTrees.ImpliedTreeResult! calibration) -> Boutquin.OptionPricing.Domain.Results.PriceResult!
+Boutquin.OptionPricing.Exotics.Barriers.SmileAwareBarrierPricer.SmileAwareBarrierPricer() -> void
+static Boutquin.OptionPricing.Exotics.Barriers.BarrierMonitoringAdjustments.AdjustedBarrierLevel(decimal barrierLevel, Boutquin.OptionPricing.Domain.Enums.BarrierDirection direction, double volatility, double timeToExpiry, int monitoringDates) -> decimal
+static Boutquin.OptionPricing.Exotics.Barriers.BarrierParity.ImpliedKnockInPrice(decimal vanillaPrice, decimal knockOutPrice) -> decimal
+static Boutquin.OptionPricing.Exotics.Barriers.BarrierParity.ImpliedKnockOutPrice(decimal vanillaPrice, decimal knockInPrice) -> decimal

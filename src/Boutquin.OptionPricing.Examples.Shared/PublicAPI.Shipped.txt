@@ -1,0 +1,8 @@
+#nullable enable
+Boutquin.OptionPricing.Examples.Shared.MarketHelpers
+Boutquin.OptionPricing.Examples.Shared.SimulationHelpers
+static Boutquin.OptionPricing.Examples.Shared.MarketHelpers.BuildUsdSnapshotAsync(System.DateOnly valuationDate) -> System.Threading.Tasks.Task<Boutquin.Curves.Recipes.CurveSnapshot!>!
+static Boutquin.OptionPricing.Examples.Shared.MarketHelpers.CreateBootstrappedMarketAsync(System.DateOnly valuationDate, decimal spot, double flatVol) -> System.Threading.Tasks.Task<Boutquin.OptionPricing.Domain.Market.OptionMarketData!>!
+static Boutquin.OptionPricing.Examples.Shared.MarketHelpers.CreateFlatMarket(System.DateOnly valuationDate, decimal spot, double flatVolatility, double riskFreeRate, double dividendYield) -> Boutquin.OptionPricing.Domain.Market.OptionMarketData!
+static Boutquin.OptionPricing.Examples.Shared.MarketHelpers.CreateReferenceData() -> Boutquin.Curves.Bootstrap.ReferenceData.SimpleReferenceDataProvider!
+static Boutquin.OptionPricing.Examples.Shared.SimulationHelpers.NormalSample(System.Random! rng) -> double

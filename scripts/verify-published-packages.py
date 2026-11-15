@@ -10,6 +10,7 @@ Usage: verify-published-packages.py <version> <candidate packages dir> <work dir
 """
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 import zipfile
@@ -17,7 +18,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 IDS = tuple('Boutquin.OptionPricing.' + suffix for suffix in (
     'Abstractions', 'Domain', 'Analytics', 'Trees', 'Calibration', 'Exotics', 'Examples.Shared'))
-CONFIG = ('<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear/>'
+CONFIG = ('<?xml version="1.0" encoding="utf-8"?><configuration><fallbackPackageFolders><clear/></fallbackPackageFolders><packageSources><clear/>'
           '<add key="nuget.org" value="https://api.nuget.org/v3/index.json"/></packageSources></configuration>')
 
 
@@ -34,22 +35,26 @@ def main():
     args = parser.parse_args()
     work = args.work.resolve()
     work.mkdir(parents=True, exist_ok=False)
-    refs = ''.join(f'<PackageReference Include="{name}" Version="{args.version}"/>' for name in IDS)
+    refs = ''.join(f'<PackageReference Include="{name}" Version="[{args.version}]"/>' for name in IDS)
     (work / 'nuget.config').write_text(CONFIG)
     (work / 'c.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType>'
-                                   f'<TargetFramework>net10.0</TargetFramework></PropertyGroup><ItemGroup>{refs}</ItemGroup></Project>')
+                                   f'<TargetFrameworks>net10.0;net11.0</TargetFrameworks></PropertyGroup><ItemGroup>{refs}</ItemGroup></Project>')
     loads = ''.join(f'Console.WriteLine("{n} " + Assembly.Load("{n}").GetName().Version + " " + '
                     f'Assembly.Load("{n}").GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);\n'
                     for n in IDS)
     (work / 'P.cs').write_text('using System;\nusing System.Reflection;\n' + loads)
     packages = work / 'pk'
-    subprocess.run(['dotnet', 'restore', '--packages', str(packages), '--no-cache'], cwd=work, check=True)
-    subprocess.run(['dotnet', 'run', '-c', 'Release', '--no-restore'], cwd=work, check=True)
+    restore = ['dotnet', 'restore', '--configfile', 'nuget.config', '--packages', str(packages), '--no-http-cache', '-p:RestorePackagesWithLockFile=true', '-p:_WorkloadLibraryPacksFolder=' + str(work / 'absent-sdk-feed')]
+    subprocess.run(restore, cwd=work, check=True)
+    subprocess.run(restore + ['--locked-mode'], cwd=work, check=True)
+    for framework in ('net10.0', 'net11.0'):
+        subprocess.run(['dotnet', 'run', '-c', 'Release', '--no-restore', '--framework', framework], cwd=work, check=True)
     bad = []
     for name in IDS:
         file = f'{name}.{args.version}.nupkg'
         candidate = payload(args.candidate / file)
         published_path = packages / name.lower() / args.version.lower() / file.lower()
+        subprocess.run(['dotnet', 'nuget', 'verify', str(published_path), '--all', '--verbosity', 'detailed'], check=True)
         published = payload(published_path)
         with zipfile.ZipFile(published_path) as archive:
             signed = '.signature.p7s' in archive.namelist()
@@ -60,7 +65,23 @@ def main():
             bad.append(name)
     if bad:
         raise SystemExit('Published payload differs from the candidate: ' + ', '.join(bad))
-    print(f'PASS: {len(IDS)} published packages are signed and payload-identical to the qualified candidate')
+    assets = json.loads((work / 'obj/project.assets.json').read_text())
+    if {Path(p).resolve() for p in assets['packageFolders']} != {packages}:
+        raise ValueError('Non-isolated package folder')
+    copies = []
+    for name in IDS:
+        metadata = json.loads((packages / name.lower() / args.version.lower() / '.nupkg.metadata').read_text())
+        if metadata['source'] != 'https://api.nuget.org/v3/index.json':
+            raise ValueError('Non-public package source: ' + name)
+        with zipfile.ZipFile(args.candidate / f'{name}.{args.version}.nupkg') as archive:
+            for framework in ('net10.0', 'net11.0'):
+                expected = archive.read(f'lib/{framework}/{name}.dll')
+                actual = (work / 'bin/Release' / framework / (name + '.dll')).read_bytes()
+                if actual != expected:
+                    raise ValueError('Runtime DLL substitution: ' + name + ' ' + framework)
+                copies.append(dict(package=name, framework=framework, sha256=hashlib.sha256(actual).hexdigest()))
+    (work / 'receipt.json').write_text(json.dumps(dict(status='PASS', version=args.version, signedPayloadIdenticalPackages=list(IDS), runtimeCopies=copies, source='https://api.nuget.org/v3/index.json', coldAndLockedRestore=True), indent=2) + '\n')
+    print(f'PASS: {len(IDS)} signed payload-identical packages and {len(copies)} actual runtime DLLs from nuget.org alone')
 
 
 if __name__ == '__main__':
