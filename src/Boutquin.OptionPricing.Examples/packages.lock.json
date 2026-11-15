@@ -320,7 +320,7 @@
           "Boutquin.Curves.Bootstrap": "[2.0.0, 2.0.0]",
           "Boutquin.Curves.Core": "[2.0.0, 2.0.0]",
           "Boutquin.Curves.Recipes": "[2.0.0, 2.0.0]",
-          "Boutquin.MarketData.Calendars": "[2.0.1, 2.0.1]",
+          "Boutquin.MarketData.Calendars": "[3.0.0, 3.0.0]",
           "Boutquin.MarketData.Conventions": "[2.0.1, 2.0.1]",
           "Boutquin.OptionPricing.Domain": "[1.0.0, )"
         }
@@ -464,11 +464,11 @@
       },
       "Boutquin.MarketData.Calendars": {
         "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "Xd2e6/9r1EI3rZwKyF5fwwI5wQVF6pvCWDtZRCnAc7hkjX9Memjd13GdxHRO3eM3qEyLnPqH4UCctl198MR6lg==",
+        "requested": "[3.0.0, 3.0.0]",
+        "resolved": "3.0.0",
+        "contentHash": "/Dt+gdNQxdVFPBS+TVi09TzHlWrkD4S1Bve7cGdbVaGp+4gvDXGHXMnrf7ixN7HWXtXH7mB/vP4mRaIg59K9FQ==",
         "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
+          "Boutquin.MarketData.Abstractions": "3.0.0"
         }
       },
       "Boutquin.MarketData.Conventions": {

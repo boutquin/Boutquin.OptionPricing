@@ -293,15 +293,6 @@
           "Boutquin.Storage.Domain": "2.0.1"
         }
       },
-      "Boutquin.MarketData.Calendars": {
-        "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "Xd2e6/9r1EI3rZwKyF5fwwI5wQVF6pvCWDtZRCnAc7hkjX9Memjd13GdxHRO3eM3qEyLnPqH4UCctl198MR6lg==",
-        "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
-        }
-      },
       "Boutquin.MarketData.Conventions": {
         "type": "CentralTransitive",
         "requested": "[2.0.1, 2.0.1]",
@@ -639,15 +630,6 @@
         "dependencies": {
           "Boutquin.Domain": "1.0.1",
           "Boutquin.Storage.Domain": "2.0.1"
-        }
-      },
-      "Boutquin.MarketData.Calendars": {
-        "type": "CentralTransitive",
-        "requested": "[2.0.1, 2.0.1]",
-        "resolved": "2.0.1",
-        "contentHash": "Xd2e6/9r1EI3rZwKyF5fwwI5wQVF6pvCWDtZRCnAc7hkjX9Memjd13GdxHRO3eM3qEyLnPqH4UCctl198MR6lg==",
-        "dependencies": {
-          "Boutquin.MarketData.Abstractions": "2.0.1"
         }
       },
       "Boutquin.MarketData.Conventions": {
